@@ -1,5 +1,6 @@
 // client/src/components/Card.jsx
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const suitColor = (suit) => (suit === '♥' || suit === '♦' ? 'text-danger' : 'text-bg');
 const suitFill  = (suit) => (suit === '♥' || suit === '♦' ? 'var(--color-danger)' : 'var(--color-bg)');
@@ -29,34 +30,43 @@ export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=f
   const S = sizes[size] || sizes.md;
   const borderSel = isSelected ? 'ring-2 ring-primary shadow-primary/40 -translate-y-2' : 'ring-1 ring-border';
   return (
-    <div
+    <motion.div
       role="button"
       tabIndex={0}
       onClick={onClick}
-      className={`relative rounded-xl transition-transform duration-200 cursor-pointer select-none ${borderSel} ${className}`}
-      style={{ width: S.w, height: S.h, ...style }}
+      className={`relative rounded-xl cursor-pointer select-none ${borderSel} ${className}`}
+      style={{ width: S.w, height: S.h, perspective: 600, ...style }}
+      whileHover={{ y: -4 }}
     >
-      {isFaceUp ? (
-        <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
-          <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
-            <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
-            <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
-          </div>
-          <div className="absolute bottom-1 right-1 flex flex-col items-center rotate-180 leading-none">
-            <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
-            <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
-          </div>
-          <div className="w-full h-full flex items-center justify-center">
-            <SuitSvg suit={suit} size={S.pip} />
+      <motion.div
+        className="relative w-full h-full"
+        style={{ transformStyle: 'preserve-3d' }}
+        animate={{ rotateY: isFaceUp ? 0 : 180 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden' }}>
+          <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
+            <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
+              <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
+              <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+            </div>
+            <div className="absolute bottom-1 right-1 flex flex-col items-center rotate-180 leading-none">
+              <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
+              <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+            </div>
+            <div className="w-full h-full flex items-center justify-center">
+              <SuitSvg suit={suit} size={S.pip} />
+            </div>
           </div>
         </div>
-      ) : (
-        <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
-          <div className="w-full h-full grid place-items-center">
-            <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
+        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+          <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
+            <div className="w-full h-full grid place-items-center">
+              <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
+            </div>
           </div>
         </div>
-      )}
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

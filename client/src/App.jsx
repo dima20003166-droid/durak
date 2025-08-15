@@ -10,6 +10,7 @@ import LeaderboardScreen from './pages/LeaderboardScreen';
 import AdminPanel from './pages/AdminPanel';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
+import { setTheme } from './theme';
 
 export default function App() {
   const [page, setPage] = useState('auth');
@@ -19,6 +20,10 @@ export default function App() {
   const [currentRoom, setCurrentRoom] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [siteSettings, setSiteSettings] = useState({ commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
+  const [theme, setThemeState] = useState('dark');
+
+  useEffect(() => { setTheme(theme); }, [theme]);
+  const toggleTheme = () => setThemeState(t => t === 'dark' ? 'light' : 'dark');
 
   useEffect(() => {
     socketService.connect();
@@ -96,7 +101,15 @@ return () => { socketService.disconnect(); };
 
   return (
     <ErrorBoundary>
-        <div className="bg-bg text-text min-h-screen">{renderPage()}</div>
+      <div className="bg-bg text-text min-h-screen relative">
+        {renderPage()}
+        <button
+          className="fixed bottom-4 right-4 px-3 py-2 rounded bg-primary text-text shadow-md"
+          onClick={toggleTheme}
+        >
+          {theme === 'dark' ? '🌙' : '☀️'}
+        </button>
+      </div>
     </ErrorBoundary>
   );
 }
