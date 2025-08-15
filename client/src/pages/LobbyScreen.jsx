@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
@@ -328,51 +329,76 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
             <h2 className="text-xl font-semibold mb-4 text-center">Общий чат</h2>
 
             <div className="flex-grow space-y-1 overflow-y-auto custom-scroll p-2 mb-4 max-h-[60vh] md:max-h-[70vh]">
-            {chatLoading ? (
-              Array.from({ length: 5 }).map((_, i) => <ChatMessageSkeleton key={i} />)
-            ) : (
-              Array.isArray(chatMessages) && chatMessages.map((msg, index) => {
-                const isMine = (msg.user?.id && user?.id && msg.user.id === user.id) || (msg.user?.username === user?.username);
-                const userRole = msg.user?.role;
-                const nameColor = userRole === 'admin' ? 'text-accent' : userRole === 'moderator' ? 'text-primary' : 'text-text';
-                const canModerate = user && ['admin', 'moderator'].includes(user.role) && user.id !== msg.user?.id;
+              {chatLoading ? (
+                Array.from({ length: 5 }).map((_, i) => <ChatMessageSkeleton key={i} />)
+              ) : (
+                <AnimatePresence initial={false}>
+                  {Array.isArray(chatMessages) && chatMessages.map((msg, index) => {
+                    const isMine = (msg.user?.id && user?.id && msg.user.id === user.id) || (msg.user?.username === user?.username);
+                    const userRole = msg.user?.role;
+                    const nameColor = userRole === 'admin' ? 'text-accent' : userRole === 'moderator' ? 'text-primary' : 'text-text';
+                    const canModerate = user && ['admin', 'moderator'].includes(user.role) && user.id !== msg.user?.id;
 
-                return (
-                    <div key={msg.id || index} className={`flex items-end gap-1.5 mb-1 ${isMine ? 'justify-end' : ''}`}>
-                    {!isMine && (
-                        <img
-                        className="w-8 h-8 rounded-full object-cover cursor-pointer self-start"
-                        src={resolveAvatarUrl(msg.user?.avatarUrl, `https://placehold.co/32x32/1f2937/ffffff?text=${(msg.user?.username || 'U')[0]}`)}
-                        alt="avatar"
-                        onClick={() => openProfile(msg.user)}
-                        title="Открыть профиль"
-                        />
-                    )}
-                    <div className={`group flex items-center gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <div
+                    return (
+                      <motion.div
+                        key={msg.id || index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className={`flex items-end gap-1.5 mb-1 ${isMine ? 'justify-end' : ''}`}
+                      >
+                        {!isMine && (
+                          <img
+                            className="w-8 h-8 rounded-full object-cover cursor-pointer self-start"
+                            src={resolveAvatarUrl(msg.user?.avatarUrl, `https://placehold.co/32x32/1f2937/ffffff?text=${(msg.user?.username || 'U')[0]}`)}
+                            alt="avatar"
+                            onClick={() => openProfile(msg.user)}
+                            title="Открыть профиль"
+                          />
+                        )}
+                        <div className={`group flex items-center gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <div
                             className={`flex flex-col w-fit max-w-xs leading-1.5 px-3 py-1.5 rounded-lg ${
-                            isMine ? 'bg-primary/20 rounded-br-none' : 'bg-surface rounded-bl-none'
+                              isMine ? 'bg-primary/20 rounded-br-none' : 'bg-surface rounded-bl-none'
                             }`}
-                        >
-                              <span className={`text-sm font-semibold ${nameColor} flex items-center gap-1`}>
-                                  {msg.user?.username || 'Игрок'}
-                                  {msg.user?.role === 'admin' && <AdminBadge />}
-                              </span>
-                              <p className="text-sm font-normal text-text" style={{ wordBreak: 'break-word' }}>{msg.text}</p>
+                          >
+                            <span className={`text-sm font-semibold ${nameColor} flex items-center gap-1`}>
+                              {msg.user?.username || 'Игрок'}
+                              {msg.user?.role === 'admin' && <AdminBadge />}
+                            </span>
+                            <p className="text-sm font-normal text-text" style={{ wordBreak: 'break-word' }}>{msg.text}</p>
                             <div className="text-[10px] text-muted mt-0.5 self-end">
-                                {formatTime(msg.createdAt || msg.timestamp)}
+                              {formatTime(msg.createdAt || msg.timestamp)}
                             </div>
-                        </div>
-                        {canModerate &&
-                            <button onClick={(e) => handleOpenModerationMenu(e, msg)} className="self-center text-muted hover:text-text opacity-0 group-hover:opacity-100 transition-opacity">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                          </div>
+                          {canModerate && (
+                            <button
+                              onClick={(e) => handleOpenModerationMenu(e, msg)}
+                              className="self-center text-muted hover:text-text opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <circle cx="12" cy="12" r="1" />
+                                <circle cx="12" cy="5" r="1" />
+                                <circle cx="12" cy="19" r="1" />
+                              </svg>
                             </button>
-                        }
-                    </div>
-                    </div>
-                );
-                })
-            )}
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              )}
               <div ref={chatEndRef} />
             </div>
 
