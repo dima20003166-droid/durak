@@ -1,7 +1,9 @@
 // client/src/services/socketService.js
 import io from 'socket.io-client';
 const SERVER_URL = "http://localhost:4000";
-const IS_DEV = import.meta.env.DEV;
+const IS_DEV =
+  import.meta.env?.DEV ||
+  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development');
 
 class SocketService {
   socket;
