@@ -391,7 +391,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
               const isCurrentDefender = index === gameState.defenderIndex;
 
               return (
-                <div key={p.socketId} className="absolute transition-all duration-500" style={pos}>
+                <div key={p.socketId} className="absolute z-10 transition-all duration-500" style={pos}>
                   <div className="relative flex flex-col items-center w-40">
                     <div
                       className={`absolute -top-6 px-2 py-0.5 text-xs rounded-full whitespace-nowrap ${
@@ -443,18 +443,21 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
               );
             })}
 
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-4">
-              <div className="flex flex-col items-center w-24">
-                <Card {...gameState.trumpCard} />
-                <p className="mt-2">{gameState.deck.length} карт</p>
-              </div>
-              <div className="flex items-center justify-center gap-4 min-w-[300px]">
-                {gameState.table.map((pair, i) => (
-                  <div key={i} className="relative w-20 h-28">
-                    <Card {...pair.attack} />
-                    {pair.defense && <Card {...pair.defense} className="transform translate-x-2 translate-y-2" />}
-                  </div>
-                ))}
+            <div className="absolute inset-0 pointer-events-none z-0">
+              {/* Table wrapper keeps cards below avatars and ignores pointer events */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-4">
+                <div className="flex flex-col items-center w-24">
+                  <Card {...gameState.trumpCard} />
+                  <p className="mt-2">{gameState.deck.length} карт</p>
+                </div>
+                <div className="flex items-center justify-center gap-4 min-w-[300px]">
+                  {gameState.table.map((pair, i) => (
+                    <div key={i} className="relative w-20 h-28">
+                      <Card {...pair.attack} />
+                      {pair.defense && <Card {...pair.defense} className="transform translate-x-2 translate-y-2" />}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
