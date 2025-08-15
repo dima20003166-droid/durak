@@ -106,6 +106,24 @@ function emitToUser(userId, event, payload) {
     }
   } catch {}
 }
+
+async function verifyCaptcha(token) {
+  try {
+    if (!process.env.RECAPTCHA_SECRET) return true;
+    const params = new URLSearchParams();
+    params.append('secret', process.env.RECAPTCHA_SECRET);
+    params.append('response', token || '');
+    const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      body: params
+    });
+    const data = await res.json();
+    return !!data.success;
+  } catch (e) {
+    console.error('CAPTCHA verify error', e);
+    return false;
+  }
+}
 // ---------------------- Admin Stats Helper ----------------------
 async function computeAndBroadcastStats(range = '1d') {
   try {
@@ -480,9 +498,14 @@ function withRateLimit(event, handler) {
 
   console.log(`[+] Игрок подключился: ${socket.id}`);
   setTimeout(broadcastOnlineCount, 0);
+  socket.emit('update_rooms', Object.values(gameRooms));
 
-  socket.on('login', async ({ username, password }) => {
+  socket.on('login', async ({ username, password, captchaToken }) => {
     try {
+      if (!(await verifyCaptcha(captchaToken))) return socket.emit('login_error', 'CAPTCHA не пройдена');
+      if (!username || !password || username.length < 6 || password.length < 6) {
+        return socket.emit('login_error', 'Имя пользователя и пароль должны быть не менее 6 символов.');
+      }
       const snap = await db.collection('users').where('username', '==', username).limit(1).get();
       if (snap.empty) return socket.emit('login_error', 'Пользователь не найден');
       let userDoc; snap.forEach(doc => userDoc = { id: doc.id, ...doc.data() });
@@ -501,14 +524,15 @@ function withRateLimit(event, handler) {
     } catch (e) { console.error('Ошибка логина:', e); socket.emit('login_error', 'Ошибка сервера'); }
   });
 
-  socket.on('register', async ({ username, password }) => {
+  socket.on('register', async ({ username, password, captchaToken }) => {
     try {
-      if (!username || !password || username.length < 3 || password.length < 3) {
-        return socket.emit('register_error', 'Имя пользователя и пароль должны быть не менее 3 символов.');
+      if (!(await verifyCaptcha(captchaToken))) return socket.emit('register_error', 'CAPTCHA не пройдена');
+      if (!username || !password || username.length < 6 || password.length < 6) {
+        return socket.emit('register_error', 'Имя пользователя и пароль должны быть не менее 6 символов.');
       }
       const snap = await db.collection('users').where('username', '==', username).limit(1).get();
       if (!snap.empty) {
-        return socket.emit('register_error', 'Пользователь с таким именем уже существует.');
+        return socket.emit('register_error', 'Никнейм уже занят');
       }
       const newUser = {
         username,

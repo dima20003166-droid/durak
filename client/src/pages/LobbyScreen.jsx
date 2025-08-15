@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
+import LoginModal from '../components/LoginModal';
+import RegisterModal from '../components/RegisterModal';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -150,6 +152,8 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
   const [cancelPrompt, setCancelPrompt] = useState(null);
   const chatEndRef = useRef(null);
   const [moderationMenu, setModerationMenu] = useState({ isOpen: false, msg: null, position: null });
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
 
 
   useEffect(() => {
@@ -194,6 +198,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
   };
 
   const handleSendMessage = () => {
+    if (!user) { setLoginOpen(true); return; }
     if (message.trim()) {
       socketService.sendGlobalMessage(message);
       setMessage('');
@@ -263,26 +268,40 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-primary">DURAK.IO</h1>
         <div className="flex items-center space-x-4">
-          <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
-          <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user.balance} ₽</button>
-          <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> Профиль</button>
-          <div className="flex items-center gap-1">
-            <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
-            <span className="font-semibold">{user.username}</span>
-            {user.role === 'admin' && <AdminBadge />}
-          </div>
-          {user.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><SettingsIcon /></button>}
-          <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
+          {user ? (
+            <>
+              <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
+              <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user.balance} ₽</button>
+              <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> Профиль</button>
+              <div className="flex items-center gap-1">
+                <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
+                <span className="font-semibold">{user.username}</span>
+                {user.role === 'admin' && <AdminBadge />}
+              </div>
+              {user.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><SettingsIcon /></button>}
+              <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => setLoginOpen(true)} className="px-4 py-2 rounded-lg bg-primary text-text font-semibold hover:bg-primary/80">Войти</button>
+              <button onClick={() => setRegisterOpen(true)} className="px-4 py-2 rounded-lg bg-surface text-text font-semibold hover:bg-surface/80">Регистрация</button>
+            </>
+          )}
         </div>
       </header>
 
       <main className="flex-grow flex flex-col lg:flex-row gap-8">
         {/* столы */}
         <div className="w-full lg:w-2/3 flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-semibold">Игровые столы</h2>
-            <button onClick={() => !iAmInAnyRoom && setShowCreateModal(true)} className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors" disabled={iAmInAnyRoom} title={iAmInAnyRoom ? "Нельзя: у вас есть активная игра" : ""}>Создать игру</button>
-          </div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-semibold">Игровые столы</h2>
+              <button
+                onClick={() => { if (!user) { setLoginOpen(true); } else if (!iAmInAnyRoom) { setShowCreateModal(true); } }}
+                className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
+                disabled={!user || iAmInAnyRoom}
+                title={!user ? 'Только для авторизованных' : (iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : '')}
+              >Создать игру</button>
+            </div>
 
           <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 space-y-4 flex-grow">
             {rooms.map((room) => {
@@ -299,30 +318,34 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
                     <div className="text-center font-bold text-lg">
                       {room.players.length}/{room.maxPlayers}
                     </div>
-                    {iAmHere ? (
-                      <>
-                        <button onClick={() => setPage('game')} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">
-                          Вернуться
-                        </button>
-                        {(room.status === 'waiting' && room.creatorId === user.id) && (
-                          <button
-                            onClick={() => setCancelPrompt(room)}
-                            className="font-bold py-2 px-4 rounded-lg bg-danger hover:bg-danger/80 transition-colors"
-                            title="Отменить стол (пока идёт поиск игроков)"
-                          >
-                            Отменить
+                      {iAmHere ? (
+                        <>
+                          <button onClick={() => setPage('game')} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">
+                            Вернуться
                           </button>
-                        )}
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => handleJoinGame(room.id)}
-                        disabled={room.players.length >= room.maxPlayers || room.status === 'playing'}
-                        className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border"
-                      >
-                        {room.status === 'playing' ? 'Идёт игра' : 'Играть'}
-                      </button>
-                    )}
+                          {(room.status === 'waiting' && room.creatorId === user.id) && (
+                            <button
+                              onClick={() => setCancelPrompt(room)}
+                              className="font-bold py-2 px-4 rounded-lg bg-danger hover:bg-danger/80 transition-colors"
+                              title="Отменить стол (пока идёт поиск игроков)"
+                            >
+                              Отменить
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        user ? (
+                          <button
+                            onClick={() => handleJoinGame(room.id)}
+                            disabled={room.players.length >= room.maxPlayers || room.status === 'playing'}
+                            className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border"
+                          >
+                            {room.status === 'playing' ? 'Идёт игра' : 'Играть'}
+                          </button>
+                        ) : (
+                          <button onClick={() => setLoginOpen(true)} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">Войти</button>
+                        )
+                      )}
                   </div>
                 </div>
               );
@@ -382,32 +405,36 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
             </div>
 
             <div className="flex items-center">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => (e.key === 'Enter' ? handleSendMessage() : null)}
-                placeholder="Сообщение..."
-                className="flex-grow bg-surface border border-border rounded-l-lg p-2"
-              />
-              <button
-                onClick={handleSendMessage}
-                className="bg-primary text-text font-bold p-2 rounded-r-lg hover:bg-primary/80"
-              >
-                Отправить
-              </button>
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={(e) => (e.key === 'Enter' ? handleSendMessage() : null)}
+                  placeholder="Сообщение..."
+                  className="flex-grow bg-surface border border-border rounded-l-lg p-2"
+                  disabled={!user}
+                />
+                <button
+                  onClick={handleSendMessage}
+                  className="bg-primary text-text font-bold p-2 rounded-r-lg hover:bg-primary/80 disabled:bg-border"
+                  disabled={!user}
+                >
+                  Отправить
+                </button>
             </div>
           </div>
         </div>
       </main>
 
       {/* Модальные окна */}
-      <ModerationMenu 
-        menuData={moderationMenu} 
-        onAction={handleModerationAction} 
-        onClose={handleCloseModerationMenu} 
-      />
-      {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
+        <ModerationMenu
+          menuData={moderationMenu}
+          onAction={handleModerationAction}
+          onClose={handleCloseModerationMenu}
+        />
+        {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
+        {registerOpen && <RegisterModal onClose={() => setRegisterOpen(false)} />}
+        {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
       {showCreateModal && (
         <div className="fixed inset-0 bg-bg/60 flex items-center justify-center z-50">
           <div className="w-full max-w-md bg-surface rounded-2xl p-8 text-center">
