@@ -5,6 +5,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
 import { RoomCardSkeleton, ChatMessageSkeleton } from '../components/Skeletons';
 import resolveAvatarUrl from '../utils/resolveAvatarUrl';
+import AuthModal from '../components/AuthModal';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -24,10 +25,10 @@ const ModerationMenu = ({ menuData, onAction, onClose }) => {
         return null;
     }
 
-    const { msg, position } = menuData;
+    const { msg, position } = menuData || {};
 
     const handleAction = (action, value) => {
-        onAction(action, msg.id, msg.user.id, value);
+        onAction(action, msg?.id, msg?.user?.id, value);
         onClose();
     };
     
@@ -162,7 +163,7 @@ const TrophyIcon = () => (
   </svg>
 );
 
-const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthModal }) => {
+const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [gameMode, setGameMode] = useState('Подкидной');
   const [numPlayers, setNumPlayers] = useState(2);
@@ -176,6 +177,8 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
   const [moderationMenu, setModerationMenu] = useState({ isOpen: false, msg: null, position: null });
   const [chatLoading, setChatLoading] = useState(true);
   const [roomsLoading, setRoomsLoading] = useState(true);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
 
 
   useEffect(() => {
@@ -188,7 +191,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
       setChatLoading(false);
     };
     const deletedMessageHandler = ({ messageId }) => setChatMessages((prev) => prev.filter(m => m.id !== messageId));
-    const deletedAllUserMessagesHandler = ({ userId }) => setChatMessages((prev) => prev.filter(m => m.user.id !== userId));
+    const deletedAllUserMessagesHandler = ({ userId }) => setChatMessages((prev) => prev.filter(m => m.user?.id !== userId));
 
     socketService.on('global_chat_history', historyHandler);
     socketService.on('new_global_message', newMessageHandler);
@@ -230,19 +233,20 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
   };
 
   const handleSendMessage = () => {
-    if (message.trim()) {
+    if (user && message.trim()) {
       socketService.sendGlobalMessage(message);
       setMessage('');
     }
   };
 
   const handleCreateRoom = () => {
+    if (!user) return;
     if (Array.isArray(rooms) && rooms.some(r => r.players?.some?.(p => p.socketId === socketService.getSocketId()))) { return; }
     socketService.createRoom({
       mode: gameMode,
       players: numPlayers,
       bet: Number(bet) || 0,
-      creatorName: user.username,
+      creatorName: user?.username || 'Гость',
     });
     setShowCreateModal(false);
   };
@@ -298,25 +302,27 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
     <div className="min-h-screen flex flex-col p-4 lg:p-8 bg-bg text-text">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-primary">DURAK.IO</h1>
-        {user ? (
-          <div className="flex items-center space-x-4">
-            <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
-            <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user.balance} ₽</button>
-            <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon/> Профиль</button>
-            <div className="flex items-center gap-1">
-              <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
-              <span className="font-semibold">{user.username}</span>
-              {user.role === 'admin' && <AdminBadge />}
-            </div>
-            {user.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><SettingsIcon /></button>}
-            <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
-          </div>
-        ) : (
-          <div className="flex items-center space-x-4">
-            <button onClick={() => openAuthModal('login')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Войти</button>
-            <button onClick={() => openAuthModal('register')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Регистрация</button>
-          </div>
-        )}
+        <div className="flex items-center space-x-4">
+          <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
+          {user ? (
+            <>
+              <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user?.balance ?? 0} ₽</button>
+              <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> Профиль</button>
+              <div className="flex items-center gap-1">
+                <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user?.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${(user?.username || 'U')[0]}`)} alt="avatar" />
+                <span className="font-semibold">{user?.username || 'Гость'}</span>
+                {user?.role === 'admin' && <AdminBadge />}
+              </div>
+              {user?.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><SettingsIcon /></button>}
+              <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => { setAuthMode('login'); setAuthOpen(true); }} className="px-4 py-2 rounded-lg bg-primary hover:bg-primary/80">Войти</button>
+              <button onClick={() => { setAuthMode('register'); setAuthOpen(true); }} className="px-4 py-2 rounded-lg bg-primary hover:bg-primary/80">Регистрация</button>
+            </>
+          )}
+        </div>
       </header>
 
       <main className="flex-grow flex flex-col lg:flex-row gap-8">
@@ -324,7 +330,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
         <div className="w-full lg:w-2/3 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-3xl font-semibold">Игровые столы</h2>
-            <button onClick={() => !iAmInAnyRoom && setShowCreateModal(true)} className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors" disabled={iAmInAnyRoom} title={iAmInAnyRoom ? "Нельзя: у вас есть активная игра" : ""}>Создать игру</button>
+            <button onClick={() => !iAmInAnyRoom && user && setShowCreateModal(true)} className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors" disabled={iAmInAnyRoom || !user} title={!user ? "Войдите, чтобы создать игру" : iAmInAnyRoom ? "Нельзя: у вас есть активная игра" : ""}>Создать игру</button>
           </div>
 
           <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 space-y-4 flex-grow">
@@ -350,7 +356,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
                           <button onClick={() => setPage('game')} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">
                             Вернуться
                           </button>
-                          {(room.status === 'waiting' && room.creatorId === user.id) && (
+                          {(room.status === 'waiting' && room.creatorId === user?.id) && (
                             <button
                               onClick={() => setCancelPrompt(room)}
                               className="font-bold py-2 px-4 rounded-lg bg-danger hover:bg-danger/80 transition-colors"
@@ -383,15 +389,15 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
           <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4 flex flex-col flex-grow">
             <h2 className="text-xl font-semibold mb-4 text-center">Общий чат</h2>
 
-            <div className="flex-grow space-y-1 overflow-y-auto p-2 mb-4 max-h-[60vh] md:max-h-[70vh]">
+            <div className="flex-grow space-y-1 overflow-y-auto custom-scroll p-2 mb-4 max-h-[60vh] md:max-h-[70vh]">
             {chatLoading ? (
               Array.from({ length: 5 }).map((_, i) => <ChatMessageSkeleton key={i} />)
             ) : (
               chatMessages.map((msg, index) => {
-                const isMine = (msg.user?.id && user?.id && msg.user.id === user.id) || (msg.user?.username === user?.username);
+                const isMine = (msg.user?.id && user?.id && msg.user.id === user?.id) || (msg.user?.username === user?.username);
                 const userRole = msg.user?.role;
                 const nameColor = userRole === 'admin' ? 'text-accent' : userRole === 'moderator' ? 'text-primary' : 'text-text';
-                const canModerate = user && ['admin', 'moderator'].includes(user.role) && user.id !== msg.user?.id;
+                const canModerate = ['admin', 'moderator'].includes(user?.role) && user?.id !== msg.user?.id;
 
                 return (
                     <div key={msg.id || index} className={`flex items-end gap-1.5 mb-1 ${isMine ? 'justify-end' : ''}`}>
@@ -439,11 +445,15 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => (e.key === 'Enter' ? handleSendMessage() : null)}
                 placeholder="Сообщение..."
+                disabled={!user}
+                title={!user ? "Войдите, чтобы отправлять сообщения" : ""}
                 className="flex-grow bg-surface border border-border rounded-l-lg p-2"
               />
               <button
                 onClick={handleSendMessage}
-                className="bg-primary text-text font-bold p-2 rounded-r-lg hover:bg-primary/80"
+                disabled={!user}
+                title={!user ? "Войдите, чтобы отправлять сообщения" : ""}
+                className="bg-primary text-text font-bold p-2 rounded-r-lg hover:bg-primary/80 disabled:bg-border"
               >
                 Отправить
               </button>
@@ -453,12 +463,13 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
       </main>
 
       {/* Модальные окна */}
-      <ModerationMenu 
-        menuData={moderationMenu} 
-        onAction={handleModerationAction} 
-        onClose={handleCloseModerationMenu} 
+      <ModerationMenu
+        menuData={moderationMenu}
+        onAction={handleModerationAction}
+        onClose={handleCloseModerationMenu}
       />
       {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
+      <AuthModal open={authOpen} initialMode={authMode} onClose={() => setAuthOpen(false)} />
       {showCreateModal && (
         <div className="fixed inset-0 bg-bg/60 flex items-center justify-center z-50">
           <div className="w-full max-w-md bg-surface rounded-2xl p-8 text-center">
@@ -544,7 +555,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
 };
 
 LobbyScreen.propTypes = {
-  user: PropTypes.object.isRequired,
+  user: PropTypes.object,
   onLogout: PropTypes.func.isRequired,
   setPage: PropTypes.func.isRequired,
   rooms: PropTypes.arrayOf(PropTypes.object).isRequired,
@@ -552,3 +563,22 @@ LobbyScreen.propTypes = {
 };
 
 export default LobbyScreen;
+
+<style>{`
+  /* Стилизация скроллбара под минимализм сайта */
+  .custom-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 3px;
+  }
+  .custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+  }
+`}</style>
