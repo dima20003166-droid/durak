@@ -1,0 +1,18 @@
+/* client/src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body { @apply bg-gray-900 text-gray-100; }
+
+
+/* Minimal modern scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 transparent; /* thumb, track */
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(107,114,128,.6); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(107,114,128,.9); }
