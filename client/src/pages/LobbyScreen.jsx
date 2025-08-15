@@ -313,8 +313,8 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
           </div>
         ) : (
           <div className="flex items-center space-x-4">
-            <button onClick={() => openAuthModal?.('login')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Войти</button>
-            <button onClick={() => openAuthModal?.('register')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Регистрация</button>
+            <button onClick={() => openAuthModal('login')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Войти</button>
+            <button onClick={() => openAuthModal('register')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Регистрация</button>
           </div>
         )}
       </header>
