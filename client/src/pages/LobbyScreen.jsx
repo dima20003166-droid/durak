@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
+import { RoomCardSkeleton, ChatMessageSkeleton } from '../components/Skeletons';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -150,11 +151,19 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
   const [cancelPrompt, setCancelPrompt] = useState(null);
   const chatEndRef = useRef(null);
   const [moderationMenu, setModerationMenu] = useState({ isOpen: false, msg: null, position: null });
+  const [chatLoading, setChatLoading] = useState(true);
+  const [roomsLoading, setRoomsLoading] = useState(true);
 
 
   useEffect(() => {
-    const historyHandler = (history) => setChatMessages(Array.isArray(history) ? history : []);
-    const newMessageHandler = (newMessage) => setChatMessages((prev) => [...prev, newMessage]);
+    const historyHandler = (history) => {
+      setChatMessages(Array.isArray(history) ? history : []);
+      setChatLoading(false);
+    };
+    const newMessageHandler = (newMessage) => {
+      setChatMessages((prev) => [...prev, newMessage]);
+      setChatLoading(false);
+    };
     const deletedMessageHandler = ({ messageId }) => setChatMessages((prev) => prev.filter(m => m.id !== messageId));
     const deletedAllUserMessagesHandler = ({ userId }) => setChatMessages((prev) => prev.filter(m => m.user.id !== userId));
 
@@ -172,6 +181,10 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
       socketService.off('deleted_all_user_messages', deletedAllUserMessagesHandler);
     };
   }, []);
+
+  useEffect(() => {
+    setRoomsLoading(false);
+  }, [rooms]);
 
   useEffect(() => {
     const onUserStats = ({ userId, stats }) => {
@@ -285,49 +298,53 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
           </div>
 
           <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 space-y-4 flex-grow">
-            {rooms.map((room) => {
-              const iAmHere = room.players.some((p) => p.socketId === mySocketId);
-              return (
-                <div key={room.id} className={`p-4 rounded-lg flex items-center justify-between border transition-all ${iAmHere ? "bg-surface/80 border-primary shadow-[0_0_0_3px_rgba(22,163,74,0.2)]" : "bg-surface border-border"}`}>
-                  <div>
-                    <h3 className="font-bold text-lg">{room.name}</h3>
-                    <p className="text-sm text-muted">
-                      {room.mode}, Ставка: {room.bet} ₽ • {room.status === 'waiting' ? `Ожидание (ещё ${Math.max(0, (Number(room.maxPlayers||2) - Number(room.players?.length||0)))})` : 'В игре'}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-6">
-                    <div className="text-center font-bold text-lg">
-                      {room.players.length}/{room.maxPlayers}
+            {roomsLoading ? (
+              Array.from({ length: 3 }).map((_, i) => <RoomCardSkeleton key={i} />)
+            ) : (
+              rooms.map((room) => {
+                const iAmHere = room.players.some((p) => p.socketId === mySocketId);
+                return (
+                  <div key={room.id} className={`p-4 rounded-lg flex items-center justify-between border transition-all ${iAmHere ? "bg-surface/80 border-primary shadow-[0_0_0_3px_rgba(22,163,74,0.2)]" : "bg-surface border-border"}`}>
+                    <div>
+                      <h3 className="font-bold text-lg">{room.name}</h3>
+                      <p className="text-sm text-muted">
+                        {room.mode}, Ставка: {room.bet} ₽ • {room.status === 'waiting' ? `Ожидание (ещё ${Math.max(0, (Number(room.maxPlayers||2) - Number(room.players?.length||0)))})` : 'В игре'}
+                      </p>
                     </div>
-                    {iAmHere ? (
-                      <>
-                        <button onClick={() => setPage('game')} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">
-                          Вернуться
-                        </button>
-                        {(room.status === 'waiting' && room.creatorId === user.id) && (
-                          <button
-                            onClick={() => setCancelPrompt(room)}
-                            className="font-bold py-2 px-4 rounded-lg bg-danger hover:bg-danger/80 transition-colors"
-                            title="Отменить стол (пока идёт поиск игроков)"
-                          >
-                            Отменить
+                    <div className="flex items-center space-x-6">
+                      <div className="text-center font-bold text-lg">
+                        {room.players.length}/{room.maxPlayers}
+                      </div>
+                      {iAmHere ? (
+                        <>
+                          <button onClick={() => setPage('game')} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">
+                            Вернуться
                           </button>
-                        )}
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => handleJoinGame(room.id)}
-                        disabled={room.players.length >= room.maxPlayers || room.status === 'playing'}
-                        className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border"
-                      >
-                        {room.status === 'playing' ? 'Идёт игра' : 'Играть'}
-                      </button>
-                    )}
+                          {(room.status === 'waiting' && room.creatorId === user.id) && (
+                            <button
+                              onClick={() => setCancelPrompt(room)}
+                              className="font-bold py-2 px-4 rounded-lg bg-danger hover:bg-danger/80 transition-colors"
+                              title="Отменить стол (пока идёт поиск игроков)"
+                            >
+                              Отменить
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleJoinGame(room.id)}
+                          disabled={room.players.length >= room.maxPlayers || room.status === 'playing'}
+                          className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border"
+                        >
+                          {room.status === 'playing' ? 'Идёт игра' : 'Играть'}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-            {rooms.length === 0 && <p className="text-center text-muted">Открытых столов нет.</p>}
+                );
+              })
+            )}
+            {!roomsLoading && rooms.length === 0 && <p className="text-center text-muted">Открытых столов нет.</p>}
           </div>
         </div>
 
@@ -337,7 +354,10 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
             <h2 className="text-xl font-semibold mb-4 text-center">Общий чат</h2>
 
             <div className="flex-grow space-y-1 overflow-y-auto custom-scroll p-2 mb-4 max-h-[60vh] md:max-h-[70vh]">
-            {chatMessages.map((msg, index) => { 
+            {chatLoading ? (
+              Array.from({ length: 5 }).map((_, i) => <ChatMessageSkeleton key={i} />)
+            ) : (
+              chatMessages.map((msg, index) => {
                 const isMine = (msg.user?.id && user?.id && msg.user.id === user.id) || (msg.user?.username === user?.username);
                 const userRole = msg.user?.role;
                 const nameColor = userRole === 'admin' ? 'text-accent' : userRole === 'moderator' ? 'text-primary' : 'text-text';
@@ -369,7 +389,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
                                 {formatTime(msg.createdAt || msg.timestamp)}
                             </div>
                         </div>
-                        {canModerate && 
+                        {canModerate &&
                             <button onClick={(e) => handleOpenModerationMenu(e, msg)} className="self-center text-muted hover:text-text opacity-0 group-hover:opacity-100 transition-opacity">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                             </button>
@@ -377,7 +397,8 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
                     </div>
                     </div>
                 );
-                })}
+                })
+            )}
               <div ref={chatEndRef} />
             </div>
 
