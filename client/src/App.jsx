@@ -1,7 +1,6 @@
 // client/src/App.jsx
 import React, { useState, useEffect } from 'react';
 import socketService from './services/socketService';
-import AuthScreen from './pages/AuthScreen';
 import LobbyScreen from './pages/LobbyScreen';
 import GameScreen from './pages/GameScreen';
 import ProfileScreen from './pages/ProfileScreen';
@@ -14,7 +13,7 @@ import { Button, Box } from '@chakra-ui/react';
 import { setTheme } from './theme';
 
 export default function App() {
-  const [page, setPage] = useState('auth');
+  const [page, setPage] = useState('lobby');
   const [suppressAutoJoinUntil, setSuppressAutoJoinUntil] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
   const [rooms, setRooms] = useState([]);
@@ -72,7 +71,7 @@ return () => { socketService.disconnect(); };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setPage('auth');
+    setPage('lobby');
     socketService.disconnect();
     socketService.connect();
   };
@@ -85,7 +84,7 @@ return () => { socketService.disconnect(); };
       case 'wallet': return <WalletScreen user={currentUser} setPage={setPage} />;
       case 'leaderboard': return <LeaderboardScreen setPage={setPage} leaderboard={leaderboard} />;
       case 'admin': return <AdminPanel user={currentUser} setPage={setPage} siteSettings={siteSettings} />;
-      default: return <AuthScreen setPage={setPage} setCurrentUser={setCurrentUser} />;
+      default: return <LobbyScreen user={currentUser} onLogout={handleLogout} setPage={setPage} rooms={rooms} siteSettings={siteSettings} />;
     }
   };
 
