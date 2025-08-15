@@ -4,6 +4,7 @@
 
 const admin = require('firebase-admin');
 const serviceAccount = require('./serviceAccountKey.json');
+const bcrypt = require('bcrypt');
 
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
@@ -15,9 +16,10 @@ async function seed() {
     { username: 'moderator', password: 'moderator', role: 'moderator', rating: 1200, balance: 2000, stats: { games: 0, wins: 0, losses: 0 }, isBanned: false },
   ];
   for (const u of users) {
-    const snap = await db.collection('users').where('username','==',u.username).get();
+    const snap = await db.collection('users').where('username', '==', u.username).get();
     if (snap.empty) {
-      await db.collection('users').add(u);
+      const hashed = await bcrypt.hash(u.password, 10);
+      await db.collection('users').add({ ...u, password: hashed });
       console.log('Created user:', u.username);
     } else {
       console.log('User exists:', u.username);

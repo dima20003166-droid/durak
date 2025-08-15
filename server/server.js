@@ -3,8 +3,25 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { Server } = require('socket.io');
+const bcrypt = require('bcrypt');
 const admin = require('firebase-admin');
-const serviceAccount = require('./serviceAccountKey.json');
+
+let serviceAccount = null;
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } else {
+    const credPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || path.join(__dirname, 'serviceAccountKey.json');
+    serviceAccount = require(credPath);
+  }
+} catch (e) {
+  console.error('Не удалось загрузить учётные данные Firebase:', e.message);
+}
+
+if (!serviceAccount) {
+  console.error('Отсутствуют учётные данные Firebase. Установите FIREBASE_SERVICE_ACCOUNT.');
+  process.exit(1);
+}
 
 const {
   createInitialGameState,
@@ -12,6 +29,7 @@ const {
   getBotMove,
   handleTimeout,
 } = require('./gameLogic');
+const { saveAvatarFromDataUrl } = require('./avatarService');
 
 // ---------------------- Firebase ----------------------
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
@@ -444,7 +462,9 @@ io.on('connection', (socket) => {
 const RATE_LIMITS = {
   'send_room_message': { tokens: 6, refill: 6, intervalMs: 3000 },
   'create_room':      { tokens: 2, refill: 1, intervalMs: 5000 },
-  'room:create':      { tokens: 2, refill: 1, intervalMs: 5000 } // можно оставить, даже если событие не используется
+  'room:create':      { tokens: 2, refill: 1, intervalMs: 5000 }, // можно оставить, даже если событие не используется
+  'login':            { tokens: 5, refill: 5, intervalMs: 60000 },
+  'register':         { tokens: 5, refill: 5, intervalMs: 60000 }
 };
 const buckets = new WeakMap();
 function takeToken(socket, event) {
@@ -472,7 +492,11 @@ function takeToken(socket, event) {
 function withRateLimit(event, handler) {
   return function (payload, cb) {
     if (!takeToken(socket, event)) {
-      return cb?.({ ok: false, code: 'ERR_RATE_LIMIT', msg: 'Слишком часто. Попробуйте чуть позже.' });
+      if (cb) {
+        return cb({ ok: false, code: 'ERR_RATE_LIMIT', msg: 'Слишком часто. Попробуйте чуть позже.' });
+      }
+      socket.emit(`${event}_error`, 'Слишком часто. Попробуйте чуть позже.');
+      return;
     }
     return handler(payload, cb);
   };
@@ -481,12 +505,14 @@ function withRateLimit(event, handler) {
   console.log(`[+] Игрок подключился: ${socket.id}`);
   setTimeout(broadcastOnlineCount, 0);
 
-  socket.on('login', async ({ username, password }) => {
+  socket.on('login', withRateLimit('login', async ({ username, password }) => {
     try {
       const snap = await db.collection('users').where('username', '==', username).limit(1).get();
       if (snap.empty) return socket.emit('login_error', 'Пользователь не найден');
       let userDoc; snap.forEach(doc => userDoc = { id: doc.id, ...doc.data() });
-      if (userDoc.password !== password) return socket.emit('login_error', 'Неверный пароль');
+      let valid = false;
+      try { valid = await bcrypt.compare(password, userDoc.password); } catch {}
+      if (!valid) return socket.emit('login_error', 'Неверный пароль');
       if (userDoc.isBanned) return socket.emit('login_error', 'Аккаунт заблокирован');
 
       socket.data.user = { ...userDoc, socketId: socket.id };
@@ -499,9 +525,9 @@ function withRateLimit(event, handler) {
       globalChatCache = chatHistory;
       socket.emit('global_chat_history', chatHistory);
     } catch (e) { console.error('Ошибка логина:', e); socket.emit('login_error', 'Ошибка сервера'); }
-  });
+  }));
 
-  socket.on('register', async ({ username, password }) => {
+  socket.on('register', withRateLimit('register', async ({ username, password }) => {
     try {
       if (!username || !password || username.length < 3 || password.length < 3) {
         return socket.emit('register_error', 'Имя пользователя и пароль должны быть не менее 3 символов.');
@@ -510,9 +536,10 @@ function withRateLimit(event, handler) {
       if (!snap.empty) {
         return socket.emit('register_error', 'Пользователь с таким именем уже существует.');
       }
+      const hashed = await bcrypt.hash(password, 10);
       const newUser = {
         username,
-        password, // В реальном проекте пароли нужно хешировать!
+        password: hashed,
         role: 'user',
         balance: 100, // Начальный баланс для новых игроков
         rating: 1000,
@@ -527,7 +554,7 @@ function withRateLimit(event, handler) {
       console.error('Ошибка регистрации:', e);
       socket.emit('register_error', 'Ошибка сервера при регистрации.');
     }
-  });
+  }));
 
   socket.on('create_room', withRateLimit('create_room', (options) => {
   const user = socket.data.user;
@@ -879,23 +906,16 @@ socket.on('admin_get_all_users', async () => {
     try {
       const user = socket.data.user;
       if (!user) return;
-      const uploadsDir = path.join(__dirname, 'uploads', 'avatars');
-      fs.mkdirSync(uploadsDir, { recursive: true });
-
-      const match = String(dataUrl||'').match(/^data:(image\/(png|jpeg|jpg|webp));base64,(.+)$/i);
-      if (!match) return;
-      const ext = match[2] === 'jpeg' ? 'jpg' : match[2];
-      const buffer = Buffer.from(match[3], 'base64');
-      const filename = `${user.id}_${Date.now()}.${ext}`;
-      const filePath = path.join(uploadsDir, filename);
-      fs.writeFileSync(filePath, buffer);
-      const publicUrl = `/uploads/avatars/${filename}`;
-
+      const publicUrl = await saveAvatarFromDataUrl(user.id, dataUrl);
       await db.collection('users').doc(user.id).update({ avatarUrl: publicUrl });
       socket.data.user.avatarUrl = publicUrl;
       socket.emit('user_data_updated', { ...safeUser(socket.data.user) });
       io.emit('update_rooms', Object.values(gameRooms));
-    } catch (e) { console.error('update_avatar_file', e); }
+    } catch (e) {
+      const msg = e.message === 'FILE_TOO_LARGE' ? 'Файл слишком большой (макс 2MB).' : 'Ошибка загрузки аватара';
+      socket.emit('avatar_error', msg);
+      console.error('update_avatar_file', e);
+    }
   });
 });
 
