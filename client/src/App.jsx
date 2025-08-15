@@ -81,52 +81,60 @@ export default function App() {
     socketService.connect();
   };
 
-  const wrapPage = (keyName, element) => (
-    <motion.div key={keyName} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-      {element}
-    </motion.div>
-  );
-
   const renderPage = () => {
     switch (page) {
       case 'lobby':
-        return wrapPage('lobby', (
-          <LobbyScreen
-            user={currentUser}
-            onLogout={handleLogout}
-            setPage={setPage}
-            rooms={rooms}
-            siteSettings={siteSettings}
-          />
-        ));
+        return (
+          <motion.div key="lobby" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+            <LobbyScreen
+              user={currentUser}
+              onLogout={handleLogout}
+              setPage={setPage}
+              rooms={rooms}
+              siteSettings={siteSettings}
+            />
+          </motion.div>
+        );
       case 'game':
-        return wrapPage('game', (
-          <GameScreen
-            setSuppressAutoJoinUntil={setSuppressAutoJoinUntil}
-            room={currentRoom}
-            setPage={setPage}
-          />
-        ));
+        return (
+          <motion.div key="game" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+            <GameScreen
+              setSuppressAutoJoinUntil={setSuppressAutoJoinUntil}
+              room={currentRoom}
+              setPage={setPage}
+            />
+          </motion.div>
+        );
       case 'profile':
-        return wrapPage('profile', (
-          <ProfileScreen user={currentUser} setPage={setPage} />
-        ));
+        return (
+          <motion.div key="profile" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+            <ProfileScreen user={currentUser} setPage={setPage} />
+          </motion.div>
+        );
       case 'wallet':
-        return wrapPage('wallet', (
-          <WalletScreen user={currentUser} setPage={setPage} />
-        ));
+        return (
+          <motion.div key="wallet" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+            <WalletScreen user={currentUser} setPage={setPage} />
+          </motion.div>
+        );
       case 'leaderboard':
-        return wrapPage('leaderboard', (
-          <LeaderboardScreen setPage={setPage} leaderboard={leaderboard} />
-        ));
+        return (
+          <motion.div key="leaderboard" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+            <LeaderboardScreen setPage={setPage} leaderboard={leaderboard} />
+          </motion.div>
+        );
       case 'admin':
-        return wrapPage('admin', (
-          <AdminPanel user={currentUser} setPage={setPage} siteSettings={siteSettings} />
-        ));
+        return (
+          <motion.div key="admin" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+            <AdminPanel user={currentUser} setPage={setPage} siteSettings={siteSettings} />
+          </motion.div>
+        );
       default:
-        return wrapPage('auth', (
-          <AuthScreen setPage={setPage} setCurrentUser={setCurrentUser} />
-        ));
+        return (
+          <motion.div key="auth" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+            <AuthScreen setPage={setPage} setCurrentUser={setCurrentUser} />
+          </motion.div>
+        );
     }
   };
 
