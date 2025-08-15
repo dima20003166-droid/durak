@@ -1,8 +1,8 @@
 // client/src/components/Card.jsx
 import React from 'react';
 
-const suitColor = (suit) => (suit === '♥' || suit === '♦' ? 'text-red-600' : 'text-gray-900');
-const suitFill  = (suit) => (suit === '♥' || suit === '♦' ? '#dc2626' : '#111827'); // tailwind red-600 / gray-900
+const suitColor = (suit) => (suit === '♥' || suit === '♦' ? 'text-danger' : 'text-bg');
+const suitFill  = (suit) => (suit === '♥' || suit === '♦' ? 'var(--color-danger)' : 'var(--color-bg)');
 
 const SuitSvg = ({ suit, size=28 }) => {
   const fill = suitFill(suit);
@@ -27,7 +27,7 @@ export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=f
     lg: { w: 104, h: 146, rank: 18, corner: 20, pip: 32 },
   };
   const S = sizes[size] || sizes.md;
-  const borderSel = isSelected ? 'ring-2 ring-emerald-400 shadow-emerald-400/40 -translate-y-2' : 'ring-1 ring-gray-300';
+  const borderSel = isSelected ? 'ring-2 ring-primary shadow-primary/40 -translate-y-2' : 'ring-1 ring-border';
   return (
     <div
       role="button"
@@ -37,7 +37,7 @@ export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=f
       style={{ width: S.w, height: S.h, ...style }}
     >
       {isFaceUp ? (
-        <div className="w-full h-full bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
           <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
             <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
             <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
@@ -51,9 +51,9 @@ export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=f
           </div>
         </div>
       ) : (
-        <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 ring-1 ring-blue-300 shadow-md">
+        <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
           <div className="w-full h-full grid place-items-center">
-            <div className="w-4/5 h-4/5 rounded-lg border-2 border-white/60" />
+            <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
           </div>
         </div>
       )}

@@ -1,10 +1,26 @@
 /* client/src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Press+Start+2P&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; }
-body { @apply bg-gray-900 text-gray-100; }
+@layer base {
+  :root {
+    --color-bg: #0f172a; /* slate-900 */
+    --color-surface: #1e293b; /* slate-800 */
+    --color-border: #334155; /* slate-700 */
+    --color-text: #f8fafc; /* slate-50 */
+    --color-muted: #94a3b8; /* slate-400 */
+    --color-primary: #16a34a; /* emerald-600 */
+    --color-accent: #eab308; /* yellow-500 */
+    --color-danger: #dc2626; /* red-600 */
+  }
+
+  html, body, #root { height: 100%; }
+  body { @apply bg-bg text-text font-sans; }
+  button { @apply transition-colors duration-200; }
+}
 
 
 /* Minimal modern scrollbars */
