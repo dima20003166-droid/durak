@@ -198,7 +198,11 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
   };
 
   const handleSendMessage = () => {
-    if (!user) { setLoginOpen(true); return; }
+    if (!user) {
+      alert('Войдите или зарегистрируйтесь');
+      setLoginOpen(true);
+      return;
+    }
     if (message.trim()) {
       socketService.sendGlobalMessage(message);
       setMessage('');
@@ -296,7 +300,14 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-3xl font-semibold">Игровые столы</h2>
               <button
-                onClick={() => { if (!user) { setLoginOpen(true); } else if (!iAmInAnyRoom) { setShowCreateModal(true); } }}
+                onClick={() => {
+                  if (!user) {
+                    alert('Войдите или зарегистрируйтесь');
+                    setLoginOpen(true);
+                  } else if (!iAmInAnyRoom) {
+                    setShowCreateModal(true);
+                  }
+                }}
                 className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
                 disabled={!user || iAmInAnyRoom}
                 title={!user ? 'Только для авторизованных' : (iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : '')}
