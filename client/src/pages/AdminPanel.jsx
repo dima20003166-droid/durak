@@ -1,5 +1,6 @@
 // client/src/pages/AdminPanel.jsx
 import React, { useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 
 const numberOr = (v, def=0) => {
@@ -7,7 +8,8 @@ const numberOr = (v, def=0) => {
   return Number.isFinite(n) ? n : def;
 };
 
-export default function AdminPanel({ user, setPage, siteSettings }) {
+export default function AdminPanel({ user: _user, setPage, siteSettings }) {
+  void _user;
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [settings, setSettings] = useState(siteSettings || { commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
@@ -275,3 +277,13 @@ export default function AdminPanel({ user, setPage, siteSettings }) {
     </div>
   );
 }
+
+AdminPanel.propTypes = {
+  user: PropTypes.object.isRequired,
+  setPage: PropTypes.func.isRequired,
+  siteSettings: PropTypes.shape({
+    commission: PropTypes.number,
+    botsEnabled: PropTypes.bool,
+    maxPlayersLimit: PropTypes.number,
+  }),
+};

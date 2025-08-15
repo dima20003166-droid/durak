@@ -1,5 +1,6 @@
 // client/src/components/ProfileModal.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const ProfileModal = ({ user, onClose }) => {
   if (!user) return null;
@@ -27,6 +28,16 @@ const ProfileModal = ({ user, onClose }) => {
       </div>
     </div>
   );
+};
+
+ProfileModal.propTypes = {
+  user: PropTypes.shape({
+    username: PropTypes.string,
+    avatarUrl: PropTypes.string,
+    rating: PropTypes.number,
+    stats: PropTypes.object,
+  }),
+  onClose: PropTypes.func.isRequired,
 };
 
 export default ProfileModal;

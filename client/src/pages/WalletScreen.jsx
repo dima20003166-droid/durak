@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 
 const WalletScreen = ({ user, setPage }) => {
   const [tab, setTab] = useState('deposit');
@@ -37,3 +38,10 @@ const WalletScreen = ({ user, setPage }) => {
 };
 
 export default WalletScreen;
+
+WalletScreen.propTypes = {
+  user: PropTypes.shape({
+    balance: PropTypes.number,
+  }),
+  setPage: PropTypes.func.isRequired,
+};
