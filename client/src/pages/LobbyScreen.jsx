@@ -25,7 +25,7 @@ const ModerationMenu = ({ menuData, onAction, onClose }) => {
     const { msg, position } = menuData;
 
     const handleAction = (action, value) => {
-        onAction(action, msg.id, msg.user.id, value);
+        onAction(action, msg?.id, msg?.user?.id, value);
         onClose();
     };
     
@@ -76,7 +76,7 @@ const resolveAvatarUrl = (url, placeholder, base = null) => {
 
 const ProfileModal = ({ user, onClose }) => {
   if (!user) return null;
-  const stats = user.stats || { wins: 0, losses: 0 };
+  const stats = user?.stats || { wins: 0, losses: 0 };
   const total = (stats.wins || 0) + (stats.losses || 0);
   const winRate = total ? Math.round((stats.wins / total) * 100) : 0;
   return (
@@ -85,12 +85,12 @@ const ProfileModal = ({ user, onClose }) => {
         <div className="flex items-center gap-3 mb-4">
           <img
             className="w-12 h-12 rounded-full object-cover"
-            src={(user.avatarUrl && String(user.avatarUrl).trim()) || `https://placehold.co/48x48/1f2937/ffffff?text=${(user.username || 'U')[0]}`}
+            src={(user?.avatarUrl && String(user?.avatarUrl).trim()) || `https://placehold.co/48x48/1f2937/ffffff?text=${(user?.username || 'U')[0]}`}
             alt="avatar"
           />
           <div>
-            <div className="font-bold text-lg">{user.username || 'Игрок'}</div>
-            <div className="text-sm text-muted">ID: {user.id || '—'}</div>
+            <div className="font-bold text-lg">{user?.username || 'Игрок'}</div>
+            <div className="text-sm text-muted">ID: {user?.id || '—'}</div>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
@@ -190,7 +190,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
     const historyHandler = (history) => setChatMessages(Array.isArray(history) ? history : []);
     const newMessageHandler = (newMessage) => setChatMessages((prev) => [...prev, newMessage]);
     const deletedMessageHandler = ({ messageId }) => setChatMessages((prev) => prev.filter(m => m.id !== messageId));
-    const deletedAllUserMessagesHandler = ({ userId }) => setChatMessages((prev) => prev.filter(m => m.user.id !== userId));
+    const deletedAllUserMessagesHandler = ({ userId }) => setChatMessages((prev) => prev.filter(m => m.user?.id !== userId));
 
     socketService.on('global_chat_history', historyHandler);
     socketService.on('new_global_message', newMessageHandler);
@@ -382,7 +382,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
 
             <div className="flex-grow space-y-1 overflow-y-auto custom-scroll p-2 mb-4 max-h-[60vh] md:max-h-[70vh]">
             {chatMessages.map((msg, index) => { 
-                const isMine = (msg.user?.id && user?.id && msg.user.id === user?.id) || (msg.user?.username === user?.username);
+                const isMine = (msg.user?.id && user?.id && msg.user?.id === user?.id) || (msg.user?.username === user?.username);
                 const userRole = msg.user?.role;
                 const nameColor = userRole === 'admin' ? 'text-accent' : userRole === 'moderator' ? 'text-primary' : 'text-text';
                 const canModerate = ['admin', 'moderator'].includes(user?.role) && user?.id !== msg.user?.id;
