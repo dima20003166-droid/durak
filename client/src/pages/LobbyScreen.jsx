@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
@@ -43,6 +44,19 @@ const ModerationMenu = ({ menuData, onAction, onClose }) => {
             <button onClick={() => handleAction('deleteAll')} className="block w-full text-left px-4 py-2 text-sm hover:bg-surface/80 text-danger rounded-b-lg">Удалить все сообщения</button>
         </div>
     );
+};
+
+ModerationMenu.propTypes = {
+  menuData: PropTypes.shape({
+    isOpen: PropTypes.bool,
+    msg: PropTypes.object,
+    position: PropTypes.shape({
+      top: PropTypes.number,
+      left: PropTypes.number,
+    }),
+  }),
+  onAction: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 
@@ -97,6 +111,16 @@ const ProfileModal = ({ user, onClose }) => {
       </div>
     </div>
   );
+};
+
+ProfileModal.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.any,
+    username: PropTypes.string,
+    avatarUrl: PropTypes.string,
+    stats: PropTypes.object,
+  }),
+  onClose: PropTypes.func.isRequired,
 };
 
 const formatTime = (ts) => {
@@ -490,6 +514,14 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
       )}
     </div>
   );
+};
+
+LobbyScreen.propTypes = {
+  user: PropTypes.object.isRequired,
+  onLogout: PropTypes.func.isRequired,
+  setPage: PropTypes.func.isRequired,
+  rooms: PropTypes.arrayOf(PropTypes.object).isRequired,
+  siteSettings: PropTypes.object,
 };
 
 export default LobbyScreen;

@@ -1,5 +1,6 @@
 // client/src/pages/AuthScreen.jsx
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 
 const AuthScreen = ({ setPage, setCurrentUser }) => {
@@ -91,3 +92,8 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
 };
 
 export default AuthScreen;
+
+AuthScreen.propTypes = {
+  setPage: PropTypes.func,
+  setCurrentUser: PropTypes.func,
+};

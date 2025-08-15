@@ -1,5 +1,5 @@
 // client/src/App.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import socketService from './services/socketService';
 import AuthScreen from './pages/AuthScreen';
 import LobbyScreen from './pages/LobbyScreen';
@@ -113,3 +113,5 @@ return () => { socketService.disconnect(); };
     </ErrorBoundary>
   );
 }
+
+App.propTypes = {};
