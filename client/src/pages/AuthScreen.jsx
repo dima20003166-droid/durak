@@ -3,13 +3,15 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 
-const AuthScreen = ({ setPage, setCurrentUser }) => {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+const AuthScreen = ({ setPage, setCurrentUser, initialMode = 'login' }) => {
+  const [mode, setMode] = useState(initialMode); // 'login' | 'register'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => { setMode(initialMode); }, [initialMode]);
 
   useEffect(() => {
     const onLoginError = (msg) => { setError(msg || 'Ошибка входа'); setLoading(false); };

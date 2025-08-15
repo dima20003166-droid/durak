@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
 import { RoomCardSkeleton, ChatMessageSkeleton } from '../components/Skeletons';
+import UserIcon from '../components/icons/UserIcon';
+import SettingsIcon from '../components/icons/SettingsIcon';
+import LogoutIcon from '../components/icons/LogoutIcon';
+import WalletIcon from '../components/icons/WalletIcon';
+import TrophyIcon from '../components/icons/TrophyIcon';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -45,24 +49,6 @@ const ModerationMenu = ({ menuData, onAction, onClose }) => {
             <button onClick={() => handleAction('deleteAll')} className="block w-full text-left px-4 py-2 text-sm hover:bg-surface/80 text-danger rounded-b-lg">Удалить все сообщения</button>
         </div>
     );
-};
-
-ModerationMenu.propTypes = {
-  menuData: PropTypes.shape({
-    isOpen: PropTypes.bool,
-    msg: PropTypes.shape({
-      id: PropTypes.any,
-      user: PropTypes.shape({
-        id: PropTypes.any,
-      }),
-    }),
-    position: PropTypes.shape({
-      top: PropTypes.number,
-      left: PropTypes.number,
-    }),
-  }),
-  onAction: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
 };
 
 
@@ -119,16 +105,6 @@ const ProfileModal = ({ user, onClose }) => {
   );
 };
 
-ProfileModal.propTypes = {
-  user: PropTypes.shape({
-    id: PropTypes.any,
-    username: PropTypes.string,
-    avatarUrl: PropTypes.string,
-    stats: PropTypes.object,
-  }),
-  onClose: PropTypes.func.isRequired,
-};
-
 const formatTime = (ts) => {
   try {
     return new Date(ts || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -168,7 +144,7 @@ const TrophyIcon = () => (
   </svg>
 );
 
-const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
+const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthModal }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [gameMode, setGameMode] = useState('Подкидной');
   const [numPlayers, setNumPlayers] = useState(2);
@@ -304,18 +280,25 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
     <div className="min-h-screen flex flex-col p-4 lg:p-8 bg-bg text-text">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-primary">DURAK.IO</h1>
-        <div className="flex items-center space-x-4">
-          <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
-          <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user.balance} ₽</button>
-          <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> Профиль</button>
-          <div className="flex items-center gap-1">
-            <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
-            <span className="font-semibold">{user.username}</span>
-            {user.role === 'admin' && <AdminBadge />}
+        {user ? (
+          <div className="flex items-center space-x-4">
+            <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
+            <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user.balance} ₽</button>
+            <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon/> Профиль</button>
+            <div className="flex items-center gap-1">
+              <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
+              <span className="font-semibold">{user.username}</span>
+              {user.role === 'admin' && <AdminBadge />}
+            </div>
+            {user.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><SettingsIcon /></button>}
+            <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
           </div>
-          {user.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><SettingsIcon /></button>}
-          <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
-        </div>
+        ) : (
+          <div className="flex items-center space-x-4">
+            <button onClick={() => openAuthModal('login')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Войти</button>
+            <button onClick={() => openAuthModal('register')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Регистрация</button>
+          </div>
+        )}
       </header>
 
       <main className="flex-grow flex flex-col lg:flex-row gap-8">
@@ -330,7 +313,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
             {roomsLoading ? (
               Array.from({ length: 3 }).map((_, i) => <RoomCardSkeleton key={i} />)
             ) : (
-              rooms.map((room) => {
+              Array.isArray(rooms) && rooms.map((room) => {
                 const iAmHere = room.players.some((p) => p.socketId === mySocketId);
                 return (
                   <div key={room.id} className={`p-4 rounded-lg flex items-center justify-between border transition-all ${iAmHere ? "bg-surface/80 border-primary shadow-[0_0_0_3px_rgba(22,163,74,0.2)]" : "bg-surface border-border"}`}>
@@ -382,11 +365,11 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
           <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4 flex flex-col flex-grow">
             <h2 className="text-xl font-semibold mb-4 text-center">Общий чат</h2>
 
-            <div className="flex-grow space-y-1 overflow-y-auto p-2 mb-4 max-h-[60vh] md:max-h-[70vh]">
+            <div className="flex-grow space-y-1 overflow-y-auto custom-scroll p-2 mb-4 max-h-[60vh] md:max-h-[70vh]">
             {chatLoading ? (
               Array.from({ length: 5 }).map((_, i) => <ChatMessageSkeleton key={i} />)
             ) : (
-              chatMessages.map((msg, index) => {
+              Array.isArray(chatMessages) && chatMessages.map((msg, index) => {
                 const isMine = (msg.user?.id && user?.id && msg.user.id === user.id) || (msg.user?.username === user?.username);
                 const userRole = msg.user?.role;
                 const nameColor = userRole === 'admin' ? 'text-accent' : userRole === 'moderator' ? 'text-primary' : 'text-text';
@@ -542,12 +525,24 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
   );
 };
 
-LobbyScreen.propTypes = {
-  user: PropTypes.object.isRequired,
-  onLogout: PropTypes.func.isRequired,
-  setPage: PropTypes.func.isRequired,
-  rooms: PropTypes.arrayOf(PropTypes.object).isRequired,
-  siteSettings: PropTypes.object,
-};
-
 export default LobbyScreen;
+
+
+<style>{`
+  /* Стилизация скроллбара под минимализм сайта */
+  .custom-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 3px;
+  }
+  .custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+  }
+`}</style>

@@ -23,6 +23,7 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [siteSettings, setSiteSettings] = useState({ commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
   const [theme, setThemeState] = useState('dark');
+  const [authMode, setAuthMode] = useState('login');
 
   useEffect(() => { setTheme(theme); }, [theme]);
   const toggleTheme = () => setThemeState(t => (t === 'dark' ? 'light' : 'dark'));
@@ -88,6 +89,11 @@ export default function App() {
     socketService.connect();
   };
 
+  const openAuthModal = (mode = 'login') => {
+    setAuthMode(mode);
+    setPage('auth');
+  };
+
   const renderPage = () => {
     switch (page) {
       case 'lobby':
@@ -99,6 +105,7 @@ export default function App() {
               setPage={setPage}
               rooms={rooms}
               siteSettings={siteSettings}
+              openAuthModal={openAuthModal}
             />
           </motion.div>
         );
@@ -139,7 +146,7 @@ export default function App() {
       default:
         return (
           <motion.div key="auth" variants={pageVariants} initial="initial" animate="animate" exit="exit">
-            <AuthScreen setPage={setPage} setCurrentUser={setCurrentUser} />
+            <AuthScreen setPage={setPage} setCurrentUser={setCurrentUser} initialMode={authMode} />
           </motion.div>
         );
     }
