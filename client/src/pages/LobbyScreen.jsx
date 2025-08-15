@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
+import { resolveAvatarUrl } from '../utils/avatar';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -45,16 +46,6 @@ const ModerationMenu = ({ menuData, onAction, onClose }) => {
     );
 };
 
-
-const resolveAvatarUrl = (url, placeholder, base = null) => {
-  const s = (url || '').toString().trim();
-  if (!s) return placeholder;
-  if (s.startsWith('http://') || s.startsWith('https://')) return s;
-  const root = base || (typeof socketService?.getServerUrl === 'function' ? socketService.getServerUrl() : 'http://localhost:4000');
-  return s.startsWith('/') ? (root + s) : s;
-};
-
-
 const ProfileModal = ({ user, onClose }) => {
   if (!user) return null;
   const stats = user.stats || { wins: 0, losses: 0 };
@@ -66,7 +57,10 @@ const ProfileModal = ({ user, onClose }) => {
         <div className="flex items-center gap-3 mb-4">
           <img
             className="w-12 h-12 rounded-full object-cover"
-            src={(user.avatarUrl && String(user.avatarUrl).trim()) || `https://placehold.co/48x48/1f2937/ffffff?text=${(user.username || 'U')[0]}`}
+            src={resolveAvatarUrl(
+              user.avatarUrl,
+              `https://placehold.co/48x48/1f2937/ffffff?text=${(user.username || 'U')[0]}`
+            )}
             alt="avatar"
           />
           <div>
