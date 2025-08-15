@@ -2,12 +2,13 @@
 // — В ОЖИДАНИИ: «Ожидаем игроков • ещё N» перенесено в центральный блок над «Стол создан / Ждём…»
 // — Кнопка «Отменить ставку и выйти» показывается ТОЛЬКО обычному игроку (не создателю) и только для столов 3+
 // — Кнопка «Сдаться» одна и справа, боевые кнопки по центру
-import React, { useEffect, useRef, useState } from 'react';
-import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
 import ConfirmDialog from '../components/ConfirmDialog';
 import socketService from '../services/socketService';
-import Card from '../components/Card';
-import { resolveAvatarUrl } from '../utils/avatar';
+import PlayersList from '../components/game/PlayersList';
+import RoomChat from '../components/game/RoomChat';
+import ProfileModal from '../components/game/ProfileModal';
+import ActionPanel from '../components/game/ActionPanel';
 
 function playWinDing() {
   try {
@@ -25,67 +26,9 @@ function playWinDing() {
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
     osc.stop(ctx.currentTime + 0.27);
     setTimeout(() => ctx.close(), 400);
-  } catch {}
+  } catch (e) {}
 }
 
-const ProfileModal = ({ user, onClose }) => {
-  if (!user) return null;
-  const stats = user.stats || { wins: 0, losses: 0 };
-  const total = (stats.wins || 0) + (stats.losses || 0);
-  const winRate = total ? Math.round((stats.wins / total) * 100) : 0;
-
-  return (
-    <div className="fixed inset-0 bg-bg/70 z-50 flex items-center justify-center">
-      <div className="bg-surface p-6 rounded-xl border border-border w-full max-w-md">
-        <div className="flex items-center gap-4">
-          <img
-            className="w-16 h-16 rounded-full object-cover"
-            src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/64x64/1f2937/ffffff?text=${user.username?.[0] || 'U'}`)}
-            alt=""
-          />
-          <div>
-            <div className="text-xl font-bold">{user.username}</div>
-            <div className="text-muted">Рейтинг: {user.rating ?? '—'}</div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 mt-4 text-center">
-          <div className="bg-surface rounded p-2">
-            <div className="text-xs text-muted">Игры</div>
-            <div className="text-lg font-bold">{total}</div>
-          </div>
-          <div className="bg-surface rounded p-2">
-            <div className="text-xs text-muted">Победы</div>
-            <div className="text-lg font-bold text-primary">{stats.wins || 0}</div>
-          </div>
-          <div className="bg-surface rounded p-2">
-            <div className="text-xs text-muted">Пораж.</div>
-            <div className="text-lg font-bold text-danger">{stats.losses || 0}</div>
-          </div>
-        </div>
-
-        <div className="text-center text-sm text-muted mt-2">Винрейт: {winRate}%</div>
-
-        <div className="mt-6 text-right">
-          <button onClick={onClose} className="px-4 py-2 bg-primary hover:bg-primary/80 rounded transition-colors">
-            Закрыть
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-ProfileModal.propTypes = {
-  user: PropTypes.shape({
-    id: PropTypes.any,
-    username: PropTypes.string,
-    avatarUrl: PropTypes.string,
-    stats: PropTypes.object,
-    rating: PropTypes.number,
-  }),
-  onClose: PropTypes.func.isRequired,
-};
 
 const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
   const [selectedCard, setSelectedCard] = useState(null);
@@ -97,8 +40,6 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
 
   // чат комнаты
   const [chat, setChat] = useState([]);
-  const chatEndRef = useRef(null);
-  const [msg, setMsg] = useState('');
 
   // модалка профиля
   const [profileOpen, setProfileOpen] = useState(null);
@@ -136,9 +77,6 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
     };
   }, [room?.id]);
 
-  useEffect(() => {
-    try { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); } catch {}
-  }, [chat]);
 
   // тикер и busy reset
   useEffect(() => {
@@ -195,11 +133,10 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
     if (typeof setSuppressAutoJoinUntil === 'function') setSuppressAutoJoinUntil(Date.now() + 300000);
     setPage('lobby');
   };
-  const sendRoomMessage = () => {
-    const text = String(msg || '');
-    if (!text.trim()) return;
-    socketService.sendRoomMessage(room.id, text);
-    setMsg('');
+  const sendRoomMessage = (text) => {
+    const message = String(text || '');
+    if (!message.trim()) return;
+    socketService.sendRoomMessage(room.id, message);
   };
 
   const msLeft = Math.max(0, ((gameState?.turnEndsAt) || now) - now);
@@ -241,59 +178,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
             </div>
           </div>
 
-          <div className="bg-surface rounded-xl border border-border p-4 flex flex-col">
-            <div className="font-semibold mb-2">Чат стола</div>
-            <div className="flex-1 overflow-y-auto custom-scroll space-y-2 max-h-64 md:max-h-80">
-              {chat.map((m, i) => {
-                const isMine = (m.user?.id && myPlayer?.id && m.user.id === myPlayer.id) || (m.user?.username === myPlayer?.username);
-                return (
-                  <div key={i} className={`flex items-start gap-2 ${isMine ? 'justify-end' : ''}`}>
-                    {!isMine && (
-                      <img
-                        className="w-7 h-7 rounded-full object-cover cursor-pointer"
-                        src={resolveAvatarUrl(m.user?.avatarUrl, `https://placehold.co/28x28/1f2937/ffffff?text=${m.user?.username?.[0] || 'U'}`)}
-                        onClick={() => openProfile(m.user)}
-                        alt=""
-                      />
-                    )}
-                    <div className={`rounded-lg px-3 py-2 max-w-[240px] ${isMine ? 'bg-primary/20' : 'bg-surface'}`}>
-                      <div
-                        className="text-xs text-muted cursor-pointer"
-                        onClick={() => openProfile(m.user)}
-                        style={{ textAlign: isMine ? 'right' : 'left' }}
-                      >
-                        {m.user?.username || 'Игрок'}
-                      </div>
-                      <div className="text-sm" style={{ textAlign: isMine ? 'right' : 'left' }}>
-                        {m.text}
-                      </div>
-                    </div>
-                    {isMine && (
-                      <img
-                        className="w-7 h-7 rounded-full object-cover cursor-pointer"
-                        src={resolveAvatarUrl(m.user?.avatarUrl, `https://placehold.co/28x28/1f2937/ffffff?text=${m.user?.username?.[0] || 'U'}`)}
-                        onClick={() => openProfile(m.user)}
-                        alt=""
-                      />
-                    )}
-                  </div>
-                );
-              })}
-              <div ref={chatEndRef} />
-            </div>
-            <div className="flex mt-2">
-              <input
-                value={msg}
-                onChange={(e) => setMsg(e.target.value)}
-                onKeyDown={(e) => (e.key === 'Enter' ? sendRoomMessage() : null)}
-                className="flex-1 bg-surface rounded-l px-2 py-1"
-                placeholder="Сообщение..."
-              />
-              <button className="bg-primary hover:bg-primary/80 rounded-r px-3 transition-colors" onClick={sendRoomMessage}>
-                Отправить
-              </button>
-            </div>
-          </div>
+            <RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />
         </div>
 
         {/* модалка отмены ставки — только не создателю */}
@@ -320,7 +205,6 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
   }
 
   // основной экран игры
-  const myIdx = room.players.findIndex((x) => x.socketId === mySocketId);
 
   return (
     <div className="min-h-screen flex flex-col p-4 bg-bg text-text overflow-hidden">
@@ -365,199 +249,12 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
             <div className="text-xs text-muted mt-1">Ход: {msLeftSec} сек</div>
           </div>
 
-          <div className="relative flex-grow w-full h-full mt-2">
-            {room.players.map((p, index) => {
-              const relativeIndex = (index - myIdx + room.players.length) % room.players.length;
+            <PlayersList room={room} mySocketId={mySocketId} myPlayer={myPlayer} gameState={gameState} selectedCard={selectedCard} setSelectedCard={setSelectedCard} openProfile={openProfile} />
+            <ActionPanel isAttacker={isAttacker} isDefender={isDefender} canThrowIn={canThrowIn} selectedCard={selectedCard} actionBusy={actionBusy} gameState={gameState} onAction={handleAction} onSurrender={() => setSurrenderOpen(true)} canSurrender={room?.status === "playing" && !actionBusy} />
 
-              const pos =
-                relativeIndex === 0
-                  ? { bottom: '4%', left: '50%', transform: 'translateX(-50%)' }
-                  : (() => {
-                      const angle = (relativeIndex / (room.players.length - 1)) * Math.PI;
-                      const radiusX = 45, radiusY = 40;
-                      const x = 50 - radiusX * Math.cos(angle);
-                      const y = 40 - radiusY * Math.sin(angle);
-                      return { top: `${y}%`, left: `${x}%`, transform: 'translate(-50%, -50%)' };
-                    })();
-
-              const isCurrentAttacker = index === gameState.attackerIndex;
-              const isCurrentDefender = index === gameState.defenderIndex;
-
-              return (
-                <div key={p.socketId} className="absolute transition-all duration-500" style={pos}>
-                  <div className="relative flex flex-col items-center w-40">
-                    <div
-                      className={`absolute -top-6 px-2 py-0.5 text-xs rounded-full whitespace-nowrap ${
-                        isCurrentAttacker ? 'bg-danger' : ''
-                        } ${isCurrentDefender ? 'bg-accent' : ''}`}
-                    >
-                      {isCurrentAttacker ? 'Атака' : isCurrentDefender ? 'Защита' : ''}
-                    </div>
-
-                    <img
-                      className="w-16 h-16 rounded-full object-cover cursor-pointer"
-                      src={resolveAvatarUrl(p.avatarUrl, `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`)}
-                      onClick={() => openProfile(p)}
-                      alt=""
-                    />
-                    <p className="font-semibold mt-1 truncate cursor-pointer" onClick={() => openProfile(p)}>
-                      {p.username}
-                    </p>
-
-                    <div className="relative flex justify-center items-center h-28 w-full mt-2">
-                      {p.socketId === mySocketId
-                        ? myPlayer.hand.map((card, i) => (
-                            <div
-                              key={card.id}
-                              className="absolute"
-                              style={{ transform: `translateX(${(i - myPlayer.hand.length / 2) * 25}px)` }}
-                            >
-                              <Card
-                                {...card}
-                                isSelected={selectedCard?.id === card.id}
-                                onClick={() => setSelectedCard(card)}
-                              />
-                            </div>
-                          ))
-                        : Array(p.hand.length)
-                            .fill(0)
-                            .map((_, i) => (
-                              <div
-                                key={i}
-                                className="absolute"
-                                style={{ transform: `translateX(${(i - p.hand.length / 2) * 10}px)` }}
-                              >
-                                <Card isFaceUp={false} />
-                              </div>
-                            ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-4">
-              <div className="flex flex-col items-center w-24">
-                <Card {...gameState.trumpCard} />
-                <p className="mt-2">{gameState.deck.length} карт</p>
-              </div>
-              <div className="flex items-center justify-center gap-4 min-w-[300px]">
-                {gameState.table.map((pair, i) => (
-                  <div key={i} className="relative w-20 h-28">
-                    <Card {...pair.attack} />
-                    {pair.defense && <Card {...pair.defense} className="transform translate-x-2 translate-y-2" />}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* КНОПКИ: центр снизу; «Сдаться» — справа */}
-          <div className="flex items-center gap-4 p-4">
-            <div className="mx-auto flex items-center gap-4">
-              {(isAttacker || canThrowIn) && (
-                <button
-                  onClick={() => handleAction('attack')}
-                  disabled={!selectedCard || actionBusy}
-                  className="px-6 py-3 font-semibold rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border transition-colors"
-                >
-                  Ходить/Подкинуть
-                </button>
-              )}
-              {isDefender && (
-                <button
-                  onClick={() => handleAction('defend')}
-                  disabled={!selectedCard || actionBusy || !gameState.table.some((p) => !p.defense)}
-                  className="px-6 py-3 font-semibold rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border transition-colors"
-                >
-                  Отбиться
-                </button>
-              )}
-              {(isAttacker || canThrowIn) && (
-                <button
-                  onClick={() => handleAction('pass')}
-                  disabled={actionBusy || gameState.table.length === 0 || !gameState.table.every((p) => p.defense)}
-                  className="px-6 py-3 font-semibold rounded-lg bg-accent hover:bg-accent/80 disabled:bg-border transition-colors"
-                >
-                  Бито
-                </button>
-              )}
-              {isDefender && (
-                <button
-                  onClick={() => handleAction('take')}
-                  disabled={actionBusy || gameState.table.length === 0}
-                  className="px-6 py-3 font-semibold rounded-lg bg-danger hover:bg-danger/80 disabled:bg-border transition-colors"
-                >
-                  Беру
-                </button>
-              )}
-            </div>
-            <div className="ml-auto">
-              <button
-                onClick={() => setSurrenderOpen(true)}
-                disabled={actionBusy || room?.status !== 'playing'}
-                className="px-6 py-3 font-semibold rounded-lg bg-surface hover:bg-surface/80 disabled:bg-border"
-                title="Признать поражение и завершить игру"
-              >
-                Сдаться
-              </button>
-            </div>
-          </div>
         </div>
 
-        <div className="bg-surface rounded-xl border border-border p-4 flex flex-col">
-          <div className="font-semibold mb-2">Чат стола</div>
-          <div className="flex-1 overflow-y-auto custom-scroll space-y-2 max-h-64 md:max-h-80">
-            {chat.map((m, i) => {
-              const isMine = (m.user?.id && myPlayer?.id && m.user.id === myPlayer.id) || (m.user?.username === myPlayer?.username);
-              return (
-                <div key={i} className={`flex items-start gap-2 ${isMine ? 'justify-end' : ''}`}>
-                  {!isMine && (
-                    <img
-                      className="w-7 h-7 rounded-full object-cover cursor-pointer"
-                      src={resolveAvatarUrl(m.user?.avatarUrl, `https://placehold.co/28x28/1f2937/ffffff?text=${m.user?.username?.[0] || 'U'}`)}
-                      onClick={() => openProfile(m.user)}
-                      alt=""
-                    />
-                  )}
-                  <div className={`rounded-lg px-3 py-2 max-w-[240px] ${isMine ? 'bg-primary/20' : 'bg-surface'}`}>
-                    <div
-                      className="text-xs text-muted cursor-pointer"
-                      onClick={() => openProfile(m.user)}
-                      style={{ textAlign: isMine ? 'right' : 'left' }}
-                    >
-                      {m.user?.username || 'Игрок'}
-                    </div>
-                    <div className="text-sm" style={{ textAlign: isMine ? 'right' : 'left' }}>
-                      {m.text}
-                    </div>
-                  </div>
-                  {isMine && (
-                    <img
-                      className="w-7 h-7 rounded-full object-cover cursor-pointer"
-                      src={resolveAvatarUrl(m.user?.avatarUrl, `https://placehold.co/28x28/1f2937/ffffff?text=${m.user?.username?.[0] || 'U'}`)}
-                      onClick={() => openProfile(m.user)}
-                      alt=""
-                    />
-                  )}
-                </div>
-              );
-            })}
-            <div ref={chatEndRef} />
-          </div>
-          <div className="flex mt-2">
-            <input
-              value={msg}
-              onChange={(e) => setMsg(e.target.value)}
-              onKeyDown={(e) => (e.key === 'Enter' ? sendRoomMessage() : null)}
-              className="flex-1 bg-surface rounded-l px-2 py-1"
-              placeholder="Сообщение..."
-            />
-            <button className="bg-primary hover:bg-primary/80 rounded-r px-3 transition-colors" onClick={sendRoomMessage}>
-              Отправить
-            </button>
-          </div>
-        </div>
+          <RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />
       </div>
 
       {/* Модалка сдачи */}
@@ -574,12 +271,6 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
       {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
     </div>
   );
-};
-
-GameScreen.propTypes = {
-  room: PropTypes.object,
-  setSuppressAutoJoinUntil: PropTypes.func,
-  setPage: PropTypes.func.isRequired,
 };
 
 export default GameScreen;
