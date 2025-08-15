@@ -10,6 +10,7 @@ import LeaderboardScreen from './pages/LeaderboardScreen';
 import AdminPanel from './pages/AdminPanel';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
+import { Button, Box } from '@chakra-ui/react';
 import { setTheme } from './theme';
 
 export default function App() {
@@ -101,15 +102,19 @@ return () => { socketService.disconnect(); };
 
   return (
     <ErrorBoundary>
-      <div className="bg-bg text-text min-h-screen relative">
+      <Box className="bg-bg text-text min-h-screen relative">
         {renderPage()}
-        <button
-          className="fixed bottom-4 right-4 px-3 py-2 rounded bg-primary text-text shadow-md"
+        <Button
+          position="fixed"
+          bottom={4}
+          right={4}
+          colorScheme="teal"
           onClick={toggleTheme}
+          shadow="md"
         >
           {theme === 'dark' ? '🌙' : '☀️'}
-        </button>
-      </div>
+        </Button>
+      </Box>
     </ErrorBoundary>
   );
 }
