@@ -13,6 +13,21 @@ export default {
         accent: 'var(--color-accent)',
         danger: 'var(--color-danger)',
       },
+      boxShadow: {
+        sm: 'var(--shadow-sm)',
+        md: 'var(--shadow-md)',
+        lg: 'var(--shadow-lg)',
+      },
+      borderRadius: {
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+      },
+      transitionDuration: {
+        fast: 'var(--anim-fast)',
+        normal: 'var(--anim-normal)',
+        slow: 'var(--anim-slow)',
+      },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['"Press Start 2P"', 'cursive'],
