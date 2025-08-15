@@ -15,7 +15,7 @@ import { setTheme } from './theme';
 import { pageVariants } from './animations/pageTransitions';
 
 export default function App() {
-  const [page, setPage] = useState('auth');
+  const [page, setPage] = useState('lobby');
   const [suppressAutoJoinUntil, setSuppressAutoJoinUntil] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
   const [rooms, setRooms] = useState([]);
@@ -23,6 +23,7 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [siteSettings, setSiteSettings] = useState({ commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
   const [theme, setThemeState] = useState('dark');
+  const [showAuthModal, setShowAuthModal] = useState(true);
 
   useEffect(() => { setTheme(theme); }, [theme]);
   const toggleTheme = () => setThemeState(t => (t === 'dark' ? 'light' : 'dark'));
@@ -30,11 +31,20 @@ export default function App() {
   useEffect(() => {
     socketService.connect();
 
-    const onLoginSuccess = user => { setCurrentUser(user); setPage('lobby'); };
-    const onUserUpdated = user => setCurrentUser(prev => ({ ...prev, ...user }));
+    const onLoginSuccess = user => {
+      setCurrentUser(user);
+      setPage('lobby');
+      setShowAuthModal(false);
+    };
+    const onUserUpdated = user =>
+      setCurrentUser(prev => ({ ...prev, ...user }));
     const onRooms = serverRooms => setRooms(serverRooms || []);
-    const onLeaderboard = users => setLeaderboard(Array.isArray(users) ? users : []);
-    const onSettings = settings => setSiteSettings(settings || { commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
+    const onLeaderboard = users =>
+      setLeaderboard(Array.isArray(users) ? users : []);
+    const onSettings = settings =>
+      setSiteSettings(
+        settings || { commission: 5, botsEnabled: true, maxPlayersLimit: 6 },
+      );
 
     socketService.on('login_success', onLoginSuccess);
     socketService.on('created_room', ({ roomId }) => {
@@ -49,7 +59,7 @@ export default function App() {
       if (Date.now() < suppressAutoJoinUntil) return;
       if (!updatedRoom) return;
       const inRoom = updatedRoom.players?.some(
-        (p) => p.socketId === socketService.getSocketId(),
+        p => p.socketId === socketService.getSocketId(),
       );
       if (inRoom) {
         setCurrentRoom(updatedRoom);
@@ -60,7 +70,11 @@ export default function App() {
 
     const handleGameStarted = room => {
       if (Date.now() < suppressAutoJoinUntil) return;
-      if (room?.players?.some((p) => p.socketId === socketService.getSocketId())) {
+      if (
+        room?.players?.some(
+          p => p.socketId === socketService.getSocketId(),
+        )
+      ) {
         setCurrentRoom(room);
         setPage('game');
       }
@@ -83,7 +97,8 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setPage('auth');
+    setPage('lobby');
+    setShowAuthModal(true);
     socketService.disconnect();
     socketService.connect();
   };
@@ -137,11 +152,7 @@ export default function App() {
           </motion.div>
         );
       default:
-        return (
-          <motion.div key="auth" variants={pageVariants} initial="initial" animate="animate" exit="exit">
-            <AuthScreen setPage={setPage} setCurrentUser={setCurrentUser} />
-          </motion.div>
-        );
+        return null;
     }
   };
 
@@ -158,15 +169,18 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div className="bg-bg text-text min-h-screen relative">
-        <AnimatePresence mode="wait">
-          {renderPage()}
-        </AnimatePresence>
+        <AnimatePresence mode="wait">{renderPage()}</AnimatePresence>
         <button
           className="fixed bottom-4 right-4 px-3 py-2 rounded bg-primary text-text shadow-md"
           onClick={toggleTheme}
         >
           {theme === 'dark' ? '🌙' : '☀️'}
         </button>
+        {showAuthModal && (
+          <div className="absolute inset-0 z-50">
+            <AuthScreen setPage={setPage} setCurrentUser={setCurrentUser} />
+          </div>
+        )}
       </div>
     </ErrorBoundary>
   );
