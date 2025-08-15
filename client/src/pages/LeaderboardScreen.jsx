@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import socketService from '../services/socketService';
+import AdminBadge from '../components/AdminBadge';
 
 const LeaderboardScreen = ({ setPage, leaderboard = [] }) => {
   useEffect(() => { socketService.requestLeaderboard(); }, []);
@@ -26,7 +27,10 @@ const LeaderboardScreen = ({ setPage, leaderboard = [] }) => {
                 <td className="p-4 font-bold text-xl">{index + 1}</td>
                 <td className="p-4 font-semibold text-xl flex items-center gap-4">
                   <img className="w-12 h-12 rounded-full" src={`https://placehold.co/48x48/1f2937/ffffff?text=${String(user.username || '?').charAt(0)}`} alt="avatar" />
-                  {user.username || '—'}
+                  <span className="flex items-center gap-1">
+                    {user.username || '—'}
+                    {user.role === 'admin' && <AdminBadge />}
+                  </span>
                 </td>
                 <td className="p-4 font-bold text-xl">{user.rating ?? 0}</td>
                 <td className="p-4 font-semibold text-xl text-green-500">{user.stats?.wins ?? 0}</td>
