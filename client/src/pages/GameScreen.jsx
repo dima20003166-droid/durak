@@ -403,7 +403,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
                         {p.username}
                       </p>
                       {p.socketId !== mySocketId && (
-                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-700 text-white flex-shrink-0">
+                        <span className="ml-2 inline-flex items-center justify-center w-6 h-6 text-xs font-semibold rounded-full bg-border shrink-0">
                           {p.hand.length}
                         </span>
                       )}
