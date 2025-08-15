@@ -107,7 +107,7 @@ export default function App() {
     switch (page) {
       case 'lobby':
         return (
-          <motion.div key="lobby" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <motion.div key={page} variants={pageVariants} initial="initial" animate="animate" exit="exit">
             <LobbyScreen
               user={currentUser}
               onLogout={handleLogout}
@@ -119,7 +119,7 @@ export default function App() {
         );
       case 'game':
         return (
-          <motion.div key="game" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <motion.div key={page} variants={pageVariants} initial="initial" animate="animate" exit="exit">
             <GameScreen
               setSuppressAutoJoinUntil={setSuppressAutoJoinUntil}
               room={currentRoom}
@@ -129,25 +129,25 @@ export default function App() {
         );
       case 'profile':
         return (
-          <motion.div key="profile" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <motion.div key={page} variants={pageVariants} initial="initial" animate="animate" exit="exit">
             <ProfileScreen user={currentUser} setPage={setPage} />
           </motion.div>
         );
       case 'wallet':
         return (
-          <motion.div key="wallet" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <motion.div key={page} variants={pageVariants} initial="initial" animate="animate" exit="exit">
             <WalletScreen user={currentUser} setPage={setPage} />
           </motion.div>
         );
       case 'leaderboard':
         return (
-          <motion.div key="leaderboard" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <motion.div key={page} variants={pageVariants} initial="initial" animate="animate" exit="exit">
             <LeaderboardScreen setPage={setPage} leaderboard={leaderboard} />
           </motion.div>
         );
       case 'admin':
         return (
-          <motion.div key="admin" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <motion.div key={page} variants={pageVariants} initial="initial" animate="animate" exit="exit">
             <AdminPanel user={currentUser} setPage={setPage} siteSettings={siteSettings} />
           </motion.div>
         );
