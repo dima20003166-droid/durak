@@ -188,13 +188,18 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
   const isAttacker = !!gameState && room.players[gameState.attackerIndex]?.socketId === myPlayer?.socketId;
   const isDefender = !!gameState && room.players[gameState.defenderIndex]?.socketId === myPlayer?.socketId;
   const canThrowIn = !!gameState && !isDefender && gameState.table.length > 0;
+  const canTransfer =
+    isDefender &&
+    gameState?.mode === 'Переводной' &&
+    gameState.table.length === 1 &&
+    !gameState.table[0].defense;
 
   const handleAction = (action) => {
     if (!room?.id) return;
     if (actionBusy) return;
     setActionBusy(true);
     socketService.playerAction(room.id, action, selectedCard);
-    if (action === 'attack' || action === 'defend') setSelectedCard(null);
+    if (['attack', 'defend', 'transfer'].includes(action)) setSelectedCard(null);
     setTimeout(() => setActionBusy(false), 800);
   };
   const handleSurrender = () => { if (room?.id) socketService.playerAction(room.id, 'surrender'); };
@@ -484,6 +489,15 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
                   className="px-6 py-3 font-semibold rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border transition-colors"
                 >
                   Отбиться
+                </button>
+              )}
+              {canTransfer && (
+                <button
+                  onClick={() => handleAction('transfer')}
+                  disabled={!selectedCard || selectedCard.rank !== gameState.table[0].attack.rank || actionBusy}
+                  className="px-6 py-3 font-semibold rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border transition-colors"
+                >
+                  Перевести
                 </button>
               )}
               {(isAttacker || canThrowIn) && (

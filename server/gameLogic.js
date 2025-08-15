@@ -270,7 +270,10 @@ const handlePlayerAction = (room, playerSocketId, action, card) => {
     }
 
     case 'transfer': {
-      if (state.mode !== 'Переводной') return;
+      if (state.mode !== 'Переводной') {
+        state.message = 'Перевод доступен только в переводном режиме.';
+        return;
+      }
       if (!isDefender || !player.hand.some(c => c.id === card?.id)) return;
       // Перевод возможен только на первую карту и при отсутствии защиты
       const undefendedCardPair = state.table.find(p => !p.defense);
