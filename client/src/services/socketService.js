@@ -1,6 +1,9 @@
 // client/src/services/socketService.js
 import io from 'socket.io-client';
 const SERVER_URL = "http://localhost:4000";
+const IS_DEV =
+  import.meta.env?.DEV ||
+  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development');
 
 class SocketService {
   socket;
@@ -8,7 +11,9 @@ class SocketService {
   connect() {
     if (!this.socket || !this.socket.connected) {
       this.socket = io(SERVER_URL);
-      console.log('Connecting to server...');
+      if (IS_DEV) {
+        console.log('Connecting to server...');
+      }
     }
   }
 
