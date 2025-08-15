@@ -162,7 +162,7 @@ const TrophyIcon = () => (
   </svg>
 );
 
-const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
+const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthModal }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [gameMode, setGameMode] = useState('Подкидной');
   const [numPlayers, setNumPlayers] = useState(2);
@@ -298,18 +298,25 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
     <div className="min-h-screen flex flex-col p-4 lg:p-8 bg-bg text-text">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-primary">DURAK.IO</h1>
-        <div className="flex items-center space-x-4">
-          <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
-          <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user.balance} ₽</button>
-          <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> Профиль</button>
-          <div className="flex items-center gap-1">
-            <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
-            <span className="font-semibold">{user.username}</span>
-            {user.role === 'admin' && <AdminBadge />}
+        {user ? (
+          <div className="flex items-center space-x-4">
+            <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
+            <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user.balance} ₽</button>
+            <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon/> Профиль</button>
+            <div className="flex items-center gap-1">
+              <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
+              <span className="font-semibold">{user.username}</span>
+              {user.role === 'admin' && <AdminBadge />}
+            </div>
+            {user.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><SettingsIcon /></button>}
+            <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
           </div>
-          {user.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><SettingsIcon /></button>}
-          <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
-        </div>
+        ) : (
+          <div className="flex items-center space-x-4">
+            <button onClick={() => openAuthModal?.('login')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Войти</button>
+            <button onClick={() => openAuthModal?.('register')} className="px-4 py-2 font-semibold rounded-lg bg-primary hover:bg-primary/80">Регистрация</button>
+          </div>
+        )}
       </header>
 
       <main className="flex-grow flex flex-col lg:flex-row gap-8">
