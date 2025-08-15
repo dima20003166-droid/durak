@@ -159,6 +159,18 @@ const getBotMove = (bot, state, players) => {
     const undefendedCardPair = state.table.find(p => !p.defense);
     if (!undefendedCardPair) return { action: 'pass' };
 
+    // В переводном режиме бот попробует перевести, если возможно
+    if (state.mode === 'Переводной' && state.table.length === 1) {
+      const transferCard = bot.hand.find(c => c.rank === undefendedCardPair.attack.rank);
+      if (transferCard) {
+        const nextDefIndex = (state.defenderIndex + 1) % players.length;
+        const nextDefender = players[nextDefIndex];
+        if (nextDefender && (nextDefender.hand.length >= state.table.length + 1)) {
+          return { action: 'transfer', card: transferCard };
+        }
+      }
+    }
+
     const possibleCards = bot.hand.filter(c => canBeat(undefendedCardPair.attack, c, state.trumpCard.suit));
     if (possibleCards.length > 0) {
       const bestCard = possibleCards.sort((a, b) => RANK_VALUES[a.rank] - RANK_VALUES[b.rank])[0];
@@ -254,6 +266,37 @@ const handlePlayerAction = (room, playerSocketId, action, card) => {
       } else {
         state.message = "Этой картой нельзя побить!";
       }
+      break;
+    }
+
+    case 'transfer': {
+      if (state.mode !== 'Переводной') return;
+      if (!isDefender || !player.hand.some(c => c.id === card?.id)) return;
+      // Перевод возможен только на первую карту и при отсутствии защиты
+      const undefendedCardPair = state.table.find(p => !p.defense);
+      if (!undefendedCardPair || state.table.length !== 1) {
+        state.message = 'Перевод возможен только на первой карте.';
+        return;
+      }
+      if (undefendedCardPair.attack.rank !== card.rank) {
+        state.message = 'Переводить можно картой той же ранга.';
+        return;
+      }
+      const nextDefIndex = (state.defenderIndex + 1) % players.length;
+      const nextDefender = players[nextDefIndex];
+      const maxAllowed = Math.min(6, nextDefender.hand.length);
+      if (state.table.length + 1 > maxAllowed) {
+        state.message = 'У следующего игрока недостаточно карт для перевода.';
+        return;
+      }
+      player.hand = player.hand.filter(c => c.id !== card.id);
+      state.table.push({ attack: card, defense: null });
+      state.attackerIndex = state.defenderIndex;
+      state.defenderIndex = nextDefIndex;
+      state.trickLimit = maxAllowed;
+      state.message = `${player.username} переводит ${card.rank}${card.suit}`;
+      state.turnFinishedBy = [];
+      state.turnEndsAt = Date.now() + TURN_MS;
       break;
     }
 

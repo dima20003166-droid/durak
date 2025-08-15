@@ -351,12 +351,15 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
       )}
 
       <header className="flex justify-between items-center mb-2">
-        <h1 className="text-2xl font-bold text-primary">{room.name}</h1>
-        {room?.status === 'waiting' && (
-          <div className="text-sm text-muted mt-1">
-            Ожидаем игроков • ещё {Math.max(0, (Number(room?.maxPlayers || 2) - Number(room?.players?.length || 0)))}
-          </div>
-        )}
+        <div>
+          <h1 className="text-2xl font-bold text-primary">{room.name}</h1>
+          <div className="text-sm text-muted">Режим: {room.mode}</div>
+          {room?.status === 'waiting' && (
+            <div className="text-sm text-muted mt-1">
+              Ожидаем игроков • ещё {Math.max(0, (Number(room?.maxPlayers || 2) - Number(room?.players?.length || 0)))}
+            </div>
+          )}
+        </div>
         <button onClick={handleLeave} className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors">
           Покинуть
         </button>

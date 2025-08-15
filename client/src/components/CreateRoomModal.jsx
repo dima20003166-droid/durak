@@ -4,7 +4,7 @@ import socketService from '../services/socketService';
 
 export default function CreateRoomModal({ onClose }) {
   const [bet, setBet] = useState(50);
-  const [mode, setMode] = useState('classic');
+  const [mode, setMode] = useState('Подкидной');
   const [isPrivate, setIsPrivate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -33,9 +33,9 @@ CreateRoomModal.propTypes = {
         <input type="number" min={1} step={1} value={bet} onChange={(e) => setBet(Number(e.target.value))} className="w-full mb-3 rounded-md bg-surface text-text p-2 outline-none" />
         <label className="block text-sm text-muted mb-1">Режим</label>
         <select value={mode} onChange={(e) => setMode(e.target.value)} className="w-full mb-3 rounded-md bg-surface text-text p-2">
-        <option value="classic">Классика</option>
-        <option value="transfer">Подкидной</option>
-      </select>
+          <option value="Подкидной">Подкидной</option>
+          <option value="Переводной">Переводной</option>
+        </select>
         <label className="inline-flex items-center gap-2 text-muted mb-3">
         <input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} />
         Приватный стол
