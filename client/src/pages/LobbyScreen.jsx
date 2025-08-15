@@ -301,7 +301,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
             {roomsLoading ? (
               Array.from({ length: 3 }).map((_, i) => <RoomCardSkeleton key={i} />)
             ) : (
-              rooms.map((room) => {
+              Array.isArray(rooms) && rooms.map((room) => {
                 const iAmHere = room.players.some((p) => p.socketId === mySocketId);
                 return (
                   <div key={room.id} className={`p-4 rounded-lg flex items-center justify-between border transition-all ${iAmHere ? "bg-surface/80 border-primary shadow-[0_0_0_3px_rgba(22,163,74,0.2)]" : "bg-surface border-border"}`}>
@@ -357,7 +357,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
             {chatLoading ? (
               Array.from({ length: 5 }).map((_, i) => <ChatMessageSkeleton key={i} />)
             ) : (
-              chatMessages.map((msg, index) => {
+              Array.isArray(chatMessages) && chatMessages.map((msg, index) => {
                 const isMine = (msg.user?.id && user?.id && msg.user.id === user.id) || (msg.user?.username === user?.username);
                 const userRole = msg.user?.role;
                 const nameColor = userRole === 'admin' ? 'text-accent' : userRole === 'moderator' ? 'text-primary' : 'text-text';
