@@ -1,17 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
-import { resolveAvatarUrl } from '../utils/avatar';
-import {
-  LogoutIcon,
-  MoreIcon,
-  SettingsIcon,
-  TrophyIcon,
-  UserIcon,
-  WalletIcon,
-} from '../components/icons';
+import resolveAvatarUrl from '../utils/resolveAvatarUrl';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -56,6 +47,8 @@ const ModerationMenu = ({ menuData, onAction, onClose }) => {
 };
 
 
+
+
 const ProfileModal = ({ user, onClose }) => {
   if (!user) return null;
   const stats = user.stats || { wins: 0, losses: 0 };
@@ -67,10 +60,7 @@ const ProfileModal = ({ user, onClose }) => {
         <div className="flex items-center gap-3 mb-4">
           <img
             className="w-12 h-12 rounded-full object-cover"
-            src={resolveAvatarUrl(
-              user.avatarUrl,
-              `https://placehold.co/48x48/1f2937/ffffff?text=${(user.username || 'U')[0]}`
-            )}
+            src={(user.avatarUrl && String(user.avatarUrl).trim()) || `https://placehold.co/48x48/1f2937/ffffff?text=${(user.username || 'U')[0]}`}
             alt="avatar"
           />
           <div>
@@ -103,16 +93,6 @@ const ProfileModal = ({ user, onClose }) => {
   );
 };
 
-ProfileModal.propTypes = {
-  user: PropTypes.shape({
-    id: PropTypes.any,
-    username: PropTypes.string,
-    avatarUrl: PropTypes.string,
-    stats: PropTypes.object,
-  }),
-  onClose: PropTypes.func.isRequired,
-};
-
 const formatTime = (ts) => {
   try {
     return new Date(ts || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -120,6 +100,37 @@ const formatTime = (ts) => {
     return '';
   }
 };
+
+const UserIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+  </svg>
+);
+const SettingsIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+const LogoutIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+);
+const WalletIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 12V8H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h12v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/>
+  </svg>
+);
+const TrophyIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+  </svg>
+);
 
 const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -250,7 +261,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
           <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user.balance} ₽</button>
           <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> Профиль</button>
           <div className="flex items-center gap-1">
-            <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
+            <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}` , socketService?.getServerUrl ? socketService.getServerUrl() : undefined)} alt="avatar" />
             <span className="font-semibold">{user.username}</span>
             {user.role === 'admin' && <AdminBadge />}
           </div>
@@ -331,7 +342,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
                     {!isMine && (
                         <img
                         className="w-8 h-8 rounded-full object-cover cursor-pointer self-start"
-                        src={resolveAvatarUrl(msg.user?.avatarUrl, `https://placehold.co/32x32/1f2937/ffffff?text=${(msg.user?.username || 'U')[0]}`)}
+                        src={resolveAvatarUrl(msg.user?.avatarUrl, `https://placehold.co/32x32/1f2937/ffffff?text=${(msg.user?.username || 'U')[0]}` , socketService?.getServerUrl ? socketService.getServerUrl() : undefined)}
                         alt="avatar"
                         onClick={() => openProfile(msg.user)}
                         title="Открыть профиль"
@@ -354,7 +365,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
                         </div>
                         {canModerate && 
                             <button onClick={(e) => handleOpenModerationMenu(e, msg)} className="self-center text-muted hover:text-text opacity-0 group-hover:opacity-100 transition-opacity">
-                                <MoreIcon />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                             </button>
                         }
                     </div>
@@ -473,14 +484,6 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
       )}
     </div>
   );
-};
-
-LobbyScreen.propTypes = {
-  user: PropTypes.object.isRequired,
-  onLogout: PropTypes.func.isRequired,
-  setPage: PropTypes.func.isRequired,
-  rooms: PropTypes.arrayOf(PropTypes.object).isRequired,
-  siteSettings: PropTypes.object,
 };
 
 export default LobbyScreen;
