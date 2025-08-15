@@ -3,6 +3,7 @@
 // — Кнопка «Отменить ставку и выйти» показывается ТОЛЬКО обычному игроку (не создателю) и только для столов 3+
 // — Кнопка «Сдаться» одна и справа, боевые кнопки по центру
 import React, { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import ConfirmDialog from '../components/ConfirmDialog';
 import socketService from '../services/socketService';
 import Card from '../components/Card';
@@ -24,7 +25,7 @@ function playWinDing() {
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
     osc.stop(ctx.currentTime + 0.27);
     setTimeout(() => ctx.close(), 400);
-  } catch (e) {}
+  } catch {}
 }
 
 const ProfileModal = ({ user, onClose }) => {
@@ -73,6 +74,17 @@ const ProfileModal = ({ user, onClose }) => {
       </div>
     </div>
   );
+};
+
+ProfileModal.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.any,
+    username: PropTypes.string,
+    avatarUrl: PropTypes.string,
+    stats: PropTypes.object,
+    rating: PropTypes.number,
+  }),
+  onClose: PropTypes.func.isRequired,
 };
 
 const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
@@ -562,6 +574,12 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
       {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
     </div>
   );
+};
+
+GameScreen.propTypes = {
+  room: PropTypes.object,
+  setSuppressAutoJoinUntil: PropTypes.func,
+  setPage: PropTypes.func.isRequired,
 };
 
 export default GameScreen;

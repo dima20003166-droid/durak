@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 
 export default function CreateRoomModal({ onClose }) {
@@ -16,7 +17,11 @@ export default function CreateRoomModal({ onClose }) {
       if (!res?.ok) {
         setError(res?.msg || 'Не удалось создать стол.');
         return;
-      }
+}
+
+CreateRoomModal.propTypes = {
+  onClose: PropTypes.func,
+};
       onClose?.();
     });
   };
