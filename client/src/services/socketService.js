@@ -1,6 +1,6 @@
 // client/src/services/socketService.js
 import io from 'socket.io-client';
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:4000";
+const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'http://localhost:4000';
 
 class SocketService {
   socket;
@@ -11,13 +11,17 @@ class SocketService {
         reconnection: true,
         reconnectionAttempts: 5,
       });
-      this.socket.on('connect_error', () => {
-        console.error('Connection error. Retrying...');
+      this.socket.on('connect_error', (err) => {
+        console.error('Connection error:', err);
         alert('Ошибка подключения. Переподключение...');
       });
-      this.socket.on('reconnect', () => {
-        console.log('Reconnected to server');
+      this.socket.on('reconnect', (attempt) => {
+        console.log(`Reconnected to server after ${attempt} attempts`);
         alert('Соединение восстановлено');
+      });
+      this.socket.on('reconnect_failed', () => {
+        console.error('Failed to reconnect to server');
+        alert('Не удалось восстановить соединение');
       });
       console.log('Connecting to server...');
     } else if (!this.socket.connected) {
