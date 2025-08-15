@@ -49,41 +49,45 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
     socketService.guestLogin(name);
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center text-white">
-      <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-2xl shadow-2xl shadow-emerald-500/10 border border-gray-700">
-        <h1 className="text-4xl font-bold text-center text-emerald-400">DURAK.IO</h1>
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg text-text">
+        <div className="w-full max-w-md p-8 space-y-6 bg-surface rounded-2xl shadow-2xl shadow-primary/10 border border-border transition-transform hover:scale-[1.02]">
+          <h1 className="text-4xl font-display font-bold text-center text-primary">DURAK.IO</h1>
 
-        <div className="flex bg-gray-700 rounded-lg overflow-hidden">
-          <button type="button" onClick={() => setMode('login')} className={`flex-1 py-2 font-semibold ${mode==='login' ? 'bg-emerald-600' : ''}`}>Войти</button>
-          <button type="button" onClick={() => setMode('register')} className={`flex-1 py-2 font-semibold ${mode==='register' ? 'bg-emerald-600' : ''}`}>Регистрация</button>
+          <div className="flex bg-surface/80 rounded-lg overflow-hidden">
+            <button type="button" onClick={() => setMode('login')} className={`flex-1 py-2 font-semibold ${mode==='login' ? 'bg-primary text-bg' : ''}`}>Войти</button>
+            <button type="button" onClick={() => setMode('register')} className={`flex-1 py-2 font-semibold ${mode==='register' ? 'bg-primary text-bg' : ''}`}>Регистрация</button>
+          </div>
+
+          {error && <div className="text-danger text-sm">{error}</div>}
+
+          <div className="space-y-4">
+            <input type="text" placeholder="Имя пользователя" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg"/>
+            <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg"/>
+            {mode === 'register' && (
+              <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg"/>
+            )}
+            {mode === 'login' ? (
+              <button type="button" onClick={handleLogin} disabled={loading} className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80">
+                Войти
+              </button>
+            ) : (
+              <button type="button" onClick={handleRegister} disabled={loading} className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80">
+                Зарегистрироваться
+              </button>
+            )}
+          </div>
+
+          <div className="text-center text-xs text-muted pt-2">
+            Аккаунты: player/player, admin/admin
+          </div>
+
+          <button type="button" onClick={handleGuest} className="w-full py-2 text-sm font-semibold text-bg bg-accent rounded-lg hover:bg-accent/80">
+            Зайти гостем
+          </button>
         </div>
-
-        {error && <div className="text-red-400 text-sm">{error}</div>}
-
-        <div className="space-y-4">
-          <input type="text" placeholder="Имя пользователя" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-4 py-3 bg-gray-700 rounded-lg"/>
-          <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 bg-gray-700 rounded-lg"/>
-          {mode === 'register' && (
-            <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-gray-700 rounded-lg"/>
-          )}
-          {mode === 'login' ? (
-            <button type="button" onClick={handleLogin} disabled={loading} className="w-full py-3 font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">Войти</button>
-          ) : (
-            <button type="button" onClick={handleRegister} disabled={loading} className="w-full py-3 font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">Зарегистрироваться</button>
-          )}
-        </div>
-
-        <div className="text-center text-xs text-gray-500 pt-2">
-          Аккаунты: player/player, admin/admin
-        </div>
-
-        <button type="button" onClick={handleGuest} className="w-full py-2 text-sm font-semibold text-gray-900 bg-yellow-400 rounded-lg hover:bg-yellow-300">
-          Зайти гостем
-        </button>
       </div>
-    </div>
-  );
+    );
 };
 
 export default AuthScreen;
