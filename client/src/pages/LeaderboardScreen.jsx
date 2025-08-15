@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import AdminBadge from '../components/AdminBadge';
 
@@ -45,3 +46,16 @@ const LeaderboardScreen = ({ setPage, leaderboard = [] }) => {
 };
 
 export default LeaderboardScreen;
+
+LeaderboardScreen.propTypes = {
+  setPage: PropTypes.func.isRequired,
+  leaderboard: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.any,
+      username: PropTypes.string,
+      rating: PropTypes.number,
+      stats: PropTypes.object,
+      role: PropTypes.string,
+    })
+  ),
+};

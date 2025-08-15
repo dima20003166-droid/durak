@@ -1,5 +1,6 @@
 // client/src/pages/ProfileScreen.jsx (file picker)
 import React, { useRef } from 'react';
+import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import AdminBadge from '../components/AdminBadge';
 
@@ -78,3 +79,14 @@ const ProfileScreen = ({ user, setPage }) => {
 };
 
 export default ProfileScreen;
+
+ProfileScreen.propTypes = {
+  user: PropTypes.shape({
+    username: PropTypes.string,
+    avatarUrl: PropTypes.string,
+    stats: PropTypes.object,
+    rating: PropTypes.number,
+    role: PropTypes.string,
+  }),
+  setPage: PropTypes.func.isRequired,
+};

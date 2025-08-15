@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -116,6 +117,16 @@ const ProfileModal = ({ user, onClose }) => {
       </div>
     </div>
   );
+};
+
+ProfileModal.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.any,
+    username: PropTypes.string,
+    avatarUrl: PropTypes.string,
+    stats: PropTypes.object,
+  }),
+  onClose: PropTypes.func.isRequired,
 };
 
 const formatTime = (ts) => {
@@ -509,6 +520,14 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
       )}
     </div>
   );
+};
+
+LobbyScreen.propTypes = {
+  user: PropTypes.object.isRequired,
+  onLogout: PropTypes.func.isRequired,
+  setPage: PropTypes.func.isRequired,
+  rooms: PropTypes.arrayOf(PropTypes.object).isRequired,
+  siteSettings: PropTypes.object,
 };
 
 export default LobbyScreen;

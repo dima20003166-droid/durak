@@ -1,5 +1,6 @@
 // client/src/components/Card.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 
 const suitColor = (suit) => (suit === '♥' || suit === '♦' ? 'text-danger' : 'text-bg');
@@ -19,6 +20,11 @@ const SuitSvg = ({ suit, size=28 }) => {
     default:
       return (<svg {...props}><path d="M12 2s8 7 8 12a4 4 0 0 1-6.2 3.4c.8 1.1 1.7 2.6 1.7 4.2H8.5c0-1.6.9-3.1 1.7-4.2A4 4 0 0 1 4 14C4 9 12 2 12 2z"/></svg>);
   }
+};
+
+SuitSvg.propTypes = {
+  suit: PropTypes.oneOf(['♠', '♣', '♥', '♦']).isRequired,
+  size: PropTypes.number,
 };
 
 export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=false, onClick, size='md', className='', style }) {
@@ -70,3 +76,14 @@ export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=f
     </motion.div>
   );
 }
+
+Card.propTypes = {
+  suit: PropTypes.oneOf(['♠', '♣', '♥', '♦']),
+  rank: PropTypes.string,
+  isFaceUp: PropTypes.bool,
+  isSelected: PropTypes.bool,
+  onClick: PropTypes.func,
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  className: PropTypes.string,
+  style: PropTypes.object,
+};

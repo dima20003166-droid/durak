@@ -1,5 +1,6 @@
 // client/src/components/ConfirmDialog.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
 
 export default function ConfirmDialog({
   open,
@@ -42,3 +43,13 @@ export default function ConfirmDialog({
     </div>
   );
 }
+
+ConfirmDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  title: PropTypes.string,
+  message: PropTypes.string,
+  confirmText: PropTypes.string,
+  cancelText: PropTypes.string,
+  onConfirm: PropTypes.func,
+  onCancel: PropTypes.func,
+};
