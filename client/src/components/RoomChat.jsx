@@ -1,17 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import socketService from '../services/socketService';
-
-const resolveAvatarUrl = (url, placeholder, base = null) => {
-  const s = (url || '').toString().trim();
-  if (!s) return placeholder;
-  if (s.startsWith('http://') || s.startsWith('https://')) return s;
-  const root =
-    base ||
-    (typeof socketService?.getServerUrl === 'function'
-      ? socketService.getServerUrl()
-      : 'http://localhost:4000');
-  return s.startsWith('/') ? root + s : s;
-};
+import resolveAvatarUrl from '../utils/resolveAvatarUrl';
 
 const RoomChat = ({ chat, msg, setMsg, sendRoomMessage, openProfile }) => {
   const chatEndRef = useRef(null);

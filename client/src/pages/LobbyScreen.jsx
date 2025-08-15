@@ -4,6 +4,7 @@ import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
 import { RoomCardSkeleton, ChatMessageSkeleton } from '../components/Skeletons';
+import resolveAvatarUrl from '../utils/resolveAvatarUrl';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -66,13 +67,6 @@ ModerationMenu.propTypes = {
 };
 
 
-const resolveAvatarUrl = (url, placeholder, base = null) => {
-  const s = (url || '').toString().trim();
-  if (!s) return placeholder;
-  if (s.startsWith('http://') || s.startsWith('https://')) return s;
-  const root = base || (typeof socketService?.getServerUrl === 'function' ? socketService.getServerUrl() : 'http://localhost:4000');
-  return s.startsWith('/') ? (root + s) : s;
-};
 
 
 const ProfileModal = ({ user, onClose }) => {
