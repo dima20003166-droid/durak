@@ -14,8 +14,8 @@ const resolveAvatarUrl = (url, placeholder, base = null) => {
 
 const ProfileScreen = ({ user, setPage }) => {
   const stats = user?.stats || { games: 0, wins: 0, losses: 0 };
-  const total = (stats.wins||0) + (stats.losses||0);
-  const winRate = total ? Math.round((stats.wins / total) * 100) : 0;
+  const total = stats.games || 0;
+  const winRate = ((stats.wins || 0) / Math.max(total, 1) * 100).toFixed(1);
   const avatarSrc = resolveAvatarUrl(
     user?.avatarUrl,
     `https://placehold.co/160x160/1f2937/ffffff?text=${user?.username?.charAt(0) || 'U'}`
