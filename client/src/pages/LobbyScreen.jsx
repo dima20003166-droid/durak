@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
+import AuthModal from '../components/AuthModal';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -44,24 +44,6 @@ const ModerationMenu = ({ menuData, onAction, onClose }) => {
             <button onClick={() => handleAction('deleteAll')} className="block w-full text-left px-4 py-2 text-sm hover:bg-surface/80 text-danger rounded-b-lg">Удалить все сообщения</button>
         </div>
     );
-};
-
-ModerationMenu.propTypes = {
-  menuData: PropTypes.shape({
-    isOpen: PropTypes.bool,
-    msg: PropTypes.shape({
-      id: PropTypes.any,
-      user: PropTypes.shape({
-        id: PropTypes.any,
-      }),
-    }),
-    position: PropTypes.shape({
-      top: PropTypes.number,
-      left: PropTypes.number,
-    }),
-  }),
-  onAction: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
 };
 
 
@@ -118,16 +100,6 @@ const ProfileModal = ({ user, onClose }) => {
   );
 };
 
-ProfileModal.propTypes = {
-  user: PropTypes.shape({
-    id: PropTypes.any,
-    username: PropTypes.string,
-    avatarUrl: PropTypes.string,
-    stats: PropTypes.object,
-  }),
-  onClose: PropTypes.func.isRequired,
-};
-
 const formatTime = (ts) => {
   try {
     return new Date(ts || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -179,11 +151,8 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
   const [cancelPrompt, setCancelPrompt] = useState(null);
   const chatEndRef = useRef(null);
   const [moderationMenu, setModerationMenu] = useState({ isOpen: false, msg: null, position: null });
-<<<<<<< HEAD
-=======
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
->>>>>>> c990a03 (Applying previous commit.)
 
 
   useEffect(() => {
@@ -450,10 +419,10 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
       </main>
 
       {/* Модальные окна */}
-      <ModerationMenu 
-        menuData={moderationMenu} 
-        onAction={handleModerationAction} 
-        onClose={handleCloseModerationMenu} 
+      <ModerationMenu
+        menuData={moderationMenu}
+        onAction={handleModerationAction}
+        onClose={handleCloseModerationMenu}
       />
       {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
       <AuthModal open={authOpen} initialMode={authMode} onClose={() => setAuthOpen(false)} />
@@ -539,14 +508,6 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
       )}
     </div>
   );
-};
-
-LobbyScreen.propTypes = {
-  user: PropTypes.object.isRequired,
-  onLogout: PropTypes.func.isRequired,
-  setPage: PropTypes.func.isRequired,
-  rooms: PropTypes.arrayOf(PropTypes.object).isRequired,
-  siteSettings: PropTypes.object,
 };
 
 export default LobbyScreen;
