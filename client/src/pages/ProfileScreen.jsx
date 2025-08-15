@@ -1,6 +1,7 @@
 // client/src/pages/ProfileScreen.jsx (file picker)
 import React, { useRef } from 'react';
 import socketService from '../services/socketService';
+import AdminBadge from '../components/AdminBadge';
 
 const resolveAvatarUrl = (url, placeholder, base = null) => {
   const s = (url || '').toString().trim();
@@ -61,7 +62,7 @@ const ProfileScreen = ({ user, setPage }) => {
             <input type="file" accept="image/png,image/jpeg" ref={fileRef} onChange={onFileChange} className="hidden" />
           </div>
           <div className="flex-grow w-full">
-            <h2 className="text-4xl font-bold">{user?.username}</h2>
+            <h2 className="text-4xl font-bold flex items-center gap-2">{user?.username}{user?.role === 'admin' && <AdminBadge />}</h2>
             <p className="text-lg text-gray-400">Рейтинг: {user?.rating}</p>
             <div className="mt-6 grid grid-cols-2 lg:grid-cols-3 gap-4 text-center">
               <div className="bg-gray-700 p-4 rounded-lg"><p className="text-gray-400 text-sm">Всего игр</p><p className="text-2xl font-bold">{total || 0}</p></div>

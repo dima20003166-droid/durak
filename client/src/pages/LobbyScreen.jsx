@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
+import AdminBadge from '../components/AdminBadge';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -265,7 +266,11 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
           <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-emerald-400"><TrophyIcon /> Рейтинги</button>
           <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-emerald-400"><WalletIcon /> {user.balance} ₽</button>
           <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-emerald-400"><UserIcon /> Профиль</button>
-          <img className="w-12 h-12 rounded-full border-2 border-emerald-500 object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
+          <div className="flex items-center gap-1">
+            <img className="w-12 h-12 rounded-full border-2 border-emerald-500 object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}`)} alt="avatar" />
+            <span className="font-semibold">{user.username}</span>
+            {user.role === 'admin' && <AdminBadge />}
+          </div>
           {user.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600"><SettingsIcon /></button>}
           <button onClick={onLogout} className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600"><LogoutIcon /></button>
         </div>
@@ -355,12 +360,11 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
                             isMine ? 'bg-emerald-900 rounded-br-none' : 'bg-gray-700 rounded-bl-none'
                             }`}
                         >
-                            {!isMine && (
-                                <span className={`text-sm font-semibold ${nameColor}`}>
-                                    {msg.user?.username || 'Игрок'}
-                                </span>
-                            )}
-                            <p className="text-sm font-normal text-gray-200" style={{ wordBreak: 'break-word' }}>{msg.text}</p>
+                              <span className={`text-sm font-semibold ${nameColor} flex items-center gap-1`}>
+                                  {msg.user?.username || 'Игрок'}
+                                  {msg.user?.role === 'admin' && <AdminBadge />}
+                              </span>
+                              <p className="text-sm font-normal text-gray-200" style={{ wordBreak: 'break-word' }}>{msg.text}</p>
                             <div className="text-[10px] text-gray-400 mt-0.5 self-end">
                                 {formatTime(msg.createdAt || msg.timestamp)}
                             </div>
