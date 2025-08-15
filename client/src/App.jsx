@@ -37,7 +37,9 @@ export default function App() {
     const onSettings = settings => setSiteSettings(settings || { commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
 
     socketService.on('login_success', onLoginSuccess);
-    socketService.on('created_room', ({ roomId }) => { socketService.joinRoom(roomId); });
+    socketService.on('created_room', ({ roomId }) => {
+      socketService.joinRoom(roomId);
+    });
     socketService.on('user_data_updated', onUserUpdated);
     socketService.on('update_rooms', onRooms);
     socketService.on('leaderboard_data', onLeaderboard);
@@ -46,7 +48,9 @@ export default function App() {
     const handleRoomUpdate = updatedRoom => {
       if (Date.now() < suppressAutoJoinUntil) return;
       if (!updatedRoom) return;
-      const inRoom = updatedRoom.players?.some(p => p.socketId === socketService.getSocketId());
+      const inRoom = updatedRoom.players?.some(
+        (p) => p.socketId === socketService.getSocketId(),
+      );
       if (inRoom) {
         setCurrentRoom(updatedRoom);
         // переход в экран игры даже в статусе 'waiting', чтобы видеть стол
@@ -56,7 +60,7 @@ export default function App() {
 
     const handleGameStarted = room => {
       if (Date.now() < suppressAutoJoinUntil) return;
-      if (room?.players?.some(p => p.socketId === socketService.getSocketId())) {
+      if (room?.players?.some((p) => p.socketId === socketService.getSocketId())) {
         setCurrentRoom(room);
         setPage('game');
       }
@@ -64,7 +68,10 @@ export default function App() {
 
     socketService.on('room_update', handleRoomUpdate);
     socketService.on('game_started', handleGameStarted);
-    socketService.on('joined_room', room => { setCurrentRoom(room); setPage('game'); });
+    socketService.on('joined_room', (room) => {
+      setCurrentRoom(room);
+      setPage('game');
+    });
     socketService.on('game_state_update', handleRoomUpdate);
     // Не редиректим здесь — модалка в GameScreen сама покажется
     socketService.on('game_over', () => {});
