@@ -150,7 +150,14 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="bg-bg text-text min-h-screen relative">
+      <motion.div
+        className="bg-bg text-text min-h-screen relative transition-colors duration-300"
+        animate={{
+          backgroundColor: theme === 'dark' ? '#0f172a' : '#f8fafc',
+          color: theme === 'dark' ? '#f8fafc' : '#0f172a'
+        }}
+        transition={{ duration: 0.3 }}
+      >
         <AnimatePresence mode="wait">
           {renderPage()}
         </AnimatePresence>
@@ -160,7 +167,7 @@ export default function App() {
         >
           {theme === 'dark' ? '🌙' : '☀️'}
         </button>
-      </div>
+      </motion.div>
     </ErrorBoundary>
   );
 }
