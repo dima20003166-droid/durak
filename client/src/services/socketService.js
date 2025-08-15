@@ -1,24 +1,43 @@
 // client/src/services/socketService.js
 import io from 'socket.io-client';
-const SERVER_URL = "http://localhost:4000";
+
+const DEFAULT_SERVER_URL = 'http://localhost:4000';
 const IS_DEV =
   import.meta.env?.DEV ||
   (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development');
 
 class SocketService {
   socket;
+  serverUrl = import.meta.env?.VITE_SERVER_URL || DEFAULT_SERVER_URL;
+  eventQueue = [];
+  handlers = new Map();
 
   connect() {
     if (!this.socket || !this.socket.connected) {
-      this.socket = io(SERVER_URL);
+      this.socket = io(this.serverUrl);
       if (IS_DEV) {
         console.log('Connecting to server...');
       }
+
+      // re-register stored handlers
+      for (const [event, callbacks] of this.handlers) {
+        for (const cb of callbacks) {
+          this.socket.on(event, cb);
+        }
+      }
+
+      // flush queued events once connected
+      this.socket.on('connect', () => {
+        for (const { event, args } of this.eventQueue) {
+          this.socket.emit(event, ...args);
+        }
+        this.eventQueue = [];
+      });
     }
   }
 
   getServerUrl() {
-    return SERVER_URL;
+    return this.serverUrl;
   }
 
   disconnect() {
@@ -29,34 +48,57 @@ class SocketService {
     return this.socket ? this.socket.id : null;
   }
 
-  login(credentials) { this.socket.emit('login', credentials); }
-  register(credentials) { this.socket.emit('register', credentials); }
-  createRoom(options) { this.socket.emit('create_room', options); }
-  joinRoom(roomId) { this.socket.emit('join_room', { roomId }); }
-  leaveRoom(roomId) { this.socket.emit('leave_room', { roomId }); }
-  playerAction(roomId, action, card) { this.socket.emit('player_action', { roomId, action, card }); }
-  sendGlobalMessage(message) { this.socket.emit('send_global_message', message); }
-  requestGlobalChat() { this.socket.emit('request_global_chat'); }
-  sendRoomMessage(roomId, text) { this.socket.emit('send_room_message', { roomId, text }); }
-  requestRoomChat(roomId) { this.socket.emit('request_room_chat', { roomId }); }
-  requestLeaderboard() { this.socket.emit('request_leaderboard'); }
-  requestUserStats(userId) { this.socket.emit('request_user_stats', { userId }); }
-  adminGetAllUsers() { this.socket.emit('admin_get_all_users'); }
-  adminUpdateUser(userId, data) { this.socket.emit('admin_update_user', { userId, data }); }
-  adminGetSettings() { this.socket.emit('admin_get_settings'); }
-  adminGetStats(range) { this.socket.emit('admin_get_stats', { range }); }
-  adminUpdateSettings(newSettings) { this.socket.emit('admin_update_settings', newSettings); }
-  updateAvatar(url) { this.socket.emit('update_avatar', url); }
-  updateAvatarFile(dataUrl) { this.socket.emit('update_avatar_file', dataUrl); }
-  cancelRoom(roomId) { this.socket.emit('cancel_room', { roomId }); }
-  
-  // Moderation
-  deleteChatMessage(messageId) { this.socket.emit('chat:delete_message', { messageId }); }
-  muteUser(userId, durationMinutes) { this.socket.emit('chat:mute_user', { userId, durationMinutes }); }
-  deleteAllUserMessages(userId) { this.socket.emit('chat:delete_all_messages', { userId }); }
+  emit(event, ...args) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit(event, ...args);
+    } else {
+      this.eventQueue.push({ event, args });
+      this.connect();
+    }
+  }
 
-  on(e, cb) { if (this.socket) this.socket.on(e, cb); }
-  off(e, cb) { if (this.socket) this.socket.off(e, cb); }
+  login(credentials) { this.emit('login', credentials); }
+  register(credentials) { this.emit('register', credentials); }
+  createRoom(options) { this.emit('create_room', options); }
+  joinRoom(roomId) { this.emit('join_room', { roomId }); }
+  leaveRoom(roomId) { this.emit('leave_room', { roomId }); }
+  playerAction(roomId, action, card) { this.emit('player_action', { roomId, action, card }); }
+  sendGlobalMessage(message) { this.emit('send_global_message', message); }
+  requestGlobalChat() { this.emit('request_global_chat'); }
+  sendRoomMessage(roomId, text) { this.emit('send_room_message', { roomId, text }); }
+  requestRoomChat(roomId) { this.emit('request_room_chat', { roomId }); }
+  requestLeaderboard() { this.emit('request_leaderboard'); }
+  requestUserStats(userId) { this.emit('request_user_stats', { userId }); }
+  adminGetAllUsers() { this.emit('admin_get_all_users'); }
+  adminUpdateUser(userId, data) { this.emit('admin_update_user', { userId, data }); }
+  adminGetSettings() { this.emit('admin_get_settings'); }
+  adminGetStats(range) { this.emit('admin_get_stats', { range }); }
+  adminUpdateSettings(newSettings) { this.emit('admin_update_settings', newSettings); }
+  updateAvatar(url) { this.emit('update_avatar', url); }
+  updateAvatarFile(dataUrl) { this.emit('update_avatar_file', dataUrl); }
+  cancelRoom(roomId) { this.emit('cancel_room', { roomId }); }
+
+  // Moderation
+  deleteChatMessage(messageId) { this.emit('chat:delete_message', { messageId }); }
+  muteUser(userId, durationMinutes) { this.emit('chat:mute_user', { userId, durationMinutes }); }
+  deleteAllUserMessages(userId) { this.emit('chat:delete_all_messages', { userId }); }
+
+  on(event, cb) {
+    if (!this.handlers.has(event)) {
+      this.handlers.set(event, new Set());
+    }
+    this.handlers.get(event).add(cb);
+    if (this.socket) this.socket.on(event, cb);
+  }
+
+  off(event, cb) {
+    if (this.handlers.has(event)) {
+      const set = this.handlers.get(event);
+      set.delete(cb);
+      if (set.size === 0) this.handlers.delete(event);
+    }
+    if (this.socket) this.socket.off(event, cb);
+  }
 }
 
 export default new SocketService();
