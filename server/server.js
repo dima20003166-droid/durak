@@ -589,10 +589,10 @@ function withRateLimit(event, handler) {
 }));
 
   socket.on('join_room', async (payload) => {
-    const roomId = getRoomId(payload);
-    const room = gameRooms[roomId];
     const user = socket.data.user;
     if (!user) return socket.emit('join_error', 'Требуется авторизация');
+    const roomId = getRoomId(payload);
+    const room = gameRooms[roomId];
     if (!room) return socket.emit('join_error', 'Комната не найдена');
 
     const isAlreadyInAnotherRoom = Object.values(gameRooms).some(r => r.id !== roomId && r.players.some(p => p.id === user.id));
