@@ -395,9 +395,19 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
                       onClick={() => openProfile(p)}
                       alt=""
                     />
-                    <p className="font-semibold mt-1 truncate cursor-pointer" onClick={() => openProfile(p)}>
-                      {p.username}
-                    </p>
+                    <div className="flex items-center mt-1 w-full">
+                      <p
+                        className="font-semibold truncate cursor-pointer flex-1"
+                        onClick={() => openProfile(p)}
+                      >
+                        {p.username}
+                      </p>
+                      {p.socketId !== mySocketId && (
+                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-700 text-white flex-shrink-0">
+                          {p.hand.length}
+                        </span>
+                      )}
+                    </div>
 
                     <div className="relative flex justify-center items-center h-28 w-full mt-2">
                       {p.socketId === mySocketId
