@@ -3,6 +3,7 @@
 // — Кнопка «Отменить ставку и выйти» показывается ТОЛЬКО обычному игроку (не создателю) и только для столов 3+
 // — Кнопка «Сдаться» одна и справа, боевые кнопки по центру
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import ConfirmDialog from '../components/ConfirmDialog';
 import socketService from '../services/socketService';
 import Card from '../components/Card';
