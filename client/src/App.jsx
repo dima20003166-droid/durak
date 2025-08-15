@@ -96,7 +96,7 @@ return () => { socketService.disconnect(); };
 
   return (
     <ErrorBoundary>
-      <div className="bg-gray-900 min-h-screen">{renderPage()}</div>
+        <div className="bg-bg text-text min-h-screen">{renderPage()}</div>
     </ErrorBoundary>
   );
 }

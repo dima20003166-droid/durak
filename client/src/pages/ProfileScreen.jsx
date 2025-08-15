@@ -43,37 +43,37 @@ const ProfileScreen = ({ user, setPage }) => {
   };
 
   return (
-    <div className="min-h-screen p-8 bg-gray-900 text-gray-200">
-      <header className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-emerald-400">Профиль игрока</h1>
-        <button onClick={() => setPage('lobby')} className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600">Вернуться в лобби</button>
-      </header>
-      <div className="max-w-4xl mx-auto bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-8">
-        <div className="flex flex-col md:flex-row items-center gap-8">
-          <div className="flex flex-col items-center">
-            <img className="w-40 h-40 rounded-full border-4 border-emerald-500 object-cover" src={avatarSrc} alt="avatar" />
-            <div className="mt-4 flex gap-3">
-              <button onClick={onPick} className="text-sm text-emerald-400 hover:underline">Загрузить с устройства</button>
-              <button onClick={() => {
+      <div className="min-h-screen p-8 bg-bg text-text">
+        <header className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-display font-bold text-primary">Профиль игрока</h1>
+          <button onClick={() => setPage('lobby')} className="bg-primary text-text font-bold py-2 px-4 rounded-lg hover:bg-primary/80">Вернуться в лобби</button>
+        </header>
+        <div className="max-w-4xl mx-auto bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-8">
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex flex-col items-center">
+              <img className="w-40 h-40 rounded-full border-4 border-primary object-cover" src={avatarSrc} alt="avatar" />
+              <div className="mt-4 flex gap-3">
+                <button onClick={onPick} className="text-sm text-primary hover:underline">Загрузить с устройства</button>
+                <button onClick={() => {
                 const url = window.prompt('Вставьте ссылку на изображение (PNG/JPG):', user?.avatarUrl || '');
                 if (url) socketService.updateAvatar(url);
-              }} className="text-sm text-emerald-400 hover:underline">Указать URL</button>
+                }} className="text-sm text-primary hover:underline">Указать URL</button>
             </div>
             <input type="file" accept="image/png,image/jpeg" ref={fileRef} onChange={onFileChange} className="hidden" />
           </div>
           <div className="flex-grow w-full">
-            <h2 className="text-4xl font-bold flex items-center gap-2">{user?.username}{user?.role === 'admin' && <AdminBadge />}</h2>
-            <p className="text-lg text-gray-400">Рейтинг: {user?.rating}</p>
-            <div className="mt-6 grid grid-cols-2 lg:grid-cols-3 gap-4 text-center">
-              <div className="bg-gray-700 p-4 rounded-lg"><p className="text-gray-400 text-sm">Всего игр</p><p className="text-2xl font-bold">{total || 0}</p></div>
-              <div className="bg-gray-700 p-4 rounded-lg"><p className="text-gray-400 text-sm">Победы</p><p className="text-2xl font-bold text-green-500">{stats.wins || 0}</p></div>
-              <div className="bg-gray-700 p-4 rounded-lg"><p className="text-gray-400 text-sm">Поражения</p><p className="text-2xl font-bold text-red-500">{stats.losses || 0}</p></div>
-              <div className="bg-gray-700 p-4 rounded-lg col-span-2 lg:col-span-1"><p className="text-gray-400 text-sm">Процент побед</p><p className="text-2xl font-bold text-emerald-500">{winRate}%</p></div>
+              <h2 className="text-4xl font-bold flex items-center gap-2">{user?.username}{user?.role === 'admin' && <AdminBadge />}</h2>
+              <p className="text-lg text-muted">Рейтинг: {user?.rating}</p>
+              <div className="mt-6 grid grid-cols-2 lg:grid-cols-3 gap-4 text-center">
+                <div className="bg-surface p-4 rounded-lg transition-transform hover:scale-[1.02]"><p className="text-muted text-sm">Всего игр</p><p className="text-2xl font-bold">{total || 0}</p></div>
+                <div className="bg-surface p-4 rounded-lg transition-transform hover:scale-[1.02]"><p className="text-muted text-sm">Победы</p><p className="text-2xl font-bold text-primary">{stats.wins || 0}</p></div>
+                <div className="bg-surface p-4 rounded-lg transition-transform hover:scale-[1.02]"><p className="text-muted text-sm">Поражения</p><p className="text-2xl font-bold text-danger">{stats.losses || 0}</p></div>
+                <div className="bg-surface p-4 rounded-lg col-span-2 lg:col-span-1 transition-transform hover:scale-[1.02]"><p className="text-muted text-sm">Процент побед</p><p className="text-2xl font-bold text-primary">{winRate}%</p></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
   );
 };
 
