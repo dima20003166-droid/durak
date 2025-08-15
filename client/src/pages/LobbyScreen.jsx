@@ -382,7 +382,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
           <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-4 flex flex-col flex-grow">
             <h2 className="text-xl font-semibold mb-4 text-center">Общий чат</h2>
 
-            <div className="flex-grow space-y-1 overflow-y-auto custom-scroll p-2 mb-4 max-h-[60vh] md:max-h-[70vh]">
+            <div className="flex-grow space-y-1 overflow-y-auto p-2 mb-4 max-h-[60vh] md:max-h-[70vh]">
             {chatLoading ? (
               Array.from({ length: 5 }).map((_, i) => <ChatMessageSkeleton key={i} />)
             ) : (
@@ -551,23 +551,3 @@ LobbyScreen.propTypes = {
 };
 
 export default LobbyScreen;
-
-
-<style>{`
-  /* Стилизация скроллбара под минимализм сайта */
-  .custom-scroll::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .custom-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scroll::-webkit-scrollbar-thumb {
-    background-color: rgba(255,255,255,0.3);
-    border-radius: 3px;
-  }
-  .custom-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.3) transparent;
-  }
-`}</style>

@@ -20,7 +20,3 @@ export const ChatMessageSkeleton = () => (
   </div>
 );
 
-export default {
-  RoomCardSkeleton,
-  ChatMessageSkeleton,
-};
