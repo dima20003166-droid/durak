@@ -1,6 +1,6 @@
 import socketService from '../services/socketService';
 
-export const resolveAvatarUrl = (url, placeholder, base = null) => {
+export function resolveAvatarUrl(url, placeholder, base = null) {
   const s = (url || '').toString().trim();
   if (!s) return placeholder;
   if (s.startsWith('http://') || s.startsWith('https://')) return s;
@@ -10,7 +10,5 @@ export const resolveAvatarUrl = (url, placeholder, base = null) => {
       ? socketService.getServerUrl()
       : 'http://localhost:4000');
   return s.startsWith('/') ? root + s : s;
-};
-
-export default resolveAvatarUrl;
+}
 
