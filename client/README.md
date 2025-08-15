@@ -13,3 +13,6 @@
    ```
 
 Ensure you execute these commands inside the `client` directory.
+
+### Примечание
+Не забудьте установить зависимости, включая [`framer-motion`](https://www.framer.com/motion/), чтобы сборка не выдавала ошибку `Failed to resolve import`.
