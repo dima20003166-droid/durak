@@ -5,12 +5,12 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
 import { resolveAvatarUrl } from '../utils/avatar';
 import {
-  UserIcon,
-  SettingsIcon,
   LogoutIcon,
-  WalletIcon,
-  TrophyIcon,
   MoreIcon,
+  SettingsIcon,
+  TrophyIcon,
+  UserIcon,
+  WalletIcon,
 } from '../components/icons';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
