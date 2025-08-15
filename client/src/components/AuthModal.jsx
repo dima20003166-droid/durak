@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+// Модальное окно для авторизации и регистрации пользователей
 import socketService from '../services/socketService';
 
 const AuthModal = ({ open, initialMode = 'login', onClose }) => {
