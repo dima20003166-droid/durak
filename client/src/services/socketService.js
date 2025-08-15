@@ -1,14 +1,27 @@
 // client/src/services/socketService.js
 import io from 'socket.io-client';
-const SERVER_URL = "http://localhost:4000";
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:4000";
 
 class SocketService {
   socket;
 
   connect() {
-    if (!this.socket || !this.socket.connected) {
-      this.socket = io(SERVER_URL);
+    if (!this.socket) {
+      this.socket = io(SERVER_URL, {
+        reconnection: true,
+        reconnectionAttempts: 5,
+      });
+      this.socket.on('connect_error', () => {
+        console.error('Connection error. Retrying...');
+        alert('Ошибка подключения. Переподключение...');
+      });
+      this.socket.on('reconnect', () => {
+        console.log('Reconnected to server');
+        alert('Соединение восстановлено');
+      });
       console.log('Connecting to server...');
+    } else if (!this.socket.connected) {
+      this.socket.connect();
     }
   }
 
@@ -54,4 +67,4 @@ class SocketService {
   off(e, cb) { if (this.socket) this.socket.off(e, cb); }
 }
 
-export default new SocketService();
+  export default new SocketService();
