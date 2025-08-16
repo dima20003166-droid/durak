@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReCAPTCHA from 'react-google-recaptcha';
 import socketService from '../services/socketService';
-
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 export default function AuthModal({ onClose }) {
   const [mode, setMode] = useState('login');
@@ -13,7 +10,6 @@ export default function AuthModal({ onClose }) {
   const [password2, setPassword2] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(null);
   const backdropRef = useRef(null);
   const contentRef = useRef(null);
 
@@ -59,10 +55,8 @@ export default function AuthModal({ onClose }) {
     if (!uname || !password || !password2) return setError('Заполните все поля');
 
     if (password !== password2) return setError('Пароли не совпадают');
-    if (!captchaToken) return setError('Подтвердите, что вы не робот');
-
     setLoading(true);
-    socketService.register({ username: unameNorm, password, captchaToken });
+    socketService.register({ username: unameNorm, password });
   };
 
   const handleGuest = () => {
@@ -112,19 +106,13 @@ export default function AuthModal({ onClose }) {
               className="w-full p-3 bg-bg border border-border rounded-lg"
             />
             {mode === 'register' && (
-              <>
-                <input
-                  type="password"
-                  value={password2}
-                  onChange={(e) => setPassword2(e.target.value)}
-                  placeholder="Повторите пароль"
-                  className="w-full p-3 bg-bg border border-border rounded-lg"
-                />
-                <ReCAPTCHA
-                  sitekey={RECAPTCHA_SITE_KEY}
-                  onChange={setCaptchaToken}
-                />
-              </>
+              <input
+                type="password"
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
+                placeholder="Повторите пароль"
+                className="w-full p-3 bg-bg border border-border rounded-lg"
+              />
             )}
           </div>
           {mode === 'login' ? (
