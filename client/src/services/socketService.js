@@ -2,9 +2,7 @@
 import io from 'socket.io-client';
 
 const DEFAULT_SERVER_URL = 'http://185.233.47.116:4000';
-const IS_DEV =
-  import.meta.env?.DEV ||
-  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development');
+const IS_DEV = import.meta.env?.DEV;
 
 class SocketService {
   socket;
