@@ -131,8 +131,8 @@ class JackpotWheel extends EventEmitter {
       targetAngle: 0,
       result: null,
     };
-    this.openUntil = Date.now() + this.openDuration;
-    this.openTimer = setTimeout(() => this.lockRound(), this.openDuration);
+    this.openUntil = null;
+    this.openTimer = null;
     this.saveRoundState({ openUntil: this.openUntil });
     this.io.emit('jackpot:state', this.getState());
   }
@@ -346,6 +346,11 @@ class JackpotWheel extends EventEmitter {
       bank: this.getBank(),
       clientBetId: id,
     });
+    if (this.bets.red.length && this.bets.orange.length && this.openTimer === null) {
+      this.openUntil = Date.now() + this.openDuration;
+      this.openTimer = setTimeout(() => this.lockRound(), this.openDuration);
+      this.io.emit('jackpot:state', this.getState());
+    }
     this.saveRoundState({ openUntil: this.openUntil });
   }
 
