@@ -31,6 +31,9 @@
     --neon-primary-700: #2b3a55;
     --jackpot-red: #ff3b3b;
     --jackpot-orange: #ff9a1a;
+    --card-radius: 12px;
+    --card-shadow: 0 10px 28px rgba(0,0,0,.45);
+    --card-back-gradient: linear-gradient(180deg,#6a00ff,#ff2ea6);
   }
 
   .light {
@@ -72,6 +75,13 @@
   button:hover, [role="button"]:hover {
     box-shadow: 0 0 8px var(--color-primary);
   }
+}
+
+@layer components {
+  .chatPanel { @apply grid grid-rows-[1fr_auto] h-full; }
+  .chatMessages { @apply overflow-auto; }
+  .chatInputRow { @apply flex gap-2 p-2.5; }
+  .chatInputRow input { @apply flex-1 min-w-0; }
 }
 
 @layer utilities {
