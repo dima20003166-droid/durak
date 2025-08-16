@@ -34,13 +34,14 @@ class JackpotWheel extends EventEmitter {
       .createHash('sha256')
       .update(this.serverSeed)
       .digest('hex');
+    const openTime = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
     this.io.emit('round:state', {
       roundId: this.roundId,
       state: this.state,
       bank: this.getBank(),
       serverSeedHash: this.serverSeedHash,
+      openMs: openTime,
     });
-    const openTime = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
     this.openTimer = setTimeout(() => this.lockRound(), openTime);
   }
 
