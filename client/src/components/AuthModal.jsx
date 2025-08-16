@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReCAPTCHA from 'react-google-recaptcha';
 import socketService from '../services/socketService';
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 export default function AuthModal({ onClose }) {
   const [mode, setMode] = useState('login');
@@ -10,6 +13,7 @@ export default function AuthModal({ onClose }) {
   const [password2, setPassword2] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
   const backdropRef = useRef(null);
   const contentRef = useRef(null);
 
@@ -39,19 +43,28 @@ export default function AuthModal({ onClose }) {
     };
   }, [onClose]);
 
+  const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
+  const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
   const handleLogin = () => {
     setError('');
-    if (!username || !password) return setError('Введите логин и пароль');
+    const uname = username.trim();
+    if (!uname || !password) return setError('Введите логин и пароль');
     setLoading(true);
-    socketService.login({ username, password });
+    socketService.login({ username: uname, password });
   };
 
   const handleRegister = () => {
     setError('');
-    if (!username || !password || !password2) return setError('Заполните все поля');
+    const uname = username.trim();
+    const unameNorm = uname.toLowerCase();
+    if (!uname || !password || !password2) return setError('Заполните все поля');
+    if (!USERNAME_REGEX.test(unameNorm)) return setError('Имя может содержать только латиницу, цифры и подчёркивания (3-20 символов)');
+    if (!PASSWORD_REGEX.test(password)) return setError('Пароль должен быть не менее 8 символов, с буквами разных регистров, цифрами и спецсимволом');
     if (password !== password2) return setError('Пароли не совпадают');
+    if (RECAPTCHA_SITE_KEY && !captchaToken) return setError('Подтвердите, что вы не робот');
     setLoading(true);
-    socketService.register({ username, password });
+    socketService.register({ username: uname, password, captcha: captchaToken });
   };
 
   const handleGuest = () => {
@@ -86,10 +99,17 @@ export default function AuthModal({ onClose }) {
           </div>
           {error && <div className="text-danger text-sm">{error}</div>}
           <div className="space-y-4">
-            <input type="text" placeholder="Имя пользователя" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg" />
-            <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg" />
+            <input type="text" placeholder="Имя пользователя" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text" />
+            <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text" />
             {mode === 'register' && (
-              <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg" />
+              <>
+                <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text" />
+                {RECAPTCHA_SITE_KEY ? (
+                  <ReCAPTCHA sitekey={RECAPTCHA_SITE_KEY} onChange={setCaptchaToken} />
+                ) : (
+                  <div className="text-danger text-sm">reCAPTCHA не настроена</div>
+                )}
+              </>
             )}
             {mode === 'login' ? (
               <button type="button" onClick={handleLogin} disabled={loading} className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80">Войти</button>
