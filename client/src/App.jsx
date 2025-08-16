@@ -112,7 +112,7 @@ export default function App() {
       case 'leaderboard':
         return <LeaderboardScreen setPage={setPage} leaderboard={leaderboard} />;
       case 'jackpotWheel':
-        return <JackpotGame />;
+        return <JackpotGame user={currentUser} />;
       case 'provably':
         return <ProvablyFair setPage={setPage} />;
       case 'admin':
