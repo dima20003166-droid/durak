@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import ReCAPTCHA from 'react-google-recaptcha';
 import socketService from '../services/socketService';
 
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
 const AuthScreen = ({ setPage, setCurrentUser }) => {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [username, setUsername] = useState('');
@@ -51,7 +53,7 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
     if (!USERNAME_REGEX.test(unameNorm)) return setError('Имя может содержать только латиницу, цифры и подчёркивания (3-20 символов)');
     if (!PASSWORD_REGEX.test(password)) return setError('Пароль должен быть не менее 8 символов, с буквами разных регистров, цифрами и спецсимволом');
     if (password !== password2) return setError('Пароли не совпадают');
-    if (!captchaToken) return setError('Подтвердите, что вы не робот');
+
     setLoading(true);
     socketService.register({ username: uname, password, captcha: captchaToken });
   };
@@ -79,7 +81,7 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
             {mode === 'register' && (
               <>
                 <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text"/>
-                <ReCAPTCHA sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY} onChange={setCaptchaToken}/>
+
               </>
             )}
             {mode === 'login' ? (
