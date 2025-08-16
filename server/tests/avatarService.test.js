@@ -19,3 +19,8 @@ test('accepts small avatar files', async () => {
   const filePath = path.join(__dirname, '..', url.replace(/^\//, ''));
   await fs.promises.unlink(filePath).catch(() => {});
 });
+
+test('rejects invalid base64 data', async () => {
+  const dataUrl = `data:image/png;base64,@@@`;
+  await assert.rejects(() => saveAvatarFromDataUrl('user', dataUrl), /INVALID_FORMAT/);
+});
