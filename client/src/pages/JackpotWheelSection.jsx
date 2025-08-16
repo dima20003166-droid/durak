@@ -65,10 +65,6 @@ export default function JackpotWheelSection() {
   }, [timeLeft]);
 
   const totalBank = bank.red + bank.orange;
-  const redChance = totalBank ? (bank.red / totalBank) * 100 : 0;
-  const orangeChance = totalBank ? (bank.orange / totalBank) * 100 : 0;
-  const redMultiplier = bank.red ? totalBank / bank.red : 0;
-  const orangeMultiplier = bank.orange ? totalBank / bank.orange : 0;
 
   const copyHash = () => {
     if (serverSeedHash) navigator.clipboard.writeText(serverSeedHash);
@@ -78,51 +74,33 @@ export default function JackpotWheelSection() {
     <div className="max-w-4xl mx-auto px-4 flex flex-col items-center gap-6 py-10">
       <h1 className="text-3xl font-bold">Джекпот-колесо</h1>
       <JackpotWheel state={state} winner={winner} bank={bank} timeLeft={timeLeft} />
-      <BetPanel bank={bank} state={state} />
+      <BetPanel state={state} />
       <div className="w-full bg-surface rounded shadow">
         <div className="flex justify-center p-3 border-b border-divider">
           <div className="bg-surface px-4 py-2 rounded-full shadow text-primary font-semibold">
             Банк: <AnimatedCounter value={totalBank} />
           </div>
         </div>
-        <div className="flex flex-col md:flex-row">
-          <div className="flex-1 flex flex-col md:border-r-2 border-divider">
-            <div className="p-3 font-bold border-b border-divider text-red-400 text-left">
-              Красный — {bank.red}
-            </div>
-            <PlayerBetList bets={bets.red} textColor="text-red-400" align="left" />
+      <div className="flex flex-col md:flex-row">
+        <div className="flex-1 flex flex-col md:border-r-2 border-divider">
+          <div className="p-3 font-bold border-b border-divider text-red-400 text-left">
+            Красный — {bank.red}
           </div>
-          <div className="flex-1 flex flex-col">
-            <div className="p-3 font-bold border-b border-divider text-orange-400 text-right">
-              Оранжевый — {bank.orange}
-            </div>
-            <PlayerBetList bets={bets.orange} textColor="text-orange-400" align="right" />
+          <PlayerBetList bets={bets.red} textColor="text-red-400" align="left" />
+        </div>
+        <div className="flex-1 flex flex-col">
+          <div className="p-3 font-bold border-b border-divider text-orange-400 text-right">
+            Оранжевый — {bank.orange}
           </div>
+          <PlayerBetList bets={bets.orange} textColor="text-orange-400" align="right" />
         </div>
       </div>
-      <div className="w-full flex flex-col md:flex-row justify-between text-center gap-6">
-        <div className="flex-1 text-red-400">
-          <div className="font-semibold">Красный</div>
-          <div>Сумма: <AnimatedCounter value={bank.red} /></div>
-          <div>Шанс: {redChance.toFixed(2)}%</div>
-          <div>×{redMultiplier.toFixed(2)}</div>
-        </div>
-        <div className="flex-1 flex flex-col items-center">
-          <div className="font-semibold">Банк</div>
-          <div className="mt-1">Сумма: <AnimatedCounter value={totalBank} /></div>
-        </div>
-        <div className="flex-1 text-orange-400">
-          <div className="font-semibold">Оранжевый</div>
-          <div>Сумма: <AnimatedCounter value={bank.orange} /></div>
-          <div>Шанс: {orangeChance.toFixed(2)}%</div>
-          <div>×{orangeMultiplier.toFixed(2)}</div>
-        </div>
-      </div>
-      {serverSeedHash && (
-        <div className="text-xs text-center flex flex-col items-center gap-1">
-          <div className="flex items-center gap-2">
-            <span>Server hash: {serverSeedHash}</span>
-            <button onClick={copyHash} className="px-2 py-1 rounded bg-primary text-text">Скопировать</button>
+    </div>
+    {serverSeedHash && (
+      <div className="text-xs text-center flex flex-col items-center gap-1">
+        <div className="flex items-center gap-2">
+          <span>Server hash: {serverSeedHash}</span>
+          <button onClick={copyHash} className="px-2 py-1 rounded bg-primary text-text">Скопировать</button>
             <a
               href="https://github.com/dima20003166-droid/durak/blob/extract-files/server/README.md"
               target="_blank"
