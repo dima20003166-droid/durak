@@ -1,10 +1,37 @@
 /* client/src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Press+Start+2P&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; }
-body { @apply bg-gray-900 text-gray-100; }
+@layer base {
+  :root {
+    --color-bg: #0f172a; /* slate-900 */
+    --color-surface: #1e293b; /* slate-800 */
+    --color-border: #334155; /* slate-700 */
+    --color-text: #f8fafc; /* slate-50 */
+    --color-muted: #94a3b8; /* slate-400 */
+    --color-primary: #16a34a; /* emerald-600 */
+    --color-accent: #eab308; /* yellow-500 */
+    --color-danger: #dc2626; /* red-600 */
+  }
+
+  .light {
+    --color-bg: #f8fafc; /* slate-50 */
+    --color-surface: #f1f5f9; /* slate-100 */
+    --color-border: #cbd5e1; /* slate-300 */
+    --color-text: #0f172a; /* slate-900 */
+    --color-muted: #64748b; /* slate-500 */
+    --color-primary: #2563eb; /* blue-600 */
+    --color-accent: #9333ea; /* purple-600 */
+    --color-danger: #dc2626; /* red-600 */
+  }
+
+  html, body, #root { height: 100%; }
+  body { @apply bg-bg text-text font-sans transition-colors duration-300; }
+  button, [role="button"] { @apply transition-colors transition-transform duration-200 hover:scale-105 active:scale-95; }
+}
 
 
 /* Minimal modern scrollbars */
@@ -58,3 +85,4 @@ body { @apply bg-gray-900 text-gray-100; }
     transform: rotateX(360deg) rotateY(360deg);
   }
 }
+

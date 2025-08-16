@@ -1,8 +1,10 @@
 // client/src/components/Card.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
+import { motion } from 'framer-motion';
 
-const suitColor = (suit) => (suit === '♥' || suit === '♦' ? 'text-red-600' : 'text-gray-900');
-const suitFill  = (suit) => (suit === '♥' || suit === '♦' ? '#dc2626' : '#111827'); // tailwind red-600 / gray-900
+const suitColor = (suit) => (suit === '♥' || suit === '♦' ? 'text-danger' : 'text-bg');
+const suitFill  = (suit) => (suit === '♥' || suit === '♦' ? 'var(--color-danger)' : 'var(--color-bg)');
 
 const SuitSvg = ({ suit, size=28 }) => {
   const fill = suitFill(suit);
@@ -20,6 +22,11 @@ const SuitSvg = ({ suit, size=28 }) => {
   }
 };
 
+SuitSvg.propTypes = {
+  suit: PropTypes.oneOf(['♠', '♣', '♥', '♦']).isRequired,
+  size: PropTypes.number,
+};
+
 export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=false, onClick, size='md', className='', style }) {
   const sizes = {
     sm: { w: 64, h: 90, rank: 14, corner: 16, pip: 24 },
@@ -27,36 +34,56 @@ export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=f
     lg: { w: 104, h: 146, rank: 18, corner: 20, pip: 32 },
   };
   const S = sizes[size] || sizes.md;
-  const borderSel = isSelected ? 'ring-2 ring-emerald-400 shadow-emerald-400/40 -translate-y-2' : 'ring-1 ring-gray-300';
+  const borderSel = isSelected ? 'ring-2 ring-primary shadow-primary/40 -translate-y-2' : 'ring-1 ring-border';
   return (
-    <div
+    <motion.div
       role="button"
       tabIndex={0}
       onClick={onClick}
-      className={`relative rounded-xl transition-transform duration-200 cursor-pointer select-none ${borderSel} ${className}`}
-      style={{ width: S.w, height: S.h, ...style }}
+      className={`relative rounded-xl cursor-pointer select-none ${borderSel} ${className}`}
+      style={{ width: S.w, height: S.h, perspective: 600, ...style }}
+      whileHover={{ y: -4 }}
     >
-      {isFaceUp ? (
-        <div className="w-full h-full bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
-            <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
-            <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
-          </div>
-          <div className="absolute bottom-1 right-1 flex flex-col items-center rotate-180 leading-none">
-            <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
-            <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
-          </div>
-          <div className="w-full h-full flex items-center justify-center">
-            <SuitSvg suit={suit} size={S.pip} />
+      <motion.div
+        className="relative w-full h-full"
+        style={{ transformStyle: 'preserve-3d' }}
+        animate={{ rotateY: isFaceUp ? 0 : 180 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden' }}>
+          <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
+            <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
+              <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
+              <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+            </div>
+            <div className="absolute bottom-1 right-1 flex flex-col items-center rotate-180 leading-none">
+              <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
+              <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+            </div>
+            <div className="w-full h-full flex items-center justify-center">
+              <SuitSvg suit={suit} size={S.pip} />
+            </div>
           </div>
         </div>
-      ) : (
-        <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 ring-1 ring-blue-300 shadow-md">
-          <div className="w-full h-full grid place-items-center">
-            <div className="w-4/5 h-4/5 rounded-lg border-2 border-white/60" />
+        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+          <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
+            <div className="w-full h-full grid place-items-center">
+              <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
+            </div>
           </div>
         </div>
-      )}
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
+
+Card.propTypes = {
+  suit: PropTypes.oneOf(['♠', '♣', '♥', '♦']),
+  rank: PropTypes.string,
+  isFaceUp: PropTypes.bool,
+  isSelected: PropTypes.bool,
+  onClick: PropTypes.func,
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  className: PropTypes.string,
+  style: PropTypes.object,
+};

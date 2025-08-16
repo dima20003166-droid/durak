@@ -1,5 +1,6 @@
 // client/src/pages/AdminPanel.jsx
 import React, { useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 
 const numberOr = (v, def=0) => {
@@ -7,7 +8,8 @@ const numberOr = (v, def=0) => {
   return Number.isFinite(n) ? n : def;
 };
 
-export default function AdminPanel({ user, setPage, siteSettings }) {
+export default function AdminPanel({ user: _user, setPage, siteSettings }) {
+  void _user;
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [settings, setSettings] = useState(siteSettings || { commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
@@ -79,25 +81,25 @@ export default function AdminPanel({ user, setPage, siteSettings }) {
   };
 
   return (
-    <div className="min-h-screen p-6 md:p-10 text-gray-100">
-      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold">Панель администратора</h1>
-        <div className="flex items-center gap-3">
-          <div className="px-3 py-1 rounded-lg bg-gray-800 text-sm">Онлайн: <span className="font-bold">{stats.onlineCount || online}</span></div>
-          <button onClick={() => setPage('lobby')} className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 font-semibold">В лобби</button>
-        </div>
-      </header>
+      <div className="min-h-screen p-6 md:p-10 bg-bg text-text">
+        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-primary">Панель администратора</h1>
+          <div className="flex items-center gap-3">
+            <div className="px-3 py-1 rounded-lg bg-surface text-sm">Онлайн: <span className="font-bold">{stats.onlineCount || online}</span></div>
+            <button onClick={() => setPage('lobby')} className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/80 font-semibold text-text">В лобби</button>
+          </div>
+        </header>
 
       {/* Settings */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-        <div className="bg-gray-800/70 rounded-2xl p-5 shadow-md col-span-1">
-          <h2 className="text-lg font-semibold mb-4">Настройки сайта</h2>
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+          <div className="bg-surface/70 rounded-2xl p-5 shadow-md col-span-1">
+            <h2 className="text-lg font-semibold mb-4">Настройки сайта</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm mb-1">Комиссия, %</label>
-              <input
-                type="number"
-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2"
+                <input
+                  type="number"
+                  className="w-full bg-bg border border-border rounded-xl px-3 py-2"
                 value={settings.commission ?? 5}
                 onChange={e => setSettings({ ...settings, commission: e.target.value })}
                 min="0"
@@ -108,17 +110,25 @@ export default function AdminPanel({ user, setPage, siteSettings }) {
             <div className="flex items-center justify-between">
               <div>
                 <label className="block text-sm mb-1">Боты</label>
-                <div className="text-gray-400 text-sm">Включить/выключить заполнение столов ботами
+                <div className="text-muted text-sm">Включить/выключить заполнение столов ботами</div>
+              </div>
+              <button
+                onClick={() => setSettings(s => ({ ...s, botsEnabled: !s.botsEnabled }))}
+                className={`px-4 py-2 rounded-xl font-semibold ${settings.botsEnabled ? 'bg-danger hover:bg-danger/80' : 'bg-primary hover:bg-primary/80'}`}
+              >
+                {settings.botsEnabled ? 'Выключить' : 'Включить'}
+              </button>
+            </div>
             {/* Лимит максимум игроков для создания столов */}
-            <div className="flex items-center justify-between p-4 bg-gray-800/60 rounded-xl border border-gray-700/50">
+            <div className="flex items-center justify-between p-4 bg-surface/60 rounded-xl border border-border/50">
               <div>
                 <label className="block text-sm mb-1">Лимит «максимум игроков»</label>
-                <div className="text-gray-400 text-sm">Ограничить выбор в лобби. Диапазон 2–6.</div>
+                <div className="text-muted text-sm">Ограничить выбор в лобби. Диапазон 2–6.</div>
               </div>
               <select
                 value={Number(settings.maxPlayersLimit||6)}
                 onChange={(e) => setSettings(s => ({ ...s, maxPlayersLimit: Number(e.target.value)||6 }))}
-                className="px-4 py-2 rounded-xl bg-gray-700 border border-gray-600"
+                className="px-4 py-2 rounded-xl bg-surface border border-border"
               >
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -127,19 +137,10 @@ export default function AdminPanel({ user, setPage, siteSettings }) {
                 <option value="6">6</option>
               </select>
             </div>
-</div>
-              </div>
-              <button
-                onClick={() => setSettings(s => ({ ...s, botsEnabled: !s.botsEnabled }))}
-                className={`px-4 py-2 rounded-xl font-semibold ${settings.botsEnabled ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'}`}
-              >
-                {settings.botsEnabled ? 'Выключить' : 'Включить'}
-              </button>
-            </div>
             <button
               onClick={saveSettings}
               disabled={savingSettings}
-              className="w-full mt-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold disabled:opacity-60"
+              className="w-full mt-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary/80 font-bold disabled:opacity-60"
             >
               {savingSettings ? 'Сохранение...' : 'Сохранить настройки'}
             </button>
@@ -147,75 +148,75 @@ export default function AdminPanel({ user, setPage, siteSettings }) {
         </div>
 
         {/* Stats */}
-        <div className="bg-gray-800/70 rounded-2xl p-5 shadow-md col-span-2">
+          <div className="bg-surface/70 rounded-2xl p-5 shadow-md col-span-2">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
             <h2 className="text-lg font-semibold">Статистика</h2>
-            <div className="inline-flex rounded-xl overflow-hidden border border-gray-700">
-              {['1d','7d','30d'].map(r => (
-                <button key={r} onClick={() => setRange(r)}
-                  className={`px-3 py-1.5 text-sm ${range===r ? 'bg-gray-700' : 'bg-gray-900 hover:bg-gray-800'}`}>
+            <div className="inline-flex rounded-xl overflow-hidden border border-border">
+                {['1d','7d','30d'].map(r => (
+                  <button key={r} onClick={() => setRange(r)}
+                    className={`px-3 py-1.5 text-sm ${range===r ? 'bg-surface' : 'bg-bg hover:bg-surface/80'}`}>
                   {r==='1d'?'1 день': r==='7d'?'7 дней':'Месяц'}
                 </button>
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-gray-900 rounded-xl p-4">
-              <div className="text-gray-400 text-sm">Заработок сайта</div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-bg rounded-xl p-4">
+                <div className="text-muted text-sm">Заработок сайта</div>
               <div className="mt-1 text-2xl font-extrabold">{(stats.totalRevenue ?? 0).toFixed ? stats.totalRevenue.toFixed(2) : stats.totalRevenue} ₽</div>
             </div>
-            <div className="bg-gray-900 rounded-xl p-4">
-              <div className="text-gray-400 text-sm">Сыграно игр</div>
+              <div className="bg-bg rounded-xl p-4">
+                <div className="text-muted text-sm">Сыграно игр</div>
               <div className="mt-1 text-2xl font-extrabold">{stats.matchesCount || 0}</div>
             </div>
-            <div className="bg-gray-900 rounded-xl p-4">
-              <div className="text-gray-400 text-sm">Онлайн игроков</div>
+              <div className="bg-bg rounded-xl p-4">
+                <div className="text-muted text-sm">Онлайн игроков</div>
               <div className="mt-1 text-2xl font-extrabold">{stats.onlineCount || online}</div>
             </div>
-            <div className="bg-gray-900 rounded-xl p-4">
-              <div className="text-gray-400 text-sm">Боты (прибыль/убыток)</div>
+              <div className="bg-bg rounded-xl p-4">
+                <div className="text-muted text-sm">Боты (прибыль/убыток)</div>
               <div className="mt-1 text-2xl font-extrabold">{(stats.botNet ?? 0).toFixed ? stats.botNet.toFixed(2) : stats.botNet} ₽</div>
             </div>
           </div>
           {/* Simple table of earnings by day */}
-          {stats.earningsByDay && Object.keys(stats.earningsByDay).length > 0 && (
-            <div className="mt-5 overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-400 border-b border-gray-700">
-                    <th className="py-2 pr-4">Дата</th>
-                    <th className="py-2">Заработок, ₽</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(stats.earningsByDay).sort((a,b)=>a[0].localeCompare(b[0])).map(([day, sum]) => (
-                    <tr key={day} className="border-b border-gray-800">
-                      <td className="py-2 pr-4">{day}</td>
-                      <td className="py-2">{sum}</td>
+            {stats.earningsByDay && Object.keys(stats.earningsByDay).length > 0 && (
+              <div className="mt-5 overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-muted border-b border-border">
+                      <th className="py-2 pr-4">Дата</th>
+                      <th className="py-2">Заработок, ₽</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {Object.entries(stats.earningsByDay).sort((a,b)=>a[0].localeCompare(b[0])).map(([day, sum]) => (
+                      <tr key={day} className="border-b border-surface">
+                        <td className="py-2 pr-4">{day}</td>
+                        <td className="py-2">{sum}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
         </div>
       </section>
 
       {/* Users */}
-      <section className="bg-gray-800/70 rounded-2xl p-5 shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-          <h2 className="text-lg font-semibold">Пользователи</h2>
-          <input
-            placeholder="Поиск по никнейму, email или ID"
-            className="w-full md:w-80 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2"
-            value={search}
-            onChange={e=>setSearch(e.target.value)}
-          />
-        </div>
+        <section className="bg-surface/70 rounded-2xl p-5 shadow-md">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+              <h2 className="text-lg font-semibold">Пользователи</h2>
+              <input
+                placeholder="Поиск по никнейму, email или ID"
+                className="w-full md:w-80 bg-bg border border-border rounded-xl px-3 py-2"
+                value={search}
+                onChange={e=>setSearch(e.target.value)}
+              />
+            </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left text-gray-400 border-b border-gray-700">
+                <tr className="text-left text-muted border-b border-border">
                 <th className="py-2 pr-4">ID</th>
                 <th className="py-2 pr-4">Ник</th>
                 <th className="py-2 pr-4">Баланс</th>
@@ -227,13 +228,13 @@ export default function AdminPanel({ user, setPage, siteSettings }) {
             </thead>
             <tbody>
               {filtered.map(u => (
-                <tr key={u.id} className="border-b border-gray-800">
+                  <tr key={u.id} className="border-b border-surface">
                   <td className="py-2 pr-4 max-w-[220px] truncate">{u.id}</td>
                   <td className="py-2 pr-4">{u.username || '—'}</td>
                   <td className="py-2 pr-4">
                     <input
                       type="number"
-                      className="w-28 bg-gray-900 border border-gray-700 rounded-lg px-2 py-1"
+                        className="w-28 bg-bg border border-border rounded-lg px-2 py-1"
                       value={numberOr(u.balance, 0)}
                       onChange={e=>handleUserChange(u.id, { balance: e.target.value })}
                     />
@@ -241,14 +242,14 @@ export default function AdminPanel({ user, setPage, siteSettings }) {
                   <td className="py-2 pr-4">
                     <input
                       type="number"
-                      className="w-24 bg-gray-900 border border-gray-700 rounded-lg px-2 py-1"
+                        className="w-24 bg-bg border border-border rounded-lg px-2 py-1"
                       value={numberOr(u.rank || 0, 0)}
                       onChange={e=>handleUserChange(u.id, { rank: e.target.value })}
                     />
                   </td>
                   <td className="py-2 pr-4">
                     <select
-                      className="bg-gray-900 border border-gray-700 rounded-lg px-2 py-1"
+                        className="bg-bg border border-border rounded-lg px-2 py-1"
                       value={u.role || 'user'}
                       onChange={e=>handleUserChange(u.id, { role: e.target.value })}
                     >
@@ -265,7 +266,7 @@ export default function AdminPanel({ user, setPage, siteSettings }) {
                     />
                   </td>
                   <td className="py-2">
-                    <button onClick={()=>saveUser(u)} className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-semibold">Сохранить</button>
+                    <button onClick={()=>saveUser(u)} className="px-3 py-1 rounded-lg bg-primary hover:bg-primary/80 font-semibold">Сохранить</button>
                   </td>
                 </tr>
               ))}
@@ -276,3 +277,13 @@ export default function AdminPanel({ user, setPage, siteSettings }) {
     </div>
   );
 }
+
+AdminPanel.propTypes = {
+  user: PropTypes.object.isRequired,
+  setPage: PropTypes.func.isRequired,
+  siteSettings: PropTypes.shape({
+    commission: PropTypes.number,
+    botsEnabled: PropTypes.bool,
+    maxPlayersLimit: PropTypes.number,
+  }),
+};
