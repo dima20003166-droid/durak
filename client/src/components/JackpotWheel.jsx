@@ -141,32 +141,31 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
       ref={wheelRef}
       className="relative w-60 sm:w-72 md:w-[300px] aspect-square mx-auto font-neon"
     >
-      <motion.div
-        ref={arrowRef}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 origin-center pointer-events-none z-10"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          style={{ transform: `translateY(-${radius}px)` }}
-        >
-          <defs>
-            <linearGradient id="arrowGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#fff" />
-              <stop offset="100%" stopColor="#ccc" />
-            </linearGradient>
-            <filter id="arrowShadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#00eaff" />
-            </filter>
-          </defs>
-          <polygon
-            points="12,0 24,24 0,24"
-            fill="url(#arrowGradient)"
-            filter="url(#arrowShadow)"
-          />
-        </svg>
-      </motion.div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10">
+        <motion.div ref={arrowRef} className="origin-center">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            style={{ transform: `translateY(-${radius}px)` }}
+          >
+            <defs>
+              <linearGradient id="arrowGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fff" />
+                <stop offset="100%" stopColor="#ccc" />
+              </linearGradient>
+              <filter id="arrowShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#00eaff" />
+              </filter>
+            </defs>
+            <polygon
+              points="12,0 24,24 0,24"
+              fill="url(#arrowGradient)"
+              filter="url(#arrowShadow)"
+            />
+          </svg>
+        </motion.div>
+      </div>
       <div className="absolute inset-0 rounded-full p-1 bg-neon-primary/30 shadow-[0_0_15px_var(--neon-primary)]">
         <svg
           viewBox="0 0 100 100"
