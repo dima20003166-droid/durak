@@ -27,6 +27,14 @@ class JackpotWheel extends EventEmitter {
     this.betIds = new Map(); // clientBetId -> true
     this.serverSeed = '';
     this.serverSeedHash = '';
+    this.round = {
+      roundId: 0,
+      phase: 'idle',
+      startTime: 0,
+      animationDuration: this.config.SPIN_MS,
+      targetAngle: 0,
+      result: null,
+    };
     this.openTimer = this.lockTimer = this.spinTimer = null;
     this.openUntil = this.lockUntil = this.spinUntil = null;
     if (initialData) {
@@ -39,11 +47,9 @@ class JackpotWheel extends EventEmitter {
       const hasRed = this.bets.red.length > 0;
       const hasOrange = this.bets.orange.length > 0;
       const openTime = this.openDuration;
-      this.io.emit('round:state', {
-        roundId: this.roundId,
-        state: this.state,
+      this.io.emit('jackpot:state', {
+        ...this.getState(),
         bank,
-        serverSeedHash: this.serverSeedHash,
         openMs: hasRed && hasOrange ? openTime : null,
         timeLeftMs: hasRed && hasOrange ? openTime : null,
       });
@@ -70,33 +76,65 @@ class JackpotWheel extends EventEmitter {
       .createHash('sha256')
       .update(this.serverSeed)
       .digest('hex');
-    this.saveRoundState();
-    this.io.emit('round:state', {
+    this.round = {
       roundId: this.roundId,
-      state: this.state,
-      bank: this.getBank(),
-      serverSeedHash: this.serverSeedHash,
-      openMs: null,
-      timeLeftMs: this.getTimeLeft(),
-    });
+      phase: 'idle',
+      startTime: 0,
+      animationDuration: this.config.SPIN_MS,
+      targetAngle: 0,
+      result: null,
+    };
+    this.saveRoundState();
+    this.io.emit('jackpot:state', this.getState());
   }
 
   lockRound() {
     this.state = 'LOCK';
     const bank = this.getBank();
-    this.io.emit('round:locked', { roundId: this.roundId, bankSnapshot: bank });
+    this.io.emit('jackpot:state', { ...this.getState(), bank });
     this.lockTimer = setTimeout(() => this.spinRound(), this.config.LOCK_MS);
     this.lockUntil = Date.now() + this.config.LOCK_MS;
   }
 
   spinRound() {
     this.state = 'SPIN';
-    this.spinUntil = Date.now() + this.config.SPIN_MS;
-    this.io.emit('round:state', {
+    const bank = this.getBank();
+    const total = bank.red + bank.orange;
+    let winnerColor = null;
+    let targetAngle = 0;
+    if (total > 0) {
+      const rand =
+        parseInt(
+          crypto.createHash('sha256').update(this.serverSeed).digest('hex').slice(0, 8),
+          16,
+        ) / 0x100000000;
+      const pick = rand * total;
+      winnerColor = pick < bank.red ? 'red' : 'orange';
+      const redAngle = total ? (bank.red / total) * 360 : 180;
+      targetAngle =
+        winnerColor === 'red'
+          ? rand * redAngle
+          : redAngle + rand * (360 - redAngle);
+      this.round.result = { color: winnerColor, sectorIndex: winnerColor === 'red' ? 0 : 1 };
+    }
+    const startTime = Date.now() + 500;
+    this.spinUntil = startTime + this.config.SPIN_MS;
+    this.round = {
+      ...this.round,
+      phase: 'spinning',
+      startTime,
+      animationDuration: this.config.SPIN_MS,
+      targetAngle,
+    };
+    this.io.emit('jackpot:start', {
       roundId: this.roundId,
-      state: this.state,
-      timeLeftMs: this.getTimeLeft(),
+      startTime,
+      animationDuration: this.config.SPIN_MS,
+      targetAngle,
     });
+    if (this.round.result) {
+      this.io.emit('jackpot:result', { roundId: this.roundId, result: this.round.result });
+    }
     this.spinTimer = setTimeout(() => this.resultRound(), this.config.SPIN_MS);
   }
 
@@ -104,26 +142,21 @@ class JackpotWheel extends EventEmitter {
     this.state = 'RESULT';
     const bank = this.getBank();
     const total = bank.red + bank.orange;
-    if (total === 0) {
+    const winnerColor = this.round.result ? this.round.result.color : null;
+    if (total === 0 || !winnerColor) {
+      this.round.phase = 'settled';
       this.betIds.clear();
-      this.io.emit('round:result', {
+      this.io.emit('jackpot:settled', {
         roundId: this.roundId,
-        winnerColor: null,
+        result: this.round.result || null,
         payouts: [],
         serverSeed: this.serverSeed,
       });
       return setTimeout(
         () => this.startRound(),
-        this.config.SPIN_MS + this.config.RESULT_DISPLAY_MS,
+        this.config.RESULT_DISPLAY_MS,
       );
     }
-    const rand =
-      parseInt(
-        crypto.createHash('sha256').update(this.serverSeed).digest('hex').slice(0, 8),
-        16,
-      ) / 0x100000000; // [0,1)
-    const pick = rand * total;
-    const winnerColor = pick < bank.red ? 'red' : 'orange';
     const rake = total * this.config.RAKE;
     const payoutPool = total - rake;
     const winnerBank = bank[winnerColor];
@@ -175,17 +208,16 @@ class JackpotWheel extends EventEmitter {
       }
     }
     this.saveRoundState({ winnerColor, payouts, serverSeed: this.serverSeed });
-    this.io.emit('round:result', {
+    this.round.phase = 'settled';
+    this.io.emit('jackpot:settled', {
       roundId: this.roundId,
-      winnerColor,
+      result: this.round.result,
       payouts,
       serverSeed: this.serverSeed,
+      bank,
     });
     this.betIds.clear();
-    setTimeout(
-      () => this.startRound(),
-      this.config.SPIN_MS + this.config.RESULT_DISPLAY_MS,
-    );
+    setTimeout(() => this.startRound(), this.config.RESULT_DISPLAY_MS);
   }
 
   getBank() {
@@ -201,6 +233,14 @@ class JackpotWheel extends EventEmitter {
     if (this.state === 'LOCK' && this.lockTimer) return Math.max(0, this.lockUntil - now);
     if (this.state === 'SPIN' && this.spinTimer) return Math.max(0, this.spinUntil - now);
     return 0;
+  }
+
+  getState() {
+    return {
+      ...this.round,
+      bank: this.getBank(),
+      bets: this.bets,
+    };
   }
 
   placeBet(userId, username, color, amount, clientBetId) {
@@ -236,11 +276,9 @@ class JackpotWheel extends EventEmitter {
       const hasOrange = this.bets.orange.length > 0;
       if (hasRed && hasOrange) {
         const openTime = this.openDuration;
-        this.io.emit('round:state', {
-          roundId: this.roundId,
-          state: this.state,
+        this.io.emit('jackpot:state', {
+          ...this.getState(),
           bank: this.getBank(),
-          serverSeedHash: this.serverSeedHash,
           openMs: openTime,
           timeLeftMs: openTime,
         });

@@ -118,7 +118,7 @@ export default function BetPanel({ state }) {
       </div>
       <NeonButton
         color="red"
-        disabled={state !== 'OPEN'}
+        disabled={state !== 'idle'}
         onClick={() => place('red')}
         Icon={TrophyIcon}
       >
@@ -126,7 +126,7 @@ export default function BetPanel({ state }) {
       </NeonButton>
       <NeonButton
         color="orange"
-        disabled={state !== 'OPEN'}
+        disabled={state !== 'idle'}
         onClick={() => place('orange')}
         Icon={WalletIcon}
       >

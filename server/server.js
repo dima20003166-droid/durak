@@ -685,14 +685,7 @@ io.on('connection', async (socket) => {
   })();
 
   try {
-    const bank = jackpotWheel.getBank();
-    socket.emit('round:state', {
-      roundId: jackpotWheel.roundId,
-      state: jackpotWheel.state,
-      bank,
-      serverSeedHash: jackpotWheel.serverSeedHash,
-      timeLeftMs: jackpotWheel.getTimeLeft(),
-    });
+    socket.emit('jackpot:state', jackpotWheel.getState());
   } catch (e) { console.error('emit round state', e); }
 
   socket.on('request_init_state', () => {
@@ -700,14 +693,7 @@ io.on('connection', async (socket) => {
     if (user) socket.emit('current_user_update', user);
     try { socket.emit('update_rooms', Object.values(gameRooms)); } catch (e) { console.error('init_state update_rooms', e); }
     try {
-      const bank = jackpotWheel.getBank();
-      socket.emit('round:state', {
-        roundId: jackpotWheel.roundId,
-        state: jackpotWheel.state,
-        bank,
-        serverSeedHash: jackpotWheel.serverSeedHash,
-        timeLeftMs: jackpotWheel.getTimeLeft(),
-      });
+      socket.emit('jackpot:state', jackpotWheel.getState());
     } catch (e) { console.error('init_state round state', e); }
   });
 
