@@ -21,7 +21,7 @@ export default function JackpotWheelSection() {
       if (d.serverSeedHash) setServerSeedHash(d.serverSeedHash);
       setWinner(null);
       setServerSeed('');
-      setBets({ red: [], orange: [] });
+      if (d.state === 'OPEN' && !d.openMs) setBets({ red: [], orange: [] });
       if (d.state === 'OPEN') setTimeLeft(Math.round((d.openMs || 0) / 1000));
       else setTimeLeft(0);
     });

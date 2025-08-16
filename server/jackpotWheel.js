@@ -1,10 +1,13 @@
 const { EventEmitter } = require('events');
 const crypto = require('crypto');
+const admin = require('firebase-admin');
 
 class JackpotWheel extends EventEmitter {
-  constructor(io, config = {}) {
+  constructor(io, db, emitToUser, config = {}, initialData = null) {
     super();
     this.io = io;
+    this.db = db;
+    this.emitToUser = emitToUser;
     this.config = Object.assign({
       ROUND_DURATION_MS: 30000,
       LOCK_MS: 2500,
@@ -18,7 +21,29 @@ class JackpotWheel extends EventEmitter {
     this.betIds = new Map(); // clientBetId -> true
     this.serverSeed = '';
     this.serverSeedHash = '';
-    this.startRound();
+    if (initialData) {
+      this.roundId = initialData.roundId || 0;
+      this.bets = initialData.bets || { red: [], orange: [] };
+      this.serverSeed = initialData.serverSeed || '';
+      this.serverSeedHash = initialData.serverSeedHash || '';
+      this.state = 'OPEN';
+      const bank = this.getBank();
+      const hasRed = this.bets.red.length > 0;
+      const hasOrange = this.bets.orange.length > 0;
+      const openTime = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
+      this.io.emit('round:state', {
+        roundId: this.roundId,
+        state: this.state,
+        bank,
+        serverSeedHash: this.serverSeedHash,
+        openMs: hasRed && hasOrange ? openTime : null,
+      });
+      if (hasRed && hasOrange) {
+        this.openTimer = setTimeout(() => this.lockRound(), openTime);
+      }
+    } else {
+      this.startRound();
+    }
   }
 
   startRound() {
@@ -34,7 +59,7 @@ class JackpotWheel extends EventEmitter {
       .createHash('sha256')
       .update(this.serverSeed)
       .digest('hex');
-    // Таймер запускается только после ставок на оба цвета
+    this.saveRoundState();
     this.io.emit('round:state', {
       roundId: this.roundId,
       state: this.state,
@@ -57,7 +82,7 @@ class JackpotWheel extends EventEmitter {
     this.spinTimer = setTimeout(() => this.resultRound(), 2000);
   }
 
-  resultRound() {
+  async resultRound() {
     this.state = 'RESULT';
     const bank = this.getBank();
     const total = bank.red + bank.orange;
@@ -100,6 +125,16 @@ class JackpotWheel extends EventEmitter {
       }
     }
     const payouts = payoutsRaw.map(({ userId, amount }) => ({ userId, amount }));
+    for (const { userId, amount } of payouts) {
+      try {
+        const ref = this.db.collection('users').doc(userId);
+        await ref.update({ balance: admin.firestore.FieldValue.increment(amount) });
+        const snap = await ref.get();
+        const bal = snap.exists ? snap.data().balance : null;
+        this.emitToUser(userId, 'current_user_update', { balance: bal });
+      } catch {}
+    }
+    this.saveRoundState({ winnerColor, payouts, serverSeed: this.serverSeed });
     this.io.emit('round:result', {
       roundId: this.roundId,
       winnerColor,
@@ -144,6 +179,7 @@ class JackpotWheel extends EventEmitter {
       bank: this.getBank(),
       clientBetId: id,
     });
+    this.saveRoundState();
     if (!this.openTimer) {
       const hasRed = this.bets.red.length > 0;
       const hasOrange = this.bets.orange.length > 0;
@@ -158,6 +194,22 @@ class JackpotWheel extends EventEmitter {
         });
         this.openTimer = setTimeout(() => this.lockRound(), openTime);
       }
+    }
+  }
+
+  async saveRoundState(extra = {}) {
+    if (!this.db || typeof this.db.collection !== 'function') return;
+    try {
+      await this.db.collection('jackpotRounds').doc(String(this.roundId)).set({
+        roundId: this.roundId,
+        serverSeedHash: this.serverSeedHash,
+        serverSeed: this.serverSeed,
+        bets: this.bets,
+        state: this.state,
+        ...extra,
+      }, { merge: true });
+    } catch (e) {
+      console.error('Ошибка сохранения раунда', e);
     }
   }
 }

@@ -46,7 +46,14 @@ export default function BetPanel({ state }) {
   const [amount, setAmount] = useState(1);
   const place = (color) => {
     const clientBetId = Date.now().toString(36) + Math.random().toString(36).slice(2);
-    socketService.placeWheelBet(color, amount, clientBetId);
+    socketService.placeWheelBet(color, amount, clientBetId, (res) => {
+      if (res?.ok && res.balance != null) {
+        const handlers = socketService.handlers.get('current_user_update');
+        if (handlers) {
+          for (const h of handlers) h({ balance: res.balance });
+        }
+      }
+    });
   };
   const multiply = () => setAmount((a) => Number(a) * 2);
   const divide = () => setAmount((a) => Math.max(1, Math.floor(Number(a) / 2)));

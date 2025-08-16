@@ -80,8 +80,14 @@ class SocketService {
   cancelRoom(roomId) { this.emit('cancel_room', { roomId }); }
 
   // Jackpot wheel
-  placeWheelBet(color, amount, clientBetId) {
-    this.emit('bet:place', { color, amount, clientBetId });
+  placeWheelBet(color, amount, clientBetId, cb) {
+    const payload = { color, amount, clientBetId };
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('bet:place', payload, cb);
+    } else {
+      this.eventQueue.push({ event: 'bet:place', args: [payload, cb] });
+      this.connect();
+    }
   }
 
   // Moderation
