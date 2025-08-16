@@ -16,10 +16,11 @@ async function seed() {
     { username: 'moderator', password: 'moderator', role: 'moderator', rating: 1200, balance: 2000, stats: { games: 0, wins: 0, losses: 0 }, isBanned: false },
   ];
   for (const u of users) {
-    const snap = await db.collection('users').where('username', '==', u.username).get();
+    const usernameNorm = u.username.trim().toLowerCase();
+    const snap = await db.collection('users').where('usernameNorm', '==', usernameNorm).get();
     if (snap.empty) {
       const hashed = await bcrypt.hash(u.password, 10);
-      await db.collection('users').add({ ...u, password: hashed });
+      await db.collection('users').add({ ...u, usernameNorm, password: hashed });
       console.log('Created user:', u.username);
     } else {
       console.log('User exists:', u.username);
