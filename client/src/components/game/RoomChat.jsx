@@ -3,6 +3,7 @@ import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
 const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
   const [msg, setMsg] = useState('');
+  const [open, setOpen] = useState(false);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -19,9 +20,18 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
   };
 
   return (
-    <div className="bg-surface rounded-xl border border-border p-4 flex flex-col">
-      <div className="font-semibold mb-2">Чат стола</div>
-      <div className="flex-1 overflow-y-auto custom-scroll space-y-2 max-h-64 md:max-h-80">
+    <div className="h-full flex flex-col">
+      <button
+        className="md:hidden mb-2 bg-primary text-text rounded px-3 py-1"
+        onClick={() => setOpen((o) => !o)}
+      >
+        {open ? 'Скрыть чат' : 'Показать чат'}
+      </button>
+      <div
+        className={`${open ? 'flex' : 'hidden'} md:flex bg-surface rounded-xl border border-border p-4 flex-col h-full`}
+      >
+        <div className="font-semibold mb-2">Чат стола</div>
+        <div className="flex-1 overflow-y-auto custom-scroll space-y-2">
         {chat.map((m, i) => {
           const isMine =
             (m.user?.id && myPlayer?.id && m.user.id === myPlayer.id) ||
@@ -66,21 +76,22 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
           );
         })}
         <div ref={chatEndRef} />
-      </div>
-      <div className="flex mt-2">
-        <input
-          value={msg}
-          onChange={(e) => setMsg(e.target.value)}
-          onKeyDown={(e) => (e.key === 'Enter' ? send() : null)}
-          className="flex-1 bg-surface rounded-l px-2 py-1"
-          placeholder="Сообщение..."
-        />
-        <button
-          className="bg-primary hover:bg-primary/80 rounded-r px-3 transition-colors"
-          onClick={send}
-        >
-          Отправить
-        </button>
+        </div>
+        <div className="flex mt-2">
+          <input
+            value={msg}
+            onChange={(e) => setMsg(e.target.value)}
+            onKeyDown={(e) => (e.key === 'Enter' ? send() : null)}
+            className="flex-1 bg-surface rounded-l px-2 py-1"
+            placeholder="Сообщение..."
+          />
+          <button
+            className="bg-primary hover:bg-primary/80 rounded-r px-3 transition-colors"
+            onClick={send}
+          >
+            Отправить
+          </button>
+        </div>
       </div>
     </div>
   );

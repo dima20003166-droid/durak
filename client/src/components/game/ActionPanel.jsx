@@ -13,8 +13,8 @@ const ActionPanel = ({
   canSurrender,
 }) => {
   return (
-    <div className="flex items-center gap-4 p-4">
-      <div className="mx-auto flex items-center gap-4">
+    <div className="flex flex-col md:flex-row items-center w-full gap-y-2 md:gap-x-4 p-4">
+      <div className="flex justify-center gap-x-4 flex-1">
         {(isAttacker || canThrowIn) && (
           <button
             onClick={() => onAction('attack')}
@@ -56,7 +56,7 @@ const ActionPanel = ({
           </button>
         )}
       </div>
-      <div className="ml-auto">
+      <div className="md:ml-auto ml-0">
         <button
           onClick={onSurrender}
           disabled={!canSurrender}

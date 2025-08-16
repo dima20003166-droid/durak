@@ -9,6 +9,7 @@ import PlayersList from '../components/game/PlayersList';
 import RoomChat from '../components/game/RoomChat';
 import ProfileModal from '../components/game/ProfileModal';
 import ActionPanel from '../components/game/ActionPanel';
+import GameLayout from './GameLayout';
 import confetti from 'canvas-confetti';
 
 function playWinDing() {
@@ -155,39 +156,40 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
     const showCancelStake = Number(room?.maxPlayers || 2) >= 3 && !isOwner; // только обычным игрокам
 
     return (
-      <div className="min-h-screen flex flex-col p-4 text-text game-bg">
-        <style>{`@keyframes modalZoom{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}} .modal-zoom{animation:modalZoom .22s ease-out}`}</style>
-        <header className="flex flex-wrap gap-2 justify-between items-center mb-2">
-          <h1 className="text-2xl font-bold text-primary">{room.name}</h1>
-          <div className="flex items-center gap-2">
-            {showCancelStake && (
-              <button
-                onClick={() => setCancelOpen(true)}
-                className="bg-surface text-text font-bold py-2 px-4 rounded-lg hover:bg-surface/80"
-              >
-                Отменить ставку и выйти
-              </button>
-            )}
-            <button onClick={handleLeave} className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors">
-              Выйти в лобби
-            </button>
-          </div>
-        </header>
-
-        <div className="flex-grow grid grid-cols-3 gap-4">
-          <div className="col-span-2 flex items-center justify-center">
-            <div className="bg-surface p-8 rounded-xl border border-border text-center w-full max-w-lg">
-              {/* перенесено сюда */}
-              <div className="text-sm text-muted mb-2">Ожидаем игроков • ещё {need}</div>
-              <p className="text-xl mb-2">Стол создан</p>
-              <p className="text-muted">Ждём подключений игроков…</p>
+      <>
+        <GameLayout
+          header={
+            <>
+              <style>{`@keyframes modalZoom{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}} .modal-zoom{animation:modalZoom .22s ease-out}`}</style>
+              <div className="flex flex-wrap gap-2 justify-between items-center mb-2">
+                <h1 className="text-2xl font-bold text-primary">{room.name}</h1>
+                <div className="flex items-center gap-2">
+                  {showCancelStake && (
+                    <button
+                      onClick={() => setCancelOpen(true)}
+                      className="bg-surface text-text font-bold py-2 px-4 rounded-lg hover:bg-surface/80"
+                    >
+                      Отменить ставку и выйти
+                    </button>
+                  )}
+                  <button onClick={handleLeave} className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors">
+                    Выйти в лобби
+                  </button>
+                </div>
+              </div>
+            </>
+          }
+          table={
+            <div className="flex items-center justify-center h-full">
+              <div className="bg-surface p-8 rounded-xl border border-border text-center w-full max-w-lg">
+                <div className="text-sm text-muted mb-2">Ожидаем игроков • ещё {need}</div>
+                <p className="text-xl mb-2">Стол создан</p>
+                <p className="text-muted">Ждём подключений игроков…</p>
+              </div>
             </div>
-          </div>
-
-            <RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />
-        </div>
-
-        {/* модалка отмены ставки — только не создателю */}
+          }
+          sidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />}
+        />
         <ConfirmDialog
           open={cancelOpen}
           title="Отменить ставку?"
@@ -204,20 +206,15 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
           }}
           onCancel={() => setCancelOpen(false)}
         />
-
         {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
-      </div>
+      </>
     );
   }
 
   // основной экран игры
 
   return (
-    <div className="min-h-screen flex flex-col p-4 text-text overflow-hidden game-bg">
-      <style>{`@keyframes modalZoom{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}} .modal-zoom{animation:modalZoom .22s ease-out}
-      .custom-scroll::-webkit-scrollbar{width:6px;height:6px}.custom-scroll::-webkit-scrollbar-track{background:transparent}.custom-scroll::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.3);border-radius:3px}
-      .custom-scroll{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}`}</style>
-
+    <>
       {gameOverMessage && (
         <div className="fixed inset-0 bg-bg/80 flex items-center justify-center z-50">
           <div className="bg-surface p-8 rounded-lg text-center border border-primary shadow-lg modal-zoom">
@@ -233,37 +230,59 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
         </div>
       )}
 
-      <header className="flex justify-between items-center mb-2">
-        <h1 className="text-2xl font-bold text-primary">{room.name}</h1>
-        {room?.status === 'waiting' && (
-          <div className="text-sm text-muted mt-1">
-            Ожидаем игроков • ещё {Math.max(0, (Number(room?.maxPlayers || 2) - Number(room?.players?.length || 0)))}
-          </div>
-        )}
-        <button onClick={handleLeave} className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors">
-          Покинуть
-        </button>
-      </header>
-
-      <div className="grid grid-cols-3 gap-4 flex-1 h-0">
-        <div className="col-span-2 flex flex-col">
-          <div className="text-center p-2 bg-bg/50 rounded-lg">
-            <p>{gameState.message}</p>
-            <div className="mt-2 h-2 w-full bg-surface rounded">
-              <div className="h-2 bg-primary rounded" style={{ width: `${msToPercent}%` }} />
+      <GameLayout
+        header={
+          <>
+            <style>{`@keyframes modalZoom{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}} .modal-zoom{animation:modalZoom .22s ease-out}
+      .custom-scroll::-webkit-scrollbar{width:6px;height:6px}.custom-scroll::-webkit-scrollbar-track{background:transparent}.custom-scroll::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.3);border-radius:3px}
+      .custom-scroll{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}`}</style>
+            <div className="flex justify-between items-center mb-2">
+              <h1 className="text-2xl font-bold text-primary">{room.name}</h1>
+              {room?.status === 'waiting' && (
+                <div className="text-sm text-muted mt-1">
+                  Ожидаем игроков • ещё {Math.max(0, (Number(room?.maxPlayers || 2) - Number(room?.players?.length || 0)))}
+                </div>
+              )}
+              <button onClick={handleLeave} className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors">
+                Покинуть
+              </button>
             </div>
-            <div className="text-xs text-muted mt-1">Ход: {msLeftSec} сек</div>
-          </div>
+            <div className="text-center p-2 bg-bg/50 rounded-lg">
+              <p>{gameState.message}</p>
+              <div className="mt-2 h-2 w-full bg-surface rounded">
+                <div className="h-2 bg-primary rounded" style={{ width: `${msToPercent}%` }} />
+              </div>
+              <div className="text-xs text-muted mt-1">Ход: {msLeftSec} сек</div>
+            </div>
+          </>
+        }
+        table={
+          <PlayersList
+            room={room}
+            mySocketId={mySocketId}
+            myPlayer={myPlayer}
+            gameState={gameState}
+            selectedCard={selectedCard}
+            setSelectedCard={setSelectedCard}
+            openProfile={openProfile}
+          />
+        }
+        sidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />}
+        footer={
+          <ActionPanel
+            isAttacker={isAttacker}
+            isDefender={isDefender}
+            canThrowIn={canThrowIn}
+            selectedCard={selectedCard}
+            actionBusy={actionBusy}
+            gameState={gameState}
+            onAction={handleAction}
+            onSurrender={() => setSurrenderOpen(true)}
+            canSurrender={room?.status === 'playing' && !actionBusy}
+          />
+        }
+      />
 
-            <PlayersList room={room} mySocketId={mySocketId} myPlayer={myPlayer} gameState={gameState} selectedCard={selectedCard} setSelectedCard={setSelectedCard} openProfile={openProfile} />
-            <ActionPanel isAttacker={isAttacker} isDefender={isDefender} canThrowIn={canThrowIn} selectedCard={selectedCard} actionBusy={actionBusy} gameState={gameState} onAction={handleAction} onSurrender={() => setSurrenderOpen(true)} canSurrender={room?.status === "playing" && !actionBusy} />
-
-        </div>
-
-          <RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />
-      </div>
-
-      {/* Модалка сдачи */}
       <ConfirmDialog
         open={surrenderOpen}
         title="Сдаться?"
@@ -275,7 +294,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
       />
 
       {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
-    </div>
+    </>
   );
 };
 

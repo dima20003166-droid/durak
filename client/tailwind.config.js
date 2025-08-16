@@ -24,6 +24,21 @@ export default {
         display: ['"Press Start 2P"', 'cursive'],
         neon: ['"Orbitron"', 'sans-serif'],
       },
+      width: {
+        'card-sm': '4rem',
+        'card-md': '5.375rem',
+        'card-lg': '6.5rem',
+      },
+      height: {
+        'card-sm': '5.625rem',
+        'card-md': '7.5rem',
+        'card-lg': '9.125rem',
+      },
+      spacing: {
+        'card-overlap-sm': '1.5rem',
+        'card-overlap-md': '2rem',
+        'card-overlap-lg': '2.5rem',
+      },
     },
   },
   plugins: [],
