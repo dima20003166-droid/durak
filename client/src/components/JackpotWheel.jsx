@@ -34,22 +34,24 @@ export default function JackpotWheel({ state, winner, bank, bets }) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="relative w-64 h-64">
+    <div className="flex flex-col items-center gap-6">
+      <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md aspect-square">
         <div
-          className={`absolute inset-0 rounded-full border-8 border-primary shadow-[0_0_15px_rgba(255,255,255,0.5)] ${state === 'OPEN' ? 'animate-pulse' : ''}`}
+          className={`absolute inset-0 rounded-full border-8 border-primary shadow-[0_0_20px_rgba(255,255,255,0.7)] ring-2 ring-white/50 ${
+            state === 'OPEN' ? 'animate-pulse' : ''
+          }`}
           style={{ background: gradient }}
         />
         <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full origin-bottom"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full origin-bottom pointer-events-none"
           animate={{ rotate: rotation }}
           transition={transition}
         >
-          <div className="w-0 h-0 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-white mx-auto" />
-          <div className="w-1 h-24 bg-white mx-auto" />
+          <div className="w-0 h-0 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-white mx-auto drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" />
+          <div className="w-1 sm:w-[3px] h-24 sm:h-32 bg-white mx-auto drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" />
         </motion.div>
       </div>
-      <div className="flex justify-between w-full max-w-sm text-xs">
+      <div className="flex justify-between w-full max-w-sm text-xs sm:text-sm">
         <motion.ul className="text-red-500 space-y-1">
           <AnimatePresence>
             {bets.red.map((b) => (
