@@ -81,7 +81,7 @@ export default function CreateRoomModal({ initialMode = 'classic', onClose }) {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="w-full max-w-md p-4 bg-surface rounded-xl shadow-lg text-text"
+          className="w-full max-w-md p-4 glass-surface rounded-xl shadow-lg text-text"
         >
           <h3 className="text-xl font-bold mb-3">Создать стол</h3>
           <label className="block text-sm text-muted mb-1">Ставка</label>

@@ -56,7 +56,7 @@ export default function ProfileModal({ user, onClose }) {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-surface p-6 rounded-xl border border-border w-full max-w-md"
+          className="glass-surface p-6 rounded-xl w-full max-w-md"
         >
           <div className="flex items-center gap-4">
             <img
@@ -74,15 +74,15 @@ export default function ProfileModal({ user, onClose }) {
           </div>
 
           <div className="grid grid-cols-3 gap-3 mt-4 text-center">
-            <div className="bg-surface rounded p-2">
+            <div className="glass-surface rounded p-2">
               <div className="text-xs text-muted">Игры</div>
               <div className="text-lg font-bold">{total}</div>
             </div>
-            <div className="bg-surface rounded p-2">
+            <div className="glass-surface rounded p-2">
               <div className="text-xs text-muted">Победы</div>
               <div className="text-lg font-bold text-primary">{stats.wins || 0}</div>
             </div>
-            <div className="bg-surface rounded p-2">
+            <div className="glass-surface rounded p-2">
               <div className="text-xs text-muted">Пораж.</div>
               <div className="text-lg font-bold text-danger">{stats.losses || 0}</div>
             </div>
