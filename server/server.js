@@ -78,7 +78,15 @@ async function saveSiteSettings(settings) {
 // ---------------------- HTTP + Socket.IO ----------------------
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: 'http://localhost:5173', methods: ['GET', 'POST'] } });
+const io = new Server(server, {
+  cors: {
+    origin: [
+      'http://localhost:5173',
+      'http://185.233.47.116'
+    ],
+    methods: ['GET', 'POST']
+  }
+});
 
 let jackpotWheel;
 const jackpotReady = initJackpotWheel();
