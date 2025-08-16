@@ -580,7 +580,7 @@ function withRateLimit(event, handler) {
 
   socket.on('create_room', withRateLimit('create_room', (options) => {
   const user = socket.data.user;
-  if (!user) return;
+  if (!user?.id) { socket.emit('join_error', 'Требуется авторизация'); return; }
   const userBalance = Number(user.balance || 0);
   if (userBalance <= 0) {
     return socket.emit('join_error', 'Недостаточно средств для создания стола.');
