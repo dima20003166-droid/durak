@@ -45,21 +45,7 @@ export default function CreateRoomModal({ onClose }) {
 
     const handleCreated = () => {
       setSubmitting(false);
-      socketService.off('created_room', handleCreated);
-      socketService.off('join_error', handleError);
-      onClose?.();
-    };
 
-    const handleError = (msg) => {
-      setSubmitting(false);
-      setError(msg || 'Не удалось создать стол.');
-      socketService.off('created_room', handleCreated);
-      socketService.off('join_error', handleError);
-    };
-
-    socketService.on('created_room', handleCreated);
-    socketService.on('join_error', handleError);
-    socketService.emit('create_room', { bet, mode, privateRoom: isPrivate });
   };
 
   return (
