@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { TrophyIcon, WalletIcon } from './icons';
@@ -44,7 +44,11 @@ NeonButton.defaultProps = {
 
 export default function BetPanel({ state }) {
   const [amount, setAmount] = useState(1);
+  const [betColor, setBetColor] = useState(null);
+  useEffect(() => { if (state === 'OPEN') setBetColor(null); }, [state]);
   const place = (color) => {
+    if (betColor && betColor !== color) return;
+    setBetColor(color);
     const clientBetId = Date.now().toString(36) + Math.random().toString(36).slice(2);
     socketService.placeWheelBet(color, amount, clientBetId, (res) => {
       if (res?.ok && res.balance != null) {
@@ -118,7 +122,7 @@ export default function BetPanel({ state }) {
       </div>
       <NeonButton
         color="red"
-        disabled={state !== 'OPEN'}
+        disabled={state !== 'OPEN' || (betColor && betColor !== 'red')}
         onClick={() => place('red')}
         Icon={TrophyIcon}
       >
@@ -126,7 +130,7 @@ export default function BetPanel({ state }) {
       </NeonButton>
       <NeonButton
         color="orange"
-        disabled={state !== 'OPEN'}
+        disabled={state !== 'OPEN' || (betColor && betColor !== 'orange')}
         onClick={() => place('orange')}
         Icon={WalletIcon}
       >

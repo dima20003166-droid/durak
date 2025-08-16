@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Button from '../Button';
 
 const ActionPanel = ({
   isAttacker,
@@ -16,55 +17,60 @@ const ActionPanel = ({
     <div className="flex flex-col md:flex-row items-center w-full gap-y-2 md:gap-x-4 p-4">
       <div className="flex justify-center gap-x-4 flex-1">
         {(isAttacker || canThrowIn) && (
-          <button
+          <Button
             onClick={() => onAction('attack')}
             disabled={!selectedCard || actionBusy}
-            className="px-6 py-3 font-semibold rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border transition-all duration-300 hover:shadow-[0_0_10px_var(--neon-primary)]"
+            className="px-6 py-3 font-semibold"
+            variant="primary"
           >
             Ходить/Подкинуть
-          </button>
+          </Button>
         )}
         {isDefender && (
-          <button
+          <Button
             onClick={() => onAction('defend')}
             disabled={!selectedCard || actionBusy || !gameState.table.some((p) => !p.defense)}
-            className="px-6 py-3 font-semibold rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border transition-all duration-300 hover:shadow-[0_0_10px_var(--neon-primary)]"
+            className="px-6 py-3 font-semibold"
+            variant="primary"
           >
             Отбиться
-          </button>
+          </Button>
         )}
         {(isAttacker || canThrowIn) && (
-          <button
+          <Button
             onClick={() => onAction('pass')}
             disabled={
               actionBusy ||
               gameState.table.length === 0 ||
               !gameState.table.every((p) => p.defense)
             }
-            className="px-6 py-3 font-semibold rounded-lg bg-accent hover:bg-accent/80 disabled:bg-border transition-all duration-300 hover:shadow-[0_0_10px_var(--neon-accent)]"
+            className="px-6 py-3 font-semibold"
+            variant="accent"
           >
             Бито
-          </button>
+          </Button>
         )}
         {isDefender && (
-          <button
+          <Button
             onClick={() => onAction('take')}
             disabled={actionBusy || gameState.table.length === 0}
-            className="px-6 py-3 font-semibold rounded-lg bg-danger hover:bg-danger/80 disabled:bg-border transition-all duration-300 hover:shadow-[0_0_10px_var(--neon-danger)]"
+            className="px-6 py-3 font-semibold"
+            variant="danger"
           >
             Беру
-          </button>
+          </Button>
         )}
       </div>
       <div className="md:ml-auto ml-0">
-        <button
+        <Button
           onClick={onSurrender}
           disabled={!canSurrender}
-          className="px-6 py-3 font-semibold rounded-lg bg-surface hover:bg-surface/80 disabled:bg-border transition-all duration-300 hover:shadow-[0_0_10px_var(--neon-primary)]"
+          className="px-6 py-3 font-semibold"
+          variant="default"
           title="Признать поражение и завершить игру"
         >
           Сдаться
-        </button>
+        </Button>
       </div>
     </div>
   );

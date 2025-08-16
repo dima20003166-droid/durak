@@ -77,7 +77,8 @@ export default function JackpotWheel({
   const circumference = 2 * Math.PI * ringRadius;
   const progress = totalTime > 0 ? timeLeft / totalTime : 0;
   const dashOffset = circumference * (1 - progress);
-
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
   useEffect(() => {
     startSound.current = new Audio('/start.mp3');
     spinSound.current = new Audio('/spin.mp3');
@@ -99,14 +100,21 @@ export default function JackpotWheel({
     return () => window.removeEventListener('resize', updateRadius);
   }, []);
 
+  const audioTl = useRef(null);
+  const glowTl = useRef(null);
+
   useEffect(() => {
     if (phase === 'idle') {
       spins.current = config.maxSpins;
       spinTween.current?.kill();
       gsap.set(arrowRef.current, { rotation: 0 });
       hasCelebrated.current = false;
+      glowTl.current?.kill();
+      gsap.set(wheelRef.current?.querySelectorAll('.wheel-segment'), { opacity: 1 });
+      audioTl.current?.kill();
       if (spinSound.current) {
-        gsap.to(spinSound.current, {
+        audioTl.current = gsap.timeline();
+        audioTl.current.to(spinSound.current, {
           volume: 0,
           duration: 0.5,
           onComplete: () => {
@@ -122,7 +130,8 @@ export default function JackpotWheel({
         spinSound.current.volume = 0;
         spinSound.current.loop = true;
         spinSound.current.play();
-        gsap.to(spinSound.current, { volume, duration: 0.5 });
+        audioTl.current = gsap.timeline();
+        audioTl.current.to(spinSound.current, { volume, duration: 0.5 });
       }
       const totalRotation = spins.current * 360 + targetAngle;
       const now = Date.now();
@@ -140,14 +149,21 @@ export default function JackpotWheel({
       } else {
         gsap.set(arrowRef.current, { rotation: totalRotation });
       }
+      if (!prefersReducedMotion) {
+        const segs = wheelRef.current?.querySelectorAll('.wheel-segment');
+        glowTl.current = gsap.timeline({ repeat: -1, yoyo: true });
+        glowTl.current.to(segs, { opacity: 0.7, duration: 0.3, stagger: 0.1 });
+      }
     }
-  }, [phase, startTime, animationDuration, targetAngle, volume, config]);
+  }, [phase, startTime, animationDuration, targetAngle, volume, config, prefersReducedMotion]);
 
   useEffect(() => {
     if (!winner) return;
     spinTween.current?.kill();
+    audioTl.current?.kill();
     if (spinSound.current) {
-      gsap.to(spinSound.current, {
+      audioTl.current = gsap.timeline();
+      audioTl.current.to(spinSound.current, {
         volume: 0,
         duration: 0.5,
         onComplete: () => {
@@ -157,7 +173,7 @@ export default function JackpotWheel({
       });
     }
     winSound.current?.play();
-    if (!hasCelebrated.current) {
+    if (!hasCelebrated.current && !prefersReducedMotion) {
       const rect = arrowRef.current.getBoundingClientRect();
       confetti({
         particleCount: 40,
@@ -170,7 +186,7 @@ export default function JackpotWheel({
       cTl.play();
       hasCelebrated.current = true;
     }
-  }, [winner, volume]);
+  }, [winner, volume, prefersReducedMotion]);
 
   return (
     <div
@@ -209,7 +225,7 @@ export default function JackpotWheel({
           style={{ filter: 'drop-shadow(0 0 5px var(--neon-primary))' }}
         >
           {segments.map((seg, i) => (
-            <path key={i} d={segmentPath(50, 50, 50, seg.start, seg.end)} fill={seg.color} />
+            <path key={i} className="wheel-segment wheel-glow" d={segmentPath(50, 50, 50, seg.start, seg.end)} fill={seg.color} />
           ))}
         </svg>
         <div className="absolute inset-0 rounded-full pointer-events-none bg-white/10" />

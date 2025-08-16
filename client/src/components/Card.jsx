@@ -46,6 +46,7 @@ export default function Card({
   };
   const S = sizes[size] || sizes.md;
   const borderSel = isSelected ? 'ring-2 ring-primary shadow-primary/40 -translate-y-2' : 'ring-1 ring-border';
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   useEffect(() => {
     if (isWinning && typeof window !== 'undefined') {
       window.navigator?.vibrate?.(100);
@@ -76,16 +77,16 @@ export default function Card({
       onClick={handleClick}
       initial={dealFrom ? { x: dealFrom.x, y: dealFrom.y, rotate: -20 } : undefined}
       animate={{ x: 0, y: 0, rotate: 0 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 500, damping: 30 }}
       className={`relative rounded-xl cursor-pointer select-none card-3d ${S.class} ${borderSel} ${isWinning ? 'win-effect' : ''} ${className}`}
       style={style}
-      whileHover={{ y: -4 }}
+      whileHover={prefersReducedMotion ? {} : { y: -4 }}
     >
       <motion.div
         className="relative w-full h-full card-flip-inner"
         initial={{ rotateY: isFaceUp ? 0 : 180 }}
         animate={{ rotateY: isFaceUp ? 0 : 180 }}
-        transition={{ duration: 0.6 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6 }}
       >
         <div className="absolute inset-0 card-face">
           <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">

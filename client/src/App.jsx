@@ -13,7 +13,8 @@ import ProvablyFair from './pages/ProvablyFair';
 import ErrorBoundary from './components/ErrorBoundary';
 import AuthModal from './components/AuthModal';
 import './index.css';
-import { setTheme } from './theme';
+import { setTheme, getInitialTheme } from './theme';
+import { updateParallax } from './utils/parallax';
 
 export default function App() {
   const [page, setPage] = useState('lobby');
@@ -23,21 +24,30 @@ export default function App() {
   const [currentRoom, setCurrentRoom] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [siteSettings, setSiteSettings] = useState({ commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
-  const [theme, setThemeState] = useState('dark');
+  const [theme, setThemeState] = useState(getInitialTheme());
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  useEffect(() => { setTheme(theme); }, [theme]);
+  useEffect(() => {
+    setTheme(theme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', theme);
+    }
+  }, [theme]);
   const toggleTheme = () => setThemeState(t => t === 'dark' ? 'light' : 'dark');
 
   useEffect(() => {
+    let raf;
     const handler = (e) => {
       const x = (e.clientX / window.innerWidth - 0.5) * 20;
       const y = (e.clientY / window.innerHeight - 0.5) * 20;
-      document.documentElement.style.setProperty('--parallax-x', `${x}px`);
-      document.documentElement.style.setProperty('--parallax-y', `${y}px`);
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => updateParallax(x, y));
     };
     window.addEventListener('mousemove', handler);
-    return () => window.removeEventListener('mousemove', handler);
+    return () => {
+      window.removeEventListener('mousemove', handler);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
   useEffect(() => {
