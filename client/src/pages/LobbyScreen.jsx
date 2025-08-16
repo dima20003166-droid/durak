@@ -331,7 +331,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
           )}
 
           {activeGameTab === 'jackpot' && (
-            <JackpotGame initialRound={initialRound} />
+            <JackpotGame initialRound={initialRound} user={user} />
           )}
         </div>
 

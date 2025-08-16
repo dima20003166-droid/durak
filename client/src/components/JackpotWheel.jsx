@@ -36,6 +36,13 @@ function segmentPath(cx, cy, r, startAngle, endAngle) {
   return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y} Z`;
 }
 
+function arcPath(cx, cy, r, startAngle, endAngle) {
+  const start = polarToCartesian(cx, cy, r, endAngle);
+  const end = polarToCartesian(cx, cy, r, startAngle);
+  const largeArc = endAngle - startAngle <= 180 ? '0' : '1';
+  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y}`;
+}
+
 export default function JackpotWheel({
   phase,
   winner,
@@ -213,13 +220,13 @@ export default function JackpotWheel({
         style={{ zIndex: 1 }}
       >
         <path
-          d={segmentPath(50, 50, 49, 0, redProbAngle)}
+          d={arcPath(50, 50, 49, 0, redProbAngle)}
           stroke="var(--jackpot-red)"
           strokeWidth="2"
           fill="none"
         />
         <path
-          d={segmentPath(50, 50, 49, redProbAngle, 360)}
+          d={arcPath(50, 50, 49, redProbAngle, 360)}
           stroke="var(--jackpot-orange)"
           strokeWidth="2"
           fill="none"
