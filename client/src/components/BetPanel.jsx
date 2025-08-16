@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import socketService from '../services/socketService';
-import AnimatedCounter from './AnimatedCounter';
 
-export default function BetPanel({ bank, state }) {
+export default function BetPanel({ state }) {
   const [amount, setAmount] = useState(1);
   const place = (color) => {
     const clientBetId = Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -10,14 +9,6 @@ export default function BetPanel({ bank, state }) {
   };
   return (
     <div className="space-y-2">
-      <div className="flex justify-center gap-4 text-sm">
-        <div>
-          Red: <AnimatedCounter value={bank.red} />
-        </div>
-        <div>
-          Orange: <AnimatedCounter value={bank.orange} />
-        </div>
-      </div>
       <input
         type="number"
         min="1"
