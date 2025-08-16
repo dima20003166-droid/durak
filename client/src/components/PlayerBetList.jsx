@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function PlayerBetList({ bets, textColor, align = 'left' }) {
+  const uniqueBets = useMemo(() => {
+    const map = new Map();
+    bets.forEach((b) => {
+      if (!map.has(b.id)) map.set(b.id, b);
+    });
+    if (map.size !== bets.length) {
+      console.log('Duplicate bets filtered:', bets.length - map.size);
+    }
+    return Array.from(map.values());
+  }, [bets]);
+
   return (
-    <ul
-      className={`p-3 overflow-y-auto h-56 space-y-1 ${textColor} ${align === 'right' ? 'text-right' : 'text-left'}`}
-    >
+    <ul className={`p-3 overflow-y-auto h-56 space-y-1 ${textColor} ${align === 'right' ? 'text-right' : 'text-left'}`}>
       <AnimatePresence initial={false}>
-        {bets.map((b) => (
+        {uniqueBets.map((b) => (
           <motion.li
             key={b.id}
             initial={{ opacity: 0, x: align === 'right' ? 10 : -10 }}

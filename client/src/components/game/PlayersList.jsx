@@ -13,92 +13,84 @@ const PlayersList = ({
   openProfile,
 }) => {
   const myIdx = room.players.findIndex((x) => x.socketId === mySocketId);
+  const orderedPlayers =
+    myIdx >= 0
+      ? [...room.players.slice(myIdx), ...room.players.slice(0, myIdx)]
+      : room.players;
 
   return (
-    <div className="relative flex-grow w-full h-full mt-2">
-      <AnimatePresence>
-        {room.players.map((p, index) => {
-        const relativeIndex = (index - myIdx + room.players.length) % room.players.length;
-        const pos =
-          relativeIndex === 0
-            ? { bottom: '4%', left: '50%', transform: 'translateX(-50%)' }
-            : (() => {
-                const angle = (relativeIndex / (room.players.length - 1)) * Math.PI;
-                const radiusX = 45,
-                  radiusY = 40;
-                const x = 50 - radiusX * Math.cos(angle);
-                const y = 40 - radiusY * Math.sin(angle);
-                return { top: `${y}%`, left: `${x}%`, transform: 'translate(-50%, -50%)' };
-              })();
+    <div className="flex flex-col w-full h-full mt-2">
+      <div className="grid flex-grow grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-2">
+        <AnimatePresence>
+          {orderedPlayers.map((p, index) => {
+            const isCurrentAttacker = index === gameState.attackerIndex;
+            const isCurrentDefender = index === gameState.defenderIndex;
 
-        const isCurrentAttacker = index === gameState.attackerIndex;
-        const isCurrentDefender = index === gameState.defenderIndex;
-
-        return (
-          <motion.div
-            key={p.socketId}
-            className="absolute transition-all duration-500"
-            style={pos}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-          >
-            <div className="relative flex flex-col items-center w-40">
-              <div
-                className={`absolute -top-6 px-2 py-0.5 text-xs rounded-full whitespace-nowrap ${
-                  isCurrentAttacker ? 'bg-danger' : ''
-                } ${isCurrentDefender ? 'bg-accent' : ''}`}
+            return (
+              <motion.div
+                key={p.socketId}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="flex flex-col items-center bg-surface rounded p-2"
               >
-                {isCurrentAttacker ? 'Атака' : isCurrentDefender ? 'Защита' : ''}
-              </div>
+                <div
+                  className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+                    isCurrentAttacker ? 'bg-danger' : ''
+                  } ${isCurrentDefender ? 'bg-accent' : ''}`}
+                >
+                  {isCurrentAttacker ? 'Атака' : isCurrentDefender ? 'Защита' : ''}
+                </div>
 
-              <img
-                className="w-16 h-16 rounded-full object-cover cursor-pointer"
-                src={resolveAvatarUrl(
-                  p.avatarUrl,
-                  `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`
-                )}
-                onClick={() => openProfile(p)}
-                alt=""
-              />
-              <p className="font-semibold mt-1 truncate cursor-pointer" onClick={() => openProfile(p)}>
-                {p.username}
-              </p>
+                <img
+                  className="w-16 h-16 rounded-full object-cover cursor-pointer"
+                  src={resolveAvatarUrl(
+                    p.avatarUrl,
+                    `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`
+                  )}
+                  onClick={() => openProfile(p)}
+                  alt=""
+                />
+                <p
+                  className="font-semibold mt-1 truncate cursor-pointer w-full text-center"
+                  onClick={() => openProfile(p)}
+                >
+                  {p.username}
+                </p>
 
-              <div className="relative flex justify-center items-center h-28 w-full mt-2">
-                {p.socketId === mySocketId
-                  ? myPlayer.hand.map((card, i) => (
-                      <div
-                        key={card.id}
-                        className="absolute"
-                        style={{ transform: `translateX(${(i - myPlayer.hand.length / 2) * 25}px)` }}
-                      >
-                        <Card
-                          {...card}
-                          isSelected={selectedCard?.id === card.id}
-                          onClick={() => setSelectedCard(card)}
-                        />
-                      </div>
-                    ))
-                  : Array(p.hand.length)
-                      .fill(0)
-                      .map((_, i) => (
-                        <div
-                          key={i}
-                          className="absolute"
-                          style={{ transform: `translateX(${(i - p.hand.length / 2) * 10}px)` }}
-                        >
-                          <Card isFaceUp={false} />
+                <div className="flex justify-center items-center h-28 w-full mt-2">
+                  {p.socketId === mySocketId ? (
+                    <div className="flex">
+                      {myPlayer.hand.map((card, i) => (
+                        <div key={card.id} style={{ marginLeft: i ? -30 : 0 }}>
+                          <Card
+                            {...card}
+                            isSelected={selectedCard?.id === card.id}
+                            onClick={() => setSelectedCard(card)}
+                          />
                         </div>
                       ))}
-              </div>
-            </div>
-          </motion.div>
-        );
-        })}
-      </AnimatePresence>
+                    </div>
+                  ) : (
+                    <div className="flex">
+                      {Array(p.hand.length)
+                        .fill(0)
+                        .map((_, i) => (
+                          <div key={i} style={{ marginLeft: i ? -12 : 0 }}>
+                            <Card isFaceUp={false} />
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
 
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-4">
+      <div className="flex items-center justify-center gap-4 py-4">
         <div className="flex flex-col items-center w-24">
           <Card {...gameState.trumpCard} />
           <p className="mt-2">{gameState.deck.length} карт</p>
@@ -107,7 +99,7 @@ const PlayersList = ({
           {gameState.table.map((pair, i) => (
             <div key={i} className="relative w-20 h-28">
               <Card {...pair.attack} />
-              {pair.defense && <Card {...pair.defense} className="transform translate-x-2 translate-y-2" />}
+              {pair.defense && <Card {...pair.defense} className="translate-x-2 translate-y-2" />}
             </div>
           ))}
         </div>
