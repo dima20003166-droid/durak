@@ -40,9 +40,9 @@ export default function Card({
   isWinning = false,
 }) {
   const sizes = {
-    sm: { w: 64, h: 90, rank: 14, corner: 16, pip: 24 },
-    md: { w: 86, h: 120, rank: 16, corner: 18, pip: 28 },
-    lg: { w: 104, h: 146, rank: 18, corner: 20, pip: 32 },
+    sm: { rank: 14, corner: 16, pip: 24, class: 'w-card-sm h-card-sm' },
+    md: { rank: 16, corner: 18, pip: 28, class: 'w-card-md h-card-md' },
+    lg: { rank: 18, corner: 20, pip: 32, class: 'w-card-lg h-card-lg' },
   };
   const S = sizes[size] || sizes.md;
   const borderSel = isSelected ? 'ring-2 ring-primary shadow-primary/40 -translate-y-2' : 'ring-1 ring-border';
@@ -77,8 +77,8 @@ export default function Card({
       initial={dealFrom ? { x: dealFrom.x, y: dealFrom.y, rotate: -20 } : undefined}
       animate={{ x: 0, y: 0, rotate: 0 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className={`relative rounded-xl cursor-pointer select-none card-3d ${borderSel} ${isWinning ? 'win-effect' : ''} ${className}`}
-      style={{ width: S.w, height: S.h, ...style }}
+      className={`relative rounded-xl cursor-pointer select-none card-3d ${S.class} ${borderSel} ${isWinning ? 'win-effect' : ''} ${className}`}
+      style={style}
       whileHover={{ y: -4 }}
     >
       <motion.div
