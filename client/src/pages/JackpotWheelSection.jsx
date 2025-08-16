@@ -72,6 +72,19 @@ export default function JackpotWheelSection() {
     <div className="max-w-4xl mx-auto px-4 flex flex-col items-center gap-6 py-10">
       <h1 className="text-3xl font-bold">Джекпот-колесо</h1>
       <JackpotWheel state={state} winner={winner} bank={bank} />
+      <BetPanel bank={bank} state={state} />
+      <div className="w-full flex flex-col md:flex-row gap-4">
+        <ul className="flex-1 bg-surface/30 rounded p-3 overflow-y-auto h-56 text-red-400 space-y-1">
+          {bets.red.map(b => (
+            <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
+          ))}
+        </ul>
+        <ul className="flex-1 bg-surface/30 rounded p-3 overflow-y-auto h-56 text-orange-400 space-y-1">
+          {bets.orange.map(b => (
+            <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
+          ))}
+        </ul>
+      </div>
       <div className="w-full flex flex-col md:flex-row justify-between text-center gap-6">
         <div className="flex-1 text-red-400">
           <div className="font-semibold">Красный</div>
@@ -106,19 +119,6 @@ export default function JackpotWheelSection() {
           <div>×{orangeMultiplier.toFixed(2)}</div>
         </div>
       </div>
-      <div className="w-full flex flex-col md:flex-row gap-4">
-        <ul className="flex-1 bg-surface/30 rounded p-3 overflow-y-auto h-56 text-red-400 space-y-1">
-          {bets.red.map(b => (
-            <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
-          ))}
-        </ul>
-        <ul className="flex-1 bg-surface/30 rounded p-3 overflow-y-auto h-56 text-orange-400 space-y-1">
-          {bets.orange.map(b => (
-            <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
-          ))}
-        </ul>
-      </div>
-      <BetPanel bank={bank} state={state} />
       {serverSeedHash && (
         <div className="text-xs text-center flex flex-col items-center gap-1">
           <div className="flex items-center gap-2">
