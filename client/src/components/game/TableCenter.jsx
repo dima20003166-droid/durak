@@ -3,13 +3,12 @@ import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../Card';
 import './TableCenter.css';
-
-const CARD_WIDTH = 80; // px for w-20
-const CARD_HEIGHT = 112; // px for h-28
+import useCardSize from '../../utils/useCardSize';
 
 export default function TableCenter({ table = [] }) {
-  const width = CARD_WIDTH + (table.length - 1) * 22 + 10;
-  const height = CARD_HEIGHT + (table.length - 1) * 10 + 12;
+  const { width: cardW, height: cardH } = useCardSize();
+  const width = cardW + (table.length - 1) * 22 + 10;
+  const height = cardH + (table.length - 1) * 10 + 12;
 
   return (
     <div className="table-center min-w-[300px]" style={{ width, height }}>
@@ -17,12 +16,12 @@ export default function TableCenter({ table = [] }) {
         {table.map((pair, idx) => (
           <motion.div
             key={pair.attack.id}
-            className="pair-container w-20 h-28"
+            className="pair-container"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             layout
-            style={{ transform: `translate(${idx * 22}px, ${idx * 10}px)` }}
+            style={{ transform: `translate(${idx * 22}px, ${idx * 10}px)`, width: cardW, height: cardH }}
           >
             <Card
               {...pair.attack}
