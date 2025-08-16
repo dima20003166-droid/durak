@@ -243,15 +243,15 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
                 disabled={!user || iAmInAnyRoom}
                 title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
               >
-                Дурак
+                {t('durak')}
               </button>
               <button
-                onClick={() => setPage('jackpot')}
+                onClick={() => setPage('jackpotWheel')}
                 className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
                 disabled={!user || iAmInAnyRoom}
                 title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
               >
-                Косинка
+                {t('jackpotWheel')}
               </button>
             </div>
           </div>

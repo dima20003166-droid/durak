@@ -104,7 +104,7 @@ export default function App() {
         return <WalletScreen user={currentUser} setPage={setPage} />;
       case 'leaderboard':
         return <LeaderboardScreen setPage={setPage} leaderboard={leaderboard} />;
-      case 'jackpot':
+      case 'jackpotWheel':
         return <JackpotWheelPage setPage={setPage} />;
       case 'provably':
         return <ProvablyFair setPage={setPage} />;
