@@ -96,37 +96,36 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
   }, [state, volume]);
 
   useEffect(() => {
-    if (state === 'SPIN' && winner) {
-      const winAngle =
-        winner === 'red' ? redAngle / 2 : redAngle + (360 - redAngle) / 2;
-      const target = spins * 360 + winAngle + startOffsetRef.current;
-      setRotation(target);
-      if (spinSound.current) {
-        gsap.to(spinSound.current, {
-          volume: 0,
-          duration: 0.5,
-          onComplete: () => {
-            spinSound.current.pause();
-            spinSound.current.volume = volume;
-          },
-        });
-      }
-      winSound.current?.play();
-      if (!hasCelebrated.current) {
-        const rect = arrowRef.current.getBoundingClientRect();
-        confetti({
-          particleCount: 40,
-          spread: 45,
-          origin: { x: rect.left / window.innerWidth, y: rect.top / window.innerHeight },
-        });
-        const tl = gsap.timeline();
-        tl.to(arrowRef.current, { className: '+=win-effect', duration: 0 });
-        tl.to(arrowRef.current, { className: '-=win-effect', delay: 0.8, duration: 0 });
-        tl.play();
-        hasCelebrated.current = true;
-      }
+    if (!winner) return;
+    const winAngle =
+      winner === 'red' ? redAngle / 2 : redAngle + (360 - redAngle) / 2;
+    const target = spins * 360 + winAngle + startOffsetRef.current;
+    setRotation(target);
+    if (spinSound.current) {
+      gsap.to(spinSound.current, {
+        volume: 0,
+        duration: 0.5,
+        onComplete: () => {
+          spinSound.current.pause();
+          spinSound.current.volume = volume;
+        },
+      });
     }
-  }, [winner, state, redAngle, volume]);
+    winSound.current?.play();
+    if (!hasCelebrated.current) {
+      const rect = arrowRef.current.getBoundingClientRect();
+      confetti({
+        particleCount: 40,
+        spread: 45,
+        origin: { x: rect.left / window.innerWidth, y: rect.top / window.innerHeight },
+      });
+      const tl = gsap.timeline();
+      tl.to(arrowRef.current, { className: '+=win-effect', duration: 0 });
+      tl.to(arrowRef.current, { className: '-=win-effect', delay: 0.8, duration: 0 });
+      tl.play();
+      hasCelebrated.current = true;
+    }
+  }, [winner, redAngle, volume]);
   useEffect(() => {
     gsap.to(arrowRef.current, {
       rotation,
