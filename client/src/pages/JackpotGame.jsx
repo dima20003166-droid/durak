@@ -64,7 +64,7 @@ export default function JackpotGame({ initialRound, user }) {
       setStartTime(d.startTime);
       setAnimationDuration(d.animationDuration);
       setTargetAngle(d.targetAngle);
-      setSpinEndAt(d.startTime + d.animationDuration);
+      setSpinEndAt(Date.now() + d.animationDuration);
     };
     const onResult = (d) => {
       setState(d.state || 'RESULT');
@@ -132,11 +132,15 @@ export default function JackpotGame({ initialRound, user }) {
   const totalBank = bank.red + bank.orange;
 
   useEffect(() => {
-    if (pendingPayout != null && phase === 'settled' && Date.now() >= spinEndAt) {
-      setDisplayPayout(pendingPayout);
-      setPendingPayout(null);
+    if (pendingPayout != null) {
+      const delay = Math.max(spinEndAt - Date.now(), 0);
+      const t = setTimeout(() => {
+        setDisplayPayout(pendingPayout);
+        setPendingPayout(null);
+      }, delay);
+      return () => clearTimeout(t);
     }
-  }, [pendingPayout, phase, spinEndAt]);
+  }, [pendingPayout, spinEndAt]);
 
   useEffect(() => {
     if (displayPayout != null) {

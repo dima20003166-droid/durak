@@ -213,13 +213,13 @@ export default function JackpotWheel({
         style={{ zIndex: 1 }}
       >
         <path
-          d={segmentPath(50, 50, 52, 0, redProbAngle)}
+          d={segmentPath(50, 50, 49, 0, redProbAngle)}
           stroke="var(--jackpot-red)"
           strokeWidth="2"
           fill="none"
         />
         <path
-          d={segmentPath(50, 50, 52, redProbAngle, 360)}
+          d={segmentPath(50, 50, 49, redProbAngle, 360)}
           stroke="var(--jackpot-orange)"
           strokeWidth="2"
           fill="none"
