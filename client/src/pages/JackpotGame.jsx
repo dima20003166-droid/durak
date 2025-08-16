@@ -5,9 +5,11 @@ import JackpotWheel from '../components/JackpotWheel';
 import BetPanel from '../components/BetPanel';
 import AnimatedCounter from '../components/AnimatedCounter';
 import PlayerBetList from '../components/PlayerBetList';
+import WinLossPopup from '../components/WinLossPopup';
 
-export default function JackpotGame({ initialRound }) {
+export default function JackpotGame({ initialRound, user }) {
   const [phase, setPhase] = useState(initialRound?.phase || 'idle');
+  const [state, setState] = useState(initialRound?.state || 'OPEN');
   const [bank, setBank] = useState(initialRound?.bank || { red: 0, orange: 0 });
   const [bets, setBets] = useState(initialRound?.bets || { red: [], orange: [] });
   const [startTime, setStartTime] = useState(initialRound?.startTime || 0);
@@ -16,12 +18,18 @@ export default function JackpotGame({ initialRound }) {
   const [timeLeft, setTimeLeft] = useState(initialRound?.timeLeftMs || 0);
   const [openMs, setOpenMs] = useState(initialRound?.openMs || 0);
   const [result, setResult] = useState(initialRound?.result || null);
+  const [spinEndAt, setSpinEndAt] = useState(0);
+  const [pendingPayout, setPendingPayout] = useState(null);
+  const [displayPayout, setDisplayPayout] = useState(null);
+  const [chance, setChance] = useState({ red: 50, orange: 50 });
   const winner = phase === 'settled' && result ? result.color : null;
   const bankRef = useRef(bank);
+  const betsRef = useRef(bets);
 
   useEffect(() => {
-    socketService.on('jackpot:state', (d) => {
+    const onState = (d) => {
       setPhase(d.phase);
+      setState(d.state || 'OPEN');
       if (d.bank) setBank(d.bank);
       if (d.bets) setBets(d.bets);
       setStartTime(d.startTime || 0);
@@ -30,8 +38,12 @@ export default function JackpotGame({ initialRound }) {
       setResult(d.result || null);
       if (typeof d.timeLeftMs === 'number') setTimeLeft(d.timeLeftMs);
       if (typeof d.openMs === 'number') setOpenMs(d.openMs);
-    });
-    socketService.on('bet:placed', (d) => {
+      if ((d.state || 'OPEN') === 'OPEN') {
+        setPendingPayout(null);
+        setDisplayPayout(null);
+      }
+    };
+    const onBetPlaced = (d) => {
       if (d.bank) setBank(d.bank);
       setBets((prev) => ({
         ...prev,
@@ -45,48 +57,93 @@ export default function JackpotGame({ initialRound }) {
           },
         ],
       }));
-    });
-    socketService.on('jackpot:start', (d) => {
+    };
+    const onStart = (d) => {
+      setState(d.state || 'SPIN');
       setPhase('spinning');
       setStartTime(d.startTime);
       setAnimationDuration(d.animationDuration);
       setTargetAngle(d.targetAngle);
-    });
-    socketService.on('jackpot:result', (d) => {
+      setSpinEndAt(d.startTime + d.animationDuration);
+    };
+    const onResult = (d) => {
+      setState(d.state || 'RESULT');
       setResult(d.result);
-    });
-    socketService.on('jackpot:settled', (d) => {
+    };
+    const onSettled = (d) => {
+      setState(d.state || 'RESULT');
       setPhase('settled');
       if (d.bank) setBank(d.bank);
       setResult(d.result);
       setBets({ red: [], orange: [] });
       setTimeLeft(0);
       setOpenMs(0);
-    });
+    };
+    const onRoundResult = (d) => {
+      if (!user?.id) return;
+      const win = (d.payouts || []).find((p) => p.userId === user.id);
+      if (win) {
+        setPendingPayout(win.amount);
+      } else {
+        const b = betsRef.current;
+        const loss = [...b.red, ...b.orange]
+          .filter((bet) => bet.userId === user.id)
+          .reduce((s, b) => s + b.amount, 0);
+        if (loss > 0) setPendingPayout(-loss);
+      }
+    };
+    socketService.on('jackpot:state', onState);
+    socketService.on('bet:placed', onBetPlaced);
+    socketService.on('jackpot:start', onStart);
+    socketService.on('jackpot:result', onResult);
+    socketService.on('jackpot:settled', onSettled);
+    socketService.on('round:result', onRoundResult);
     socketService.connect();
     return () => {
-      socketService.off('jackpot:state');
-      socketService.off('bet:placed');
-      socketService.off('jackpot:start');
-      socketService.off('jackpot:result');
-      socketService.off('jackpot:settled');
+      socketService.off('jackpot:state', onState);
+      socketService.off('bet:placed', onBetPlaced);
+      socketService.off('jackpot:start', onStart);
+      socketService.off('jackpot:result', onResult);
+      socketService.off('jackpot:settled', onSettled);
+      socketService.off('round:result', onRoundResult);
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     bankRef.current = bank;
-  }, [bank]);
+    betsRef.current = bets;
+  }, [bank, bets]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTimeLeft((t) => (t > 0 ? t - 1000 : 0));
+      setTimeLeft((t) => (state === 'OPEN' && t > 0 ? t - 1000 : t));
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [state]);
+
+  useEffect(() => {
+    if (state === 'OPEN') {
+      const total = bank.red + bank.orange;
+      const red = total ? (bank.red / total) * 100 : 50;
+      setChance({ red, orange: 100 - red });
+    }
+  }, [bank, state]);
 
   const totalBank = bank.red + bank.orange;
-  const redChance = totalBank ? (bank.red / totalBank) * 100 : 50;
-  const orangeChance = 100 - redChance;
+
+  useEffect(() => {
+    if (pendingPayout != null && phase === 'settled' && Date.now() >= spinEndAt) {
+      setDisplayPayout(pendingPayout);
+      setPendingPayout(null);
+    }
+  }, [pendingPayout, phase, spinEndAt]);
+
+  useEffect(() => {
+    if (displayPayout != null) {
+      const t = setTimeout(() => setDisplayPayout(null), 1300);
+      return () => clearTimeout(t);
+    }
+  }, [displayPayout]);
 
   return (
     <motion.div
@@ -101,22 +158,26 @@ export default function JackpotGame({ initialRound }) {
       >
         Джекпот
       </motion.h2>
-      <JackpotWheel
-        phase={phase}
-        winner={winner}
-        bank={bank}
-        startTime={startTime}
-        animationDuration={animationDuration}
-        targetAngle={targetAngle}
-        timeLeft={timeLeft}
-        totalTime={openMs}
-      />
-      <div className={`flex gap-4 text-sm font-bold mt-2 ${phase !== 'idle' ? 'opacity-50' : ''}`}>
+      <div className="relative">
+        <JackpotWheel
+          phase={phase}
+          winner={winner}
+          bank={bank}
+          startTime={startTime}
+          animationDuration={animationDuration}
+          targetAngle={targetAngle}
+          timeLeft={timeLeft}
+          totalTime={openMs}
+          state={state}
+        />
+        <WinLossPopup amount={displayPayout} />
+      </div>
+      <div className={`flex gap-4 text-sm font-bold mt-2 ${state !== 'OPEN' ? 'opacity-50' : ''}`}>
         <div className="text-red-300">
-          Red ~ <AnimatedCounter value={redChance} formatValue={(v) => `${v.toFixed(0)}%`} />
+          Red ~ <AnimatedCounter value={chance.red} formatValue={(v) => `${v.toFixed(0)}%`} />
         </div>
         <div className="text-orange-300">
-          Orange ~ <AnimatedCounter value={orangeChance} formatValue={(v) => `${v.toFixed(0)}%`} />
+          Orange ~ <AnimatedCounter value={chance.orange} formatValue={(v) => `${v.toFixed(0)}%`} />
         </div>
       </div>
       <motion.div
@@ -124,7 +185,7 @@ export default function JackpotGame({ initialRound }) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        <BetPanel state={phase} />
+        <BetPanel state={state} />
         <div className="flex flex-col">
           <div className="flex flex-col md:flex-row items-center justify-center border-b border-white/20">
             <div className="flex-1 p-3 font-bold text-red-300 text-left leading-tight">

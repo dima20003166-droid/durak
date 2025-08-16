@@ -132,6 +132,7 @@ class JackpotWheel extends EventEmitter {
       startTime,
       animationDuration: this.config.SPIN_MS,
       targetAngle,
+      state: this.state,
     });
     const delay = this.spinUntil - Date.now();
     this.spinTimer = setTimeout(() => this.resultRound(), delay);
@@ -165,11 +166,12 @@ class JackpotWheel extends EventEmitter {
         result: this.round.result || null,
         payouts: [],
         serverSeed: this.serverSeed,
+        state: this.state,
       });
       this.startRound();
       return;
     }
-    this.io.emit('jackpot:result', { roundId: this.roundId, result: this.round.result });
+    this.io.emit('jackpot:result', { roundId: this.roundId, result: this.round.result, state: this.state });
     const rake = total * this.config.RAKE;
     const payoutPool = total - rake;
     const winnerBank = bank[winnerColor];
@@ -231,6 +233,7 @@ class JackpotWheel extends EventEmitter {
       payouts,
       serverSeed: this.serverSeed,
       bank,
+      state: this.state,
     });
     this.betIds.clear();
     setTimeout(() => this.startRound(), this.config.RESULT_DISPLAY_MS);
@@ -253,6 +256,7 @@ class JackpotWheel extends EventEmitter {
 
   getState() {
     return {
+      state: this.state,
       ...this.round,
       bank: this.getBank(),
       bets: this.bets,

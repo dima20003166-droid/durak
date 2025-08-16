@@ -45,10 +45,17 @@ export default function JackpotWheel({
   targetAngle,
   timeLeft,
   totalTime,
+  state,
   volume,
   spinConfig,
 }) {
-  const { segments } = useWheel(bank);
+  const [displayBank, setDisplayBank] = useState(bank);
+  useEffect(() => {
+    if (state === 'OPEN') setDisplayBank(bank);
+  }, [bank.red, bank.orange, state]);
+  const { segments } = useWheel(displayBank);
+  const totalChance = displayBank.red + displayBank.orange;
+  const redProbAngle = totalChance ? (displayBank.red / totalChance) * 360 : 180;
   const arrowRef = useRef(null);
   const wheelRef = useRef(null);
   const [radius, setRadius] = useState(0);
@@ -200,10 +207,28 @@ export default function JackpotWheel({
         </svg>
         <div className="absolute inset-0 rounded-full pointer-events-none bg-white/10" />
       </div>
+      <svg
+        viewBox="0 0 100 100"
+        className={`absolute inset-0 pointer-events-none ${state !== 'OPEN' ? 'opacity-50' : ''}`}
+        style={{ zIndex: 1 }}
+      >
+        <path
+          d={segmentPath(50, 50, 52, 0, redProbAngle)}
+          stroke="var(--jackpot-red)"
+          strokeWidth="2"
+          fill="none"
+        />
+        <path
+          d={segmentPath(50, 50, 52, redProbAngle, 360)}
+          stroke="var(--jackpot-orange)"
+          strokeWidth="2"
+          fill="none"
+        />
+      </svg>
       {totalTime > 0 && (
         <svg
           viewBox="0 0 100 100"
-          className={`absolute inset-0 w-full h-full -rotate-90 pointer-events-none ${phase !== 'idle' ? 'opacity-50' : ''}`}
+          className={`absolute inset-0 w-full h-full -rotate-90 pointer-events-none ${state !== 'OPEN' ? 'opacity-50' : ''}`}
         >
           <circle
             cx="50"
@@ -218,7 +243,7 @@ export default function JackpotWheel({
           />
         </svg>
       )}
-      <div className={`absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none ${phase !== 'idle' ? 'opacity-50' : ''}`}>
+      <div className={`absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none ${state !== 'OPEN' ? 'opacity-50' : ''}`}>
         {totalTime > 0 ? Math.ceil(timeLeft / 1000) : ''}
       </div>
     </div>
@@ -237,6 +262,7 @@ JackpotWheel.propTypes = {
   targetAngle: PropTypes.number,
   timeLeft: PropTypes.number,
   totalTime: PropTypes.number,
+  state: PropTypes.string.isRequired,
   volume: PropTypes.number,
   spinConfig: PropTypes.shape({
     initialSpeed: PropTypes.number,
@@ -254,6 +280,7 @@ JackpotWheel.defaultProps = {
   targetAngle: 0,
   timeLeft: 0,
   totalTime: 0,
+  state: 'OPEN',
   volume: 1,
   spinConfig: defaultSpinConfig,
 };
