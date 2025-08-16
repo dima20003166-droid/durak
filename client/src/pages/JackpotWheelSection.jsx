@@ -9,6 +9,7 @@ export default function JackpotWheelSection() {
   const [winner, setWinner] = useState(null);
   const [serverSeedHash, setServerSeedHash] = useState('');
   const [serverSeed, setServerSeed] = useState('');
+  const [bets, setBets] = useState({ red: [], orange: [] });
 
   useEffect(() => {
     socketService.on('round:state', (d) => {
@@ -17,9 +18,21 @@ export default function JackpotWheelSection() {
       if (d.serverSeedHash) setServerSeedHash(d.serverSeedHash);
       setWinner(null);
       setServerSeed('');
+      setBets({ red: [], orange: [] });
     });
     socketService.on('bet:placed', (d) => {
       if (d.bank) setBank(d.bank);
+      setBets((prev) => ({
+        ...prev,
+        [d.color]: [
+          ...prev[d.color],
+          {
+            userId: d.userId,
+            amount: d.amount,
+            id: d.clientBetId || `${d.userId}-${Date.now()}`,
+          },
+        ],
+      }));
     });
     socketService.on('round:locked', () => setState('LOCK'));
     socketService.on('round:result', (d) => {
@@ -39,7 +52,7 @@ export default function JackpotWheelSection() {
   return (
     <div className="flex flex-col items-center gap-6 py-10">
       <h1 className="text-3xl font-bold">Джекпот-колесо</h1>
-      <JackpotWheel state={state} winner={winner} />
+      <JackpotWheel state={state} winner={winner} bank={bank} bets={bets} />
       <BetPanel bank={bank} state={state} />
       {serverSeedHash && (
         <div className="text-xs text-center flex flex-col items-center gap-1">
