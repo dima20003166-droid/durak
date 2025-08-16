@@ -32,9 +32,14 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
   const { segments, redAngle } = useWheel(bank);
   const [rotation, setRotation] = useState(0);
   const arrowRef = useRef(null);
+  const wheelRef = useRef(null);
+  const [radius, setRadius] = useState(0);
   const startSound = useRef();
   const spinSound = useRef();
   const winSound = useRef();
+  const hasCelebrated = useRef(false);
+  const spins = 6;
+  const startOffsetRef = useRef(0);
 
   useEffect(() => {
     startSound.current = new Audio('/start.mp3');
@@ -49,72 +54,104 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
   }, [volume]);
 
   useEffect(() => {
+    const updateRadius = () => {
+      if (wheelRef.current) setRadius(wheelRef.current.offsetWidth / 2);
+    };
+    updateRadius();
+    window.addEventListener('resize', updateRadius);
+    return () => window.removeEventListener('resize', updateRadius);
+  }, []);
+
+  useEffect(() => {
+    if (state === 'OPEN') {
+      startOffsetRef.current = Math.random() * 360;
+      setRotation(startOffsetRef.current);
+      gsap.set(arrowRef.current, { rotation: startOffsetRef.current });
+      hasCelebrated.current = false;
+      if (spinSound.current) {
+        gsap.to(spinSound.current, {
+          volume: 0,
+          duration: 0.5,
+          onComplete: () => {
+            spinSound.current.pause();
+            spinSound.current.volume = volume;
+          },
+        });
+      }
+    }
     if (state === 'SPIN') {
       startSound.current?.play();
       if (spinSound.current) {
+        spinSound.current.volume = 0;
         spinSound.current.loop = true;
         spinSound.current.play();
+        gsap.to(spinSound.current, { volume, duration: 0.5 });
       }
       gsap.fromTo(
         arrowRef.current,
         { filter: 'blur(2px)', opacity: 0.6 },
         { filter: 'blur(0)', opacity: 1, duration: 0.5 }
       );
-      setRotation(720);
     }
-    if (state === 'OPEN') {
-      setRotation(0);
-      gsap.set(arrowRef.current, { rotation: 0 });
-    }
-  }, [state]);
+  }, [state, volume]);
 
   useEffect(() => {
     if (state === 'SPIN' && winner) {
       const winAngle =
         winner === 'red' ? redAngle / 2 : redAngle + (360 - redAngle) / 2;
-      const target = 720 + winAngle;
-      spinSound.current?.pause();
-      winSound.current?.play();
+      const target = spins * 360 + winAngle + startOffsetRef.current;
       setRotation(target);
-      const rect = arrowRef.current.getBoundingClientRect();
-      confetti({
-        particleCount: 40,
-        spread: 45,
-        origin: { x: rect.left / window.innerWidth, y: rect.top / window.innerHeight },
-      });
-      arrowRef.current.classList.add('win-effect');
-      setTimeout(() => arrowRef.current.classList.remove('win-effect'), 800);
+      if (spinSound.current) {
+        gsap.to(spinSound.current, {
+          volume: 0,
+          duration: 0.5,
+          onComplete: () => {
+            spinSound.current.pause();
+            spinSound.current.volume = volume;
+          },
+        });
+      }
+      winSound.current?.play();
+      if (!hasCelebrated.current) {
+        const rect = arrowRef.current.getBoundingClientRect();
+        confetti({
+          particleCount: 40,
+          spread: 45,
+          origin: { x: rect.left / window.innerWidth, y: rect.top / window.innerHeight },
+        });
+        const tl = gsap.timeline();
+        tl.to(arrowRef.current, { className: '+=win-effect', duration: 0 });
+        tl.to(arrowRef.current, { className: '-=win-effect', delay: 0.8, duration: 0 });
+        tl.play();
+        hasCelebrated.current = true;
+      }
     }
-  }, [winner, state, redAngle]);
-
+  }, [winner, state, redAngle, volume]);
   useEffect(() => {
-    const duration = state === 'SPIN' ? 4 : 2;
-    const ease = winner ? 'elastic.out(1, 0.5)' : 'power2.inOut';
-    gsap.to(arrowRef.current, { rotation, duration, ease });
-  }, [rotation, state, winner]);
+    gsap.to(arrowRef.current, {
+      rotation,
+      duration: 4,
+      ease: 'power4.out',
+      transformOrigin: 'center center',
+    });
+  }, [rotation]);
 
   return (
-    <div className="relative w-60 sm:w-72 md:w-[300px] aspect-square mx-auto font-neon">
-      <div className="absolute inset-0 rounded-full p-1 bg-neon-primary/30 shadow-[0_0_15px_var(--neon-primary)]">
-        <svg
-          viewBox="0 0 100 100"
-          className="w-full h-full rounded-full overflow-hidden"
-          style={{ filter: 'drop-shadow(0 0 5px var(--neon-primary))' }}
-        >
-          {segments.map((seg, i) => (
-            <path key={i} d={segmentPath(50, 50, 50, seg.start, seg.end)} fill={seg.color} />
-          ))}
-        </svg>
-        <div className="absolute inset-0 rounded-full pointer-events-none bg-white/10" />
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none">
-        {timeLeft > 0 ? Math.ceil(timeLeft) : ''}
-      </div>
+    <div
+      ref={wheelRef}
+      className="relative w-60 sm:w-72 md:w-[300px] aspect-square mx-auto font-neon"
+    >
       <motion.div
         ref={arrowRef}
-        className="absolute top-0 left-1/2 -translate-x-1/2 z-20 origin-bottom pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 origin-center pointer-events-none z-10"
+        style={{ zIndex: -1 }}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          style={{ transform: `translateY(-${radius}px)` }}
+        >
           <defs>
             <linearGradient id="arrowGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#fff" />
@@ -131,6 +168,21 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
           />
         </svg>
       </motion.div>
+      <div className="absolute inset-0 rounded-full p-1 bg-neon-primary/30 shadow-[0_0_15px_var(--neon-primary)]">
+        <svg
+          viewBox="0 0 100 100"
+          className="w-full h-full rounded-full overflow-hidden"
+          style={{ filter: 'drop-shadow(0 0 5px var(--neon-primary))' }}
+        >
+          {segments.map((seg, i) => (
+            <path key={i} d={segmentPath(50, 50, 50, seg.start, seg.end)} fill={seg.color} />
+          ))}
+        </svg>
+        <div className="absolute inset-0 rounded-full pointer-events-none bg-white/10" />
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none">
+        {timeLeft > 0 ? Math.ceil(timeLeft) : ''}
+      </div>
     </div>
   );
 }
