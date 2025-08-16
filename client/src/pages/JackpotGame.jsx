@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import socketService from '../services/socketService';
 import JackpotWheel from '../components/JackpotWheel';
@@ -216,4 +217,17 @@ export default function JackpotGame({ initialRound, user }) {
     </motion.div>
   );
 }
+
+JackpotGame.propTypes = {
+  initialRound: PropTypes.object,
+  user: PropTypes.shape({
+    id: PropTypes.string,
+    username: PropTypes.string,
+  }),
+};
+
+JackpotGame.defaultProps = {
+  initialRound: null,
+  user: null,
+};
 
