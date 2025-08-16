@@ -126,3 +126,36 @@
 }
 
 /* End admin badge styles */
+
+/* Card 3D flip styles */
+.card-3d {
+  perspective: 1000px;
+}
+.card-flip-inner {
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+  will-change: transform;
+}
+.card-face {
+  backface-visibility: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Animated game background */
+.game-bg {
+  background: linear-gradient(120deg, var(--color-bg), #1a082c, var(--color-bg));
+  background-size: 400% 400%;
+  animation: gameGradient 20s ease infinite;
+}
+
+@keyframes gameGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

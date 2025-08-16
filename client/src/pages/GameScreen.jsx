@@ -104,7 +104,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
 
   if (!room && !gameOverMessage) {
     return (
-        <div className="min-h-screen flex items-center justify-center text-text bg-bg">
+        <div className="min-h-screen flex items-center justify-center text-text game-bg">
         Загрузка стола…
       </div>
     );
@@ -149,7 +149,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
     const showCancelStake = Number(room?.maxPlayers || 2) >= 3 && !isOwner; // только обычным игрокам
 
     return (
-      <div className="min-h-screen flex flex-col p-4 bg-bg text-text">
+      <div className="min-h-screen flex flex-col p-4 text-text game-bg">
         <style>{`@keyframes modalZoom{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}} .modal-zoom{animation:modalZoom .22s ease-out}`}</style>
         <header className="flex flex-wrap gap-2 justify-between items-center mb-2">
           <h1 className="text-2xl font-bold text-primary">{room.name}</h1>
@@ -207,7 +207,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
   // основной экран игры
 
   return (
-    <div className="min-h-screen flex flex-col p-4 bg-bg text-text overflow-hidden">
+    <div className="min-h-screen flex flex-col p-4 text-text overflow-hidden game-bg">
       <style>{`@keyframes modalZoom{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}} .modal-zoom{animation:modalZoom .22s ease-out}
       .custom-scroll::-webkit-scrollbar{width:6px;height:6px}.custom-scroll::-webkit-scrollbar-track{background:transparent}.custom-scroll::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.3);border-radius:3px}
       .custom-scroll{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}`}</style>
