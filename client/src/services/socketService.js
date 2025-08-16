@@ -59,6 +59,7 @@ class SocketService {
 
   login(credentials) { this.emit('login', credentials); }
   register(credentials) { this.emit('register', credentials); }
+  guestLogin(name) { this.emit('guest_login', { name }); }
   createRoom(options) { this.emit('create_room', options); }
   joinRoom(roomId) { this.emit('join_room', { roomId }); }
   leaveRoom(roomId) { this.emit('leave_room', { roomId }); }
