@@ -11,8 +11,7 @@ const ProfileScreen = ({ user, setPage }) => {
   const winRate = total ? Math.round((stats.wins / total) * 100) : 0;
   const avatarSrc = resolveAvatarUrl(
     user?.avatarUrl,
-    `https://placehold.co/160x160/1f2937/ffffff?text=${user?.username?.charAt(0) || 'U'}`,
-    socketService?.getServerUrl ? socketService.getServerUrl() : undefined
+    `https://placehold.co/160x160/1f2937/ffffff?text=${user?.username?.charAt(0) || 'U'}`
   );
   const fileRef = useRef(null);
 

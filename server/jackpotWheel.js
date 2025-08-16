@@ -100,6 +100,7 @@ class JackpotWheel extends EventEmitter {
     const bank = this.getBank();
     const total = bank.red + bank.orange;
     if (total === 0) {
+      this.betIds.clear();
       this.io.emit('round:result', {
         roundId: this.roundId,
         winnerColor: null,

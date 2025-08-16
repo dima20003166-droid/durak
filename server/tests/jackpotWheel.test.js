@@ -78,6 +78,18 @@ test('clientBetId reused next round', () => {
   global.setTimeout = originalSetTimeout;
 });
 
+test('betIds cleared when round has no bets', () => {
+  global.setTimeout = () => 0;
+  const io = { emit() {} };
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
+  jw.placeBet('u1', 'User', 'red', 10, 'bet1');
+  jw.bets = { red: [], orange: [] };
+  jw.resultRound();
+  jw.placeBet('u1', 'User', 'red', 10, 'bet1');
+  assert.strictEqual(jw.getBank().red, 10);
+  global.setTimeout = originalSetTimeout;
+});
+
 test('countdown starts only after bets on both colors', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
