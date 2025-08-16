@@ -41,14 +41,14 @@ const PlayersList = ({
         {isMine ? (
           <>
             <div
-              className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+              className={`mb-0.5 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
                 isCurrentAttacker ? 'bg-danger' : ''
               } ${isCurrentDefender ? 'bg-accent' : ''}`}
             >
               {statusText}
             </div>
             <p
-              className="font-semibold mb-1 truncate w-full text-center cursor-pointer"
+              className="font-semibold mb-0.5 truncate w-full text-center cursor-pointer"
               onClick={() => openProfile(p)}
             >
               {p.username}
@@ -80,7 +80,7 @@ const PlayersList = ({
             </p>
           </>
         )}
-        <div className={`flex justify-center items-center h-28 w-full ${isMine ? 'mt-2' : '-mt-10'}`}>
+        <div className={`flex justify-center items-center h-28 w-full ${isMine ? 'mt-1' : '-mt-12'}`}>
           {isMine ? (
             (() => {
               const hand = myPlayer.hand;
@@ -145,8 +145,16 @@ const PlayersList = ({
       </div>
       <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 flex items-center justify-center">
         <div className="flex items-center justify-center gap-4 flex-wrap">
-          <div className="flex flex-col items-center w-24">
-            <Card {...gameState.trumpCard} layoutId="trump" />
+          <div className="flex flex-col items-center w-24 relative">
+            <div className="relative">
+              {gameState.deck.length > 1 && (
+                <>
+                  <Card isFaceUp={false} className="absolute top-1 left-1 -rotate-6" />
+                  <Card isFaceUp={false} className="absolute top-2 left-2 rotate-3" />
+                </>
+              )}
+              <Card {...gameState.trumpCard} layoutId="trump" className="relative z-10" />
+            </div>
             <p className="mt-2">{gameState.deck.length} карт</p>
           </div>
           <div className="flex items-center justify-center gap-4 min-w-[300px] flex-wrap">
@@ -165,7 +173,7 @@ const PlayersList = ({
                     <Card
                       {...pair.defense}
                       layoutId={pair.defense.id}
-                      className="absolute left-1/2 top-2 rotate-12 z-10"
+                      className="absolute left-10 top-4 rotate-12 z-10"
                     />
                   )}
                 </motion.div>

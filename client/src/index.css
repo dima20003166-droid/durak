@@ -176,6 +176,8 @@
   min-height: 100vh;
   padding: 1rem;
   gap: 1rem;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 .game-header { flex: 0 0 auto; }
 .game-footer { flex: 0 0 auto; }
