@@ -55,6 +55,11 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
         spinSound.current.loop = true;
         spinSound.current.play();
       }
+      gsap.fromTo(
+        arrowRef.current,
+        { filter: 'blur(2px)', opacity: 0.6 },
+        { filter: 'blur(0)', opacity: 1, duration: 0.5 }
+      );
       setRotation(720);
     }
     if (state === 'OPEN') {
@@ -83,8 +88,9 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
   }, [winner, state, redAngle]);
 
   useEffect(() => {
-    const ease = state === 'SPIN' && !winner ? 'power2.in' : 'power3.out';
-    gsap.to(arrowRef.current, { rotation, duration: 2, ease });
+    const duration = state === 'SPIN' ? 4 : 2;
+    const ease = winner ? 'elastic.out(1, 0.5)' : 'power2.inOut';
+    gsap.to(arrowRef.current, { rotation, duration, ease });
   }, [rotation, state, winner]);
 
   return (
@@ -106,13 +112,24 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
       </div>
       <motion.div
         ref={arrowRef}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full origin-bottom pointer-events-none"
+        className="absolute top-0 left-1/2 -translate-x-1/2 z-20 origin-bottom pointer-events-none"
       >
-        <div className="w-0 h-0 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-white mx-auto drop-shadow-[0_0_6px_var(--neon-primary)]" />
-        <div
-          className="w-[2px] bg-white mx-auto drop-shadow-[0_0_6px_var(--neon-primary)]"
-          style={{ height: 'calc(50% + 20px)' }}
-        />
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <defs>
+            <linearGradient id="arrowGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fff" />
+              <stop offset="100%" stopColor="#ccc" />
+            </linearGradient>
+            <filter id="arrowShadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#00eaff" />
+            </filter>
+          </defs>
+          <polygon
+            points="12,0 24,24 0,24"
+            fill="url(#arrowGradient)"
+            filter="url(#arrowShadow)"
+          />
+        </svg>
       </motion.div>
     </div>
   );
