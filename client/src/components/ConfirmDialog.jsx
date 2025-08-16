@@ -15,7 +15,7 @@ export default function ConfirmDialog({
   return (
       <div className="fixed inset-0 z-[1000] flex items-center justify-center">
         <div className="absolute inset-0 bg-bg/70" onClick={onCancel} />
-        <div className="relative w-[92%] max-w-md rounded-2xl glass-surface text-text shadow-xl overflow-hidden">
+        <div className="relative w-[92%] max-w-md rounded-2xl bg-surface text-text shadow-xl ring-1 ring-border overflow-hidden">
           <div className="px-6 py-4 border-b border-border text-lg font-semibold">
           {title}
         </div>

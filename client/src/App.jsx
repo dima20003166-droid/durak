@@ -14,7 +14,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import AuthModal from './components/AuthModal';
 import './index.css';
 import { setTheme } from './theme';
-import AnimatedBackground from './components/AnimatedBackground';
 
 export default function App() {
   const [page, setPage] = useState('lobby');
@@ -144,14 +143,13 @@ export default function App() {
         transition={{ duration: 0.3 }}
       >
         <div className="parallax-bg" />
-        <AnimatedBackground />
         <AnimatePresence mode="wait">
           <motion.div
             key={page}
-            initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ duration: 0.4 }}
           >
             {renderPage()}
           </motion.div>

@@ -82,7 +82,7 @@ export default function AuthModal({ onClose }) {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="w-full max-w-md p-8 space-y-6 glass-surface rounded-2xl shadow-2xl shadow-primary/10"
+          className="w-full max-w-md p-8 space-y-6 bg-surface rounded-2xl shadow-2xl shadow-primary/10 border border-border"
         >
           <h1 className="text-4xl font-display font-bold text-center text-primary">DURAK.IO</h1>
           <div className="flex bg-surface/80 rounded-lg overflow-hidden">
