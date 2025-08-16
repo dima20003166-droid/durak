@@ -9,6 +9,7 @@ import WalletScreen from './pages/WalletScreen';
 import LeaderboardScreen from './pages/LeaderboardScreen';
 import AdminPanel from './pages/AdminPanel';
 import JackpotWheelPage from './pages/JackpotWheelPage';
+import ProvablyFair from './pages/ProvablyFair';
 import ErrorBoundary from './components/ErrorBoundary';
 import AuthModal from './components/AuthModal';
 import './index.css';
@@ -105,6 +106,8 @@ export default function App() {
         return <LeaderboardScreen setPage={setPage} leaderboard={leaderboard} />;
       case 'jackpot':
         return <JackpotWheelPage setPage={setPage} />;
+      case 'provably':
+        return <ProvablyFair setPage={setPage} />;
       case 'admin':
         return <AdminPanel user={currentUser} setPage={setPage} siteSettings={siteSettings} />;
       default:

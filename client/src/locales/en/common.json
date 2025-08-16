@@ -5,6 +5,13 @@
   "gameTables": "Game tables",
   "send": "Send",
   "messagePlaceholder": "Message...",
-  "authOnly": "Authorized users only"
-  , "openProfile": "Open profile"
+  "authOnly": "Authorized users only",
+  "openProfile": "Open profile",
+  "jackpotWheel": "Jackpot Wheel",
+  "back": "Back",
+  "red": "Red",
+  "orange": "Orange",
+  "amount": "Amount",
+  "serverHash": "Server hash",
+  "serverSeed": "Server seed"
 }
