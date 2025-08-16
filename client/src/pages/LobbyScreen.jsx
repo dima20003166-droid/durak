@@ -9,7 +9,7 @@ import ProfileModal from '../components/game/ProfileModal';
 import CreateRoomModal from '../components/CreateRoomModal';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import JackpotWheelSection from './JackpotWheelSection';
+import JackpotGame from './JackpotGame';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -331,7 +331,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
           )}
 
           {activeGameTab === 'jackpot' && (
-            <JackpotWheelSection initialRound={initialRound} />
+            <JackpotGame initialRound={initialRound} />
           )}
         </div>
 
