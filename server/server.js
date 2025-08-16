@@ -78,20 +78,23 @@ async function saveSiteSettings(settings) {
 
 // ---------------------- HTTP + Socket.IO ----------------------
 const app = express();
-app.use(
-  cors({
-    origin: 'http://185.233.47.116:5173',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  })
-);
+// Разрешённые источники: читаем из ORIGIN (через запятую) или ставим дефолт:
+// пример: ORIGIN="http://185.233.47.116,http://localhost:5173"
+const allowedOrigins = (process.env.ORIGIN || 'http://185.233.47.116,http://localhost:5173')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+const corsOptions = {
+  origin: allowedOrigins.length ? allowedOrigins : true, // true = отражать Origin
+  credentials: true,
+  methods: ['GET', 'POST'],
+};
+app.use(cors(corsOptions));
+
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: 'http://185.233.47.116:5173',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
+  cors: corsOptions,
+  path: process.env.SOCKET_PATH || '/socket.io',
 });
 
 let jackpotWheel;
