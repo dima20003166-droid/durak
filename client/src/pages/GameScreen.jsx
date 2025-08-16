@@ -176,7 +176,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
 
         <div className="flex-grow grid grid-cols-3 gap-4">
           <div className="col-span-2 flex items-center justify-center">
-            <div className="glass-surface p-8 rounded-xl text-center w-full max-w-lg">
+            <div className="bg-surface p-8 rounded-xl border border-border text-center w-full max-w-lg">
               {/* перенесено сюда */}
               <div className="text-sm text-muted mb-2">Ожидаем игроков • ещё {need}</div>
               <p className="text-xl mb-2">Стол создан</p>
@@ -184,7 +184,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
             </div>
           </div>
 
-            <RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} isOpen />
+            <RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />
         </div>
 
         {/* модалка отмены ставки — только не создателю */}
@@ -220,7 +220,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
 
       {gameOverMessage && (
         <div className="fixed inset-0 bg-bg/80 flex items-center justify-center z-50">
-          <div className="glass-surface p-8 rounded-lg text-center shadow-lg modal-zoom">
+          <div className="bg-surface p-8 rounded-lg text-center border border-primary shadow-lg modal-zoom">
             <h2 className="text-3xl font-bold text-primary mb-4">Игра окончена!</h2>
             <p className="text-lg mb-6">{gameOverMessage}</p>
             <button
@@ -255,12 +255,12 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
             <div className="text-xs text-muted mt-1">Ход: {msLeftSec} сек</div>
           </div>
 
-            <PlayersList room={room} mySocketId={mySocketId} myPlayer={myPlayer} gameState={gameState} selectedCard={selectedCard} setSelectedCard={setSelectedCard} openProfile={openProfile} isOpen />
+            <PlayersList room={room} mySocketId={mySocketId} myPlayer={myPlayer} gameState={gameState} selectedCard={selectedCard} setSelectedCard={setSelectedCard} openProfile={openProfile} />
             <ActionPanel isAttacker={isAttacker} isDefender={isDefender} canThrowIn={canThrowIn} selectedCard={selectedCard} actionBusy={actionBusy} gameState={gameState} onAction={handleAction} onSurrender={() => setSurrenderOpen(true)} canSurrender={room?.status === "playing" && !actionBusy} />
 
         </div>
 
-          <RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} isOpen />
+          <RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />
       </div>
 
       {/* Модалка сдачи */}
