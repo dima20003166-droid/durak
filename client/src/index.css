@@ -7,14 +7,16 @@
 
 @layer base {
   :root {
-    --color-bg: #0f172a; /* slate-900 */
-    --color-surface: #1e293b; /* slate-800 */
-    --color-border: #334155; /* slate-700 */
-    --color-text: #f8fafc; /* slate-50 */
-    --color-muted: #94a3b8; /* slate-400 */
-    --color-primary: #16a34a; /* emerald-600 */
-    --color-accent: #eab308; /* yellow-500 */
-    --color-danger: #dc2626; /* red-600 */
+    --color-bg: #050510;
+    --color-surface: #0d0d25;
+    --color-border: #352f5b;
+    --color-text: #f3f4ff;
+    --color-muted: #6b6b8d;
+    --color-primary: #00ff9f;
+    --color-accent: #ff00e5;
+    --color-danger: #ff3e3e;
+    --parallax-x: 0px;
+    --parallax-y: 0px;
   }
 
   .light {
@@ -29,8 +31,27 @@
   }
 
   html, body, #root { height: 100%; }
-  body { @apply bg-bg text-text font-sans transition-colors duration-300; }
-  button, [role="button"] { @apply transition-colors transition-transform duration-200 hover:scale-105 active:scale-95; }
+  body {
+    @apply bg-bg text-text font-sans transition-colors duration-300;
+    background: radial-gradient(circle at 20% 20%, #1f0036 0%, #000 80%);
+    background-attachment: fixed;
+  }
+  .parallax-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(255,0,229,0.1), rgba(0,255,159,0.05));
+    transform: translate3d(var(--parallax-x), var(--parallax-y), 0);
+    transition: transform 0.2s ease-out;
+    z-index: -1;
+  }
+  button, [role="button"] {
+    @apply transition-colors transition-transform duration-200 hover:scale-105 active:scale-95;
+    box-shadow: 0 0 0px var(--color-primary);
+  }
+  button:hover, [role="button"]:hover {
+    box-shadow: 0 0 8px var(--color-primary);
+  }
 }
 
 
@@ -84,6 +105,24 @@
   to {
     transform: rotateX(360deg) rotateY(360deg);
   }
+}
+
+/* Winning flash effect */
+@keyframes winFlash {
+  0%, 100% {
+    box-shadow: 0 0 0px var(--color-accent), 0 0 0px var(--color-accent);
+  }
+  50% {
+    box-shadow: 0 0 15px var(--color-accent), 0 0 30px var(--color-accent);
+  }
+}
+.win-effect {
+  animation: winFlash 0.8s ease-out forwards;
+}
+
+/* Odometer numeric style */
+.odometer {
+  font-variant-numeric: tabular-nums;
 }
 
 /* End admin badge styles */

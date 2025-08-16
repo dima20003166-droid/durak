@@ -1,6 +1,6 @@
 // client/src/App.jsx
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import socketService from './services/socketService';
 import AuthScreen from './pages/AuthScreen';
 import LobbyScreen from './pages/LobbyScreen';
@@ -25,6 +25,17 @@ export default function App() {
 
   useEffect(() => { setTheme(theme); }, [theme]);
   const toggleTheme = () => setThemeState(t => t === 'dark' ? 'light' : 'dark');
+
+  useEffect(() => {
+    const handler = (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      document.documentElement.style.setProperty('--parallax-x', `${x}px`);
+      document.documentElement.style.setProperty('--parallax-y', `${y}px`);
+    };
+    window.addEventListener('mousemove', handler);
+    return () => window.removeEventListener('mousemove', handler);
+  }, []);
 
   useEffect(() => {
     socketService.connect();
@@ -110,14 +121,25 @@ export default function App() {
   return (
     <ErrorBoundary>
       <motion.div
-        className="bg-bg text-text min-h-screen relative transition-colors duration-300"
+        className="bg-bg text-text min-h-screen relative transition-colors duration-300 overflow-hidden"
         animate={{
-          backgroundColor: theme === 'dark' ? '#0f172a' : '#f8fafc',
-          color: theme === 'dark' ? '#f8fafc' : '#0f172a',
+          backgroundColor: theme === 'dark' ? '#050510' : '#f8fafc',
+          color: theme === 'dark' ? '#f3f4ff' : '#0f172a',
         }}
         transition={{ duration: 0.3 }}
       >
-        {renderPage()}
+        <div className="parallax-bg" />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={page}
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ duration: 0.4 }}
+          >
+            {renderPage()}
+          </motion.div>
+        </AnimatePresence>
         <button
           className="fixed bottom-4 right-4 px-3 py-2 rounded bg-primary text-text shadow-md"
           onClick={toggleTheme}
