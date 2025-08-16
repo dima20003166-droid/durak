@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import socketService from '../services/socketService';
 import JackpotWheel from '../components/JackpotWheel';
 import BetPanel from '../components/BetPanel';
@@ -23,6 +24,7 @@ export default function JackpotGame({ initialRound, user }) {
   const [pendingPayout, setPendingPayout] = useState(null);
   const [displayPayout, setDisplayPayout] = useState(null);
   const [chance, setChance] = useState({ red: 50, orange: 50 });
+  const { t } = useTranslation();
   const winner = phase === 'settled' && result ? result.color : null;
   const bankRef = useRef(bank);
   const betsRef = useRef(bets);
@@ -178,12 +180,24 @@ export default function JackpotGame({ initialRound, user }) {
         <WinLossPopup amount={displayPayout} />
       </div>
       <div className={`flex gap-4 text-sm font-bold mt-2 ${state !== 'OPEN' ? 'opacity-50' : ''}`}>
-        <div className="text-red-300">
-          Red ~ <AnimatedCounter value={chance.red} formatValue={(v) => `${v.toFixed(0)}%`} />
-        </div>
-        <div className="text-orange-300">
-          Orange ~ <AnimatedCounter value={chance.orange} formatValue={(v) => `${v.toFixed(0)}%`} />
-        </div>
+        {[
+          { key: 'red', value: chance.red, textColor: 'text-red-300', barColor: 'bg-red-500' },
+          { key: 'orange', value: chance.orange, textColor: 'text-orange-300', barColor: 'bg-orange-500' },
+        ].map(({ key, value, textColor, barColor }) => (
+          <div
+            key={key}
+            className={`flex flex-col items-center bg-black/30 rounded-lg px-3 py-2 shadow ${textColor}`}
+          >
+            <div className="flex items-center gap-2">
+              <span className={`w-3 h-3 rounded-full ${barColor} shadow`} />
+              <span>{t(key)}</span>
+            </div>
+            <div className="w-24 h-2 bg-white/20 rounded mt-1">
+              <div className={`h-full ${barColor} rounded`} style={{ width: `${value}%` }} />
+            </div>
+            <AnimatedCounter value={value} formatValue={(v) => `${v.toFixed(0)}%`} />
+          </div>
+        ))}
       </div>
       <motion.div
         className="w-full bg-black/40 backdrop-blur-md rounded-xl overflow-hidden shadow-lg"
@@ -201,7 +215,7 @@ export default function JackpotGame({ initialRound, user }) {
               <AnimatedCounter value={totalBank} />
             </div>
             <div className="flex-1 p-3 font-bold text-orange-300 text-right leading-tight">
-              — {bank.orange} Оранжевый
+              {bank.orange} — Оранжевый
             </div>
           </div>
           <div className="flex flex-col md:flex-row">
