@@ -1,0 +1,10 @@
+{
+  "ratings": "Ratings",
+  "profile": "Profile",
+  "auth": "Authorization",
+  "gameTables": "Game tables",
+  "send": "Send",
+  "messagePlaceholder": "Message...",
+  "authOnly": "Authorized users only"
+  , "openProfile": "Open profile"
+}
