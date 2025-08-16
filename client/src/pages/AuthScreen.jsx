@@ -70,15 +70,45 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
           {error && <div className="text-danger text-sm">{error}</div>}
 
           <div className="space-y-4">
-
-              </>
+            <input
+              type="text"
+              placeholder="Имя пользователя"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-bg border border-border"
+            />
+            <input
+              type="password"
+              placeholder="Пароль"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-bg border border-border"
+            />
+            {mode === 'register' && (
+              <input
+                type="password"
+                placeholder="Повторите пароль"
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-bg border border-border"
+              />
             )}
             {mode === 'login' ? (
-              <button type="button" onClick={handleLogin} disabled={loading} className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80">
+              <button
+                type="button"
+                onClick={handleLogin}
+                disabled={loading}
+                className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80"
+              >
                 Войти
               </button>
             ) : (
-              <button type="button" onClick={handleRegister} disabled={loading} className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80">
+              <button
+                type="button"
+                onClick={handleRegister}
+                disabled={loading}
+                className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80"
+              >
                 Зарегистрироваться
               </button>
             )}

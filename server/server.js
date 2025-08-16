@@ -67,8 +67,11 @@ loadSiteSettings();
 async function saveSiteSettings(settings) {
   try {
     await db.collection('settings').doc('site').set(settings, { merge: true });
+    siteSettings = { ...siteSettings, ...settings };
+    return siteSettings;
   } catch (e) {
     console.error('Ошибка сохранения настроек:', e);
+    throw e;
   }
 }
 
@@ -1045,17 +1048,20 @@ io.on('connection', (socket) => {
   socket.on('admin_get_settings', () => socket.emit('admin_settings_data', siteSettings));
   socket.on('admin_update_settings', async (newSettings) => {
     if (socket.data.user?.role !== 'admin') return;
-    siteSettings = { ...siteSettings, ...newSettings };
-    await saveSiteSettings(siteSettings);
-    jackpotWheel.config = {
-      ...jackpotWheel.config,
-      ROUND_DURATION_MS: siteSettings.roundDurationMs,
-      LOCK_MS: siteSettings.lockMs,
-      RAKE: siteSettings.rake,
-      MIN_BET: siteSettings.minBet,
-      MAX_BET: siteSettings.maxBet,
-    };
-    io.emit('admin_settings_data', siteSettings);
+    try {
+      siteSettings = await saveSiteSettings(newSettings);
+      jackpotWheel.config = {
+        ...jackpotWheel.config,
+        ROUND_DURATION_MS: siteSettings.roundDurationMs,
+        LOCK_MS: siteSettings.lockMs,
+        RAKE: siteSettings.rake,
+        MIN_BET: siteSettings.minBet,
+        MAX_BET: siteSettings.maxBet,
+      };
+      io.emit('admin_settings_data', siteSettings);
+    } catch (err) {
+      console.error('admin_update_settings', err);
+    }
   });
 socket.on('admin_get_all_users', async () => {
     if (socket.data.user?.role !== 'admin') return;

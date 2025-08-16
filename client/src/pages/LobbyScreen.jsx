@@ -226,7 +226,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
               <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> <AnimatedCounter value={user.balance || 0} /> ₽</button>
               <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> {t('profile')}</button>
               <div className="flex items-center gap-1">
-                <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${(user.username || 'U')[0]}` , socketService?.getServerUrl ? socketService.getServerUrl() : undefined)} alt="avatar" title={t('openProfile')} />
+                <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${(user.username || 'U')[0]}`)} alt="avatar" title={t('openProfile')} />
                 <span className="font-semibold">{user.username}</span>
                 {user.role === 'admin' && <AdminBadge />}
               </div>
@@ -352,7 +352,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
                     {!isMine && (
                         <img
                         className="w-8 h-8 rounded-full object-cover cursor-pointer self-start"
-                        src={resolveAvatarUrl(msg.user?.avatarUrl, `https://placehold.co/32x32/1f2937/ffffff?text=${(msg.user?.username || 'U')[0]}` , socketService?.getServerUrl ? socketService.getServerUrl() : undefined)}
+                        src={resolveAvatarUrl(msg.user?.avatarUrl, `https://placehold.co/32x32/1f2937/ffffff?text=${(msg.user?.username || 'U')[0]}`)}
                         alt="avatar"
                         onClick={() => openProfile(msg.user)}
                         title="Открыть профиль"
