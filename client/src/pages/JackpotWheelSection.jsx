@@ -84,28 +84,30 @@ export default function JackpotWheelSection() {
         className="w-32"
       />
       <JackpotWheel state={state} winner={winner} bank={bank} timeLeft={timeLeft} volume={volume} />
-      <BetPanel state={state} />
       <div className="w-full bg-surface rounded shadow">
-        <div className="flex justify-center p-3 border-b border-divider">
-          <div className="bg-surface px-4 py-2 rounded-full shadow text-primary font-semibold">
-            Банк: <AnimatedCounter value={totalBank} />
+        <BetPanel state={state} />
+        <div className="flex flex-col">
+          <div className="flex flex-col md:flex-row items-center justify-center border-b border-divider">
+            <div className="flex-1 p-3 font-bold text-red-400 text-left">
+              Красный — {bank.red}
+            </div>
+            <div className="p-3 font-bold flex items-center justify-center">
+              Банк: <AnimatedCounter value={totalBank} />
+            </div>
+            <div className="flex-1 p-3 font-bold text-orange-400 text-right">
+              Оранжевый — {bank.orange}
+            </div>
           </div>
-        </div>
-      <div className="flex flex-col md:flex-row">
-        <div className="flex-1 flex flex-col md:border-r-2 border-divider">
-          <div className="p-3 font-bold border-b border-divider text-red-400 text-left">
-            Красный — {bank.red}
+          <div className="flex flex-col md:flex-row">
+            <div className="flex-1 flex flex-col md:border-r-2 border-divider">
+              <PlayerBetList bets={bets.red} textColor="text-red-400" align="left" />
+            </div>
+            <div className="flex-1 flex flex-col">
+              <PlayerBetList bets={bets.orange} textColor="text-orange-400" align="right" />
+            </div>
           </div>
-          <PlayerBetList bets={bets.red} textColor="text-red-400" align="left" />
-        </div>
-        <div className="flex-1 flex flex-col">
-          <div className="p-3 font-bold border-b border-divider text-orange-400 text-right">
-            Оранжевый — {bank.orange}
-          </div>
-          <PlayerBetList bets={bets.orange} textColor="text-orange-400" align="right" />
         </div>
       </div>
-    </div>
     {serverSeedHash && (
       <div className="text-xs text-center flex flex-col items-center gap-1">
         <div className="flex items-center gap-2">

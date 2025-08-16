@@ -45,7 +45,7 @@ export default function BetPanel({ state }) {
     socketService.placeWheelBet(color, amount, clientBetId);
   };
   return (
-    <div className="space-y-2">
+    <div className="flex items-center gap-4 justify-center p-3 border-b border-divider">
       <input
         type="number"
         min="1"
@@ -53,24 +53,22 @@ export default function BetPanel({ state }) {
         onChange={(e) => setAmount(e.target.value)}
         className="w-32 text-center bg-bg border border-border rounded"
       />
-      <div className="flex gap-4 justify-center">
-        <NeonButton
-          color="red"
-          disabled={state !== 'OPEN'}
-          onClick={() => place('red')}
-          Icon={TrophyIcon}
-        >
-          Red
-        </NeonButton>
-        <NeonButton
-          color="orange"
-          disabled={state !== 'OPEN'}
-          onClick={() => place('orange')}
-          Icon={WalletIcon}
-        >
-          Orange
-        </NeonButton>
-      </div>
+      <NeonButton
+        color="red"
+        disabled={state !== 'OPEN'}
+        onClick={() => place('red')}
+        Icon={TrophyIcon}
+      >
+        Red
+      </NeonButton>
+      <NeonButton
+        color="orange"
+        disabled={state !== 'OPEN'}
+        onClick={() => place('orange')}
+        Icon={WalletIcon}
+      >
+        Orange
+      </NeonButton>
     </div>
   );
 }
