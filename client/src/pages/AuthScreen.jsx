@@ -1,10 +1,7 @@
 // client/src/pages/AuthScreen.jsx
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import ReCAPTCHA from 'react-google-recaptcha';
 import socketService from '../services/socketService';
-
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 const AuthScreen = ({ setPage, setCurrentUser }) => {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
@@ -13,7 +10,6 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
   const [password2, setPassword2] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(null);
 
   useEffect(() => {
     const onLoginError = (msg) => { setError(msg || 'Ошибка входа'); setLoading(false); };
@@ -53,7 +49,7 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
     if (password !== password2) return setError('Пароли не совпадают');
 
     setLoading(true);
-
+    socketService.register({ username: unameNorm, password });
   };
 
   const handleGuest = () => {

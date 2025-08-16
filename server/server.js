@@ -614,16 +614,21 @@ io.on('connection', (socket) => {
     } catch (e) { console.error('Ошибка логина:', e); socket.emit('login_error', 'Ошибка сервера'); }
   }, true));
 
-  socket.on('register', withRateLimit('register', async ({ username, password, captcha }) => {
+  socket.on('register', withRateLimit('register', async ({ username, password }) => {
     try {
       const rawName = String(username || '').trim();
       const usernameNorm = rawName.toLowerCase();
       if (!USERNAME_REGEX.test(usernameNorm)) {
-
+        socket.emit('register_error', 'Недопустимый логин');
+        return;
       }
       const snap = await db.collection('users').where('usernameNorm', '==', usernameNorm).limit(1).get();
       if (!snap.empty) {
         return socket.emit('register_error', 'Пользователь с таким именем уже существует.');
+      }
+      if (!password || password.length < 6 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+        socket.emit('register_error', 'Пароль должен быть не короче 6 символов и содержать буквы и цифры');
+        return;
       }
       const hashed = await bcrypt.hash(password, 10);
       const newUser = {
