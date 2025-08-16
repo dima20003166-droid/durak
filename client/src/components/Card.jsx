@@ -83,6 +83,7 @@ export default function Card({
     >
       <motion.div
         className="relative w-full h-full card-flip-inner"
+        initial={{ rotateY: isFaceUp ? 0 : 180 }}
         animate={{ rotateY: isFaceUp ? 0 : 180 }}
         transition={{ duration: 0.6 }}
       >
