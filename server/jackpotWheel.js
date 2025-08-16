@@ -34,15 +34,14 @@ class JackpotWheel extends EventEmitter {
       .createHash('sha256')
       .update(this.serverSeed)
       .digest('hex');
-    const openTime = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
+    // Таймер запускается только после ставок на оба цвета
     this.io.emit('round:state', {
       roundId: this.roundId,
       state: this.state,
       bank: this.getBank(),
       serverSeedHash: this.serverSeedHash,
-      openMs: openTime,
+      openMs: null,
     });
-    this.openTimer = setTimeout(() => this.lockRound(), openTime);
   }
 
   lockRound() {
@@ -82,16 +81,25 @@ class JackpotWheel extends EventEmitter {
     const payoutPool = total - rake;
     const winnerBank = bank[winnerColor];
     const mult = winnerBank > 0 ? payoutPool / winnerBank : 0;
-    const payouts = this.bets[winnerColor].map((b) => ({
-      userId: b.userId,
-      amount: Math.floor(b.amount * mult * 100) / 100,
-    }));
-    let paid = payouts.reduce((s, p) => s + p.amount, 0);
-    const remainder = +(payoutPool - paid).toFixed(2);
-    if (remainder > 0 && payouts.length > 0) {
-      payouts[payouts.length - 1].amount = +(payouts[payouts.length - 1].amount + remainder).toFixed(2);
-      paid += remainder;
+    const payoutsRaw = this.bets[winnerColor].map((b) => {
+      const raw = b.amount * mult;
+      return { userId: b.userId, amount: Math.round(raw * 100) / 100, raw };
+    });
+    let paid = payoutsRaw.reduce((s, p) => s + p.amount, 0);
+    let remainder = +(payoutPool - paid).toFixed(2);
+    if (remainder !== 0 && payoutsRaw.length > 0) {
+      let remCents = Math.round(remainder * 100);
+      const sign = Math.sign(remCents);
+      const order = payoutsRaw
+        .map((p, idx) => ({ idx, diff: p.raw - p.amount }))
+        .sort((a, b) => (sign > 0 ? b.diff - a.diff : a.diff - b.diff));
+      for (const o of order) {
+        if (remCents === 0) break;
+        payoutsRaw[o.idx].amount = +(payoutsRaw[o.idx].amount + sign * 0.01).toFixed(2);
+        remCents -= sign;
+      }
     }
+    const payouts = payoutsRaw.map(({ userId, amount }) => ({ userId, amount }));
     this.io.emit('round:result', {
       roundId: this.roundId,
       winnerColor,
@@ -136,6 +144,21 @@ class JackpotWheel extends EventEmitter {
       bank: this.getBank(),
       clientBetId: id,
     });
+    if (!this.openTimer) {
+      const hasRed = this.bets.red.length > 0;
+      const hasOrange = this.bets.orange.length > 0;
+      if (hasRed && hasOrange) {
+        const openTime = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
+        this.io.emit('round:state', {
+          roundId: this.roundId,
+          state: this.state,
+          bank: this.getBank(),
+          serverSeedHash: this.serverSeedHash,
+          openMs: openTime,
+        });
+        this.openTimer = setTimeout(() => this.lockRound(), openTime);
+      }
+    }
   }
 }
 
