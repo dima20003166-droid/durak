@@ -207,6 +207,11 @@ const handlePlayerAction = (room, playerSocketId, action, card) => {
       const defender = players[state.defenderIndex];
       const defendHand = Array.isArray(defender?.hand) ? defender.hand.length : 0;
 
+      if (defendHand <= 0) {
+        endRound(room);
+        return;
+      }
+
       if (state.table.length === 0 || typeof state.trickLimit !== 'number') {
         state.trickLimit = Math.min(6, defendHand);
       }

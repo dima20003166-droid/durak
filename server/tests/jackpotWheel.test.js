@@ -6,6 +6,16 @@ const JackpotWheel = require('../jackpotWheel');
 const originalSetTimeout = global.setTimeout;
 const originalClearTimeout = global.clearTimeout;
 
+test('invalid timing config throws', () => {
+  global.setTimeout = () => 0;
+  const io = { emit() {} };
+  assert.throws(
+    () => new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000, LOCK_MS: 1000 }),
+    /LOCK_MS must be less than ROUND_DURATION_MS/
+  );
+  global.setTimeout = originalSetTimeout;
+});
+
 test('duplicate clientBetId throws', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
