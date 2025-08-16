@@ -10,6 +10,6 @@ export default function resolveAvatarUrl(url, placeholder, base = null) {
       ? socketService.getServerUrl()
       : typeof window !== 'undefined' && typeof window.location !== 'undefined'
         ? `${window.location.protocol}//${window.location.host}`
-        : 'http://localhost:4000');
+        : 'http://185.233.47.116:4000');
   return s.startsWith('/') ? root + s : s;
 }
