@@ -33,9 +33,9 @@ const PlayersList = ({
     const isCurrentAttacker = idx === gameState.attackerIndex;
     const isCurrentDefender = idx === gameState.defenderIndex;
     const ringClass = isCurrentAttacker
-      ? 'ring-4 ring-primary animate-pulse'
+      ? 'border-2 border-primary'
       : isCurrentDefender
-      ? 'ring-4 ring-accent'
+      ? 'border-2 border-accent'
       : '';
     return (
       <div
@@ -64,7 +64,7 @@ const PlayersList = ({
         >
           {p.username}
         </p>
-        <div className="flex justify-center items-center h-28 w-full mt-2">
+        <div className={`flex justify-center items-center h-28 w-full ${isMine ? 'mt-2' : '-mt-6'}`}>
           {isMine ? (
             (() => {
               const hand = myPlayer.hand;
@@ -149,7 +149,7 @@ const PlayersList = ({
                     <Card
                       {...pair.defense}
                       layoutId={pair.defense.id}
-                      className="absolute inset-0 rotate-12 translate-x-2 translate-y-2 z-10"
+                      className="absolute top-1/2 left-0 -translate-y-1/2 rotate-12 translate-x-2 z-10"
                     />
                   )}
                 </motion.div>

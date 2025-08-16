@@ -96,7 +96,9 @@ class SocketService {
   register(credentials) { this.emit('register', credentials); }
   guestLogin(name) { this.emit('guest_login', { name }); }
   tokenLogin(token) { this.emit('token_login', { token }); }
-  createRoom(options) { this.emit('create_room', options); }
+  createRoom({ bet, mode, isPrivate, players }) {
+    this.emit('create_room', { bet, mode, isPrivate, players });
+  }
   joinRoom(roomId) { this.emit('join_room', { roomId }); }
   leaveRoom(roomId) { this.emit('leave_room', { roomId }); }
   playerAction(roomId, action, card) { this.emit('player_action', { roomId, action, card }); }

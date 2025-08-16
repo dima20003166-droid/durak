@@ -7,6 +7,7 @@ export default function CreateRoomModal({ initialMode = 'classic', onClose }) {
   const [bet, setBet] = useState(50);
   const [mode, setMode] = useState(initialMode);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [players, setPlayers] = useState(2);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,7 +63,7 @@ export default function CreateRoomModal({ initialMode = 'classic', onClose }) {
 
     socketService.on('created_room', handleCreated);
     socketService.on('join_error', handleError);
-    socketService.createRoom({ bet, mode, isPrivate });
+    socketService.createRoom({ bet, mode, isPrivate, players });
   };
 
   return (
@@ -101,6 +102,16 @@ export default function CreateRoomModal({ initialMode = 'classic', onClose }) {
           >
             <option value="classic">Классика</option>
             <option value="transfer">Подкидной</option>
+          </select>
+          <label className="block text-sm text-muted mb-1">Игроки</label>
+          <select
+            value={players}
+            onChange={(e) => setPlayers(Number(e.target.value))}
+            className="w-full mb-3 rounded-md bg-surface text-text p-2"
+          >
+            {[2,3,4,5,6].map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
           </select>
           <label className="inline-flex items-center gap-2 text-muted mb-3">
             <input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} />
