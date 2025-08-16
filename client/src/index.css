@@ -71,6 +71,12 @@
   }
 }
 
+@layer utilities {
+  .border-divider {
+    border-color: var(--color-border);
+  }
+}
+
 
 /* Minimal modern scrollbars */
 * {

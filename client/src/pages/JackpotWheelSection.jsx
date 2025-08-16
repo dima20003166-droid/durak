@@ -79,18 +79,24 @@ export default function JackpotWheelSection() {
       <h1 className="text-3xl font-bold">Джекпот-колесо</h1>
       <JackpotWheel state={state} winner={winner} bank={bank} timeLeft={timeLeft} />
       <BetPanel bank={bank} state={state} />
-      <div className="w-full relative bg-surface rounded shadow flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-gray-700">
-        <div className="flex-1 flex flex-col">
-          <div className="p-3 font-bold border-b border-gray-700 text-red-400">Красный — {bank.red}</div>
-          <PlayerBetList bets={bets.red} textColor="text-red-400" />
-        </div>
-        <div className="flex-1 flex flex-col">
-          <div className="p-3 font-bold border-b md:border-b-0 border-gray-700 text-orange-400">Оранжевый — {bank.orange}</div>
-          <PlayerBetList bets={bets.orange} textColor="text-orange-400" />
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="w-full bg-surface rounded shadow">
+        <div className="flex justify-center p-3 border-b border-divider">
           <div className="bg-surface px-4 py-2 rounded-full shadow text-primary font-semibold">
             Банк: <AnimatedCounter value={totalBank} />
+          </div>
+        </div>
+        <div className="flex flex-col md:flex-row">
+          <div className="flex-1 flex flex-col md:border-r-2 border-divider">
+            <div className="p-3 font-bold border-b border-divider text-red-400 text-left">
+              Красный — {bank.red}
+            </div>
+            <PlayerBetList bets={bets.red} textColor="text-red-400" align="left" />
+          </div>
+          <div className="flex-1 flex flex-col">
+            <div className="p-3 font-bold border-b border-divider text-orange-400 text-right">
+              Оранжевый — {bank.orange}
+            </div>
+            <PlayerBetList bets={bets.orange} textColor="text-orange-400" align="right" />
           </div>
         </div>
       </div>
