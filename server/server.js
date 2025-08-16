@@ -30,6 +30,7 @@ const {
   handleTimeout,
 } = require('./gameLogic');
 const { saveAvatarFromDataUrl } = require('./avatarService');
+const JackpotWheel = require('./jackpotWheel');
 
 // ---------------------- Firebase ----------------------
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
@@ -66,6 +67,12 @@ async function saveSiteSettings(settings) {
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: 'http://localhost:5173', methods: ['GET', 'POST'] } });
+
+const jackpotWheel = new JackpotWheel(io, {
+  ROUND_DURATION_MS: 30000,
+  LOCK_MS: 2500,
+  RAKE: 0.05,
+});
 
 const uploadsDir = path.join(__dirname, 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
@@ -492,6 +499,15 @@ setInterval(() => {
 }, 60 * 60 * 1000);
 
 io.on('connection', (socket) => {
+  socket.on('bet:place', (payload, cb) => {
+    try {
+      const userId = socket.data.user?.id || socket.id;
+      jackpotWheel.placeBet(userId, payload?.color, payload?.amount);
+      cb && cb({ ok: true });
+    } catch (e) {
+      cb && cb({ ok: false, error: e.message });
+    }
+  });
   socket.on('force_recompute_stats', async (range) => { if (socket.data.user?.role!=='admin') return; await computeAndBroadcastStats(range||'1d'); });
   // Статистика: сумма заработка за периоды и кол-во игр
   socket.on('admin_get_stats', async (data) => {

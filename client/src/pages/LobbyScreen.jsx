@@ -246,15 +246,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
                 Дурак
               </button>
               <button
-                onClick={() => startCreate('jackpot')}
-                className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
-                disabled={!user || iAmInAnyRoom}
-                title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
-              >
-                Джекпот
-              </button>
-              <button
-                onClick={() => startCreate('klondike')}
+                onClick={() => setPage('jackpot')}
                 className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
                 disabled={!user || iAmInAnyRoom}
                 title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
