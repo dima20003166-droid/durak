@@ -77,13 +77,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: 'http://localhost:5173', methods: ['GET', 'POST'] } });
 
-const jackpotWheel = new JackpotWheel(io, {
-  ROUND_DURATION_MS: siteSettings.roundDurationMs,
-  LOCK_MS: siteSettings.lockMs,
-  RAKE: siteSettings.rake,
-  MIN_BET: siteSettings.minBet,
-  MAX_BET: siteSettings.maxBet,
-});
+let jackpotWheel;
 
 const uploadsDir = path.join(__dirname, 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
@@ -144,6 +138,27 @@ function emitToUser(userId, event, payload) {
     }
   } catch {}
 }
+
+async function initJackpotWheel() {
+  let initial = null;
+  try {
+    const snap = await db.collection('jackpotRounds').orderBy('roundId', 'desc').limit(1).get();
+    if (!snap.empty) {
+      const data = snap.docs[0].data();
+      if (!data.winnerColor) initial = data;
+    }
+  } catch (e) {
+    console.error('Ошибка загрузки последнего раунда', e);
+  }
+  jackpotWheel = new JackpotWheel(io, db, emitToUser, {
+    ROUND_DURATION_MS: siteSettings.roundDurationMs,
+    LOCK_MS: siteSettings.lockMs,
+    RAKE: siteSettings.rake,
+    MIN_BET: siteSettings.minBet,
+    MAX_BET: siteSettings.maxBet,
+  }, initial);
+}
+initJackpotWheel();
 // ---------------------- Admin Stats Helper ----------------------
 async function computeAndBroadcastStats(range = '1d') {
   try {
@@ -535,8 +550,16 @@ io.on('connection', (socket) => {
             .collection('users')
             .doc(user.id)
             .update({ balance: admin.firestore.FieldValue.increment(-amt) });
+          await db.collection('jackpotLosses').add({
+            userId: user.id,
+            amount: amt,
+            color,
+            roundId: jackpotWheel.roundId,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
         } catch {}
       }
+      emitToUser(user.id, 'current_user_update', { balance: user.balance });
       cb && cb({ ok: true, balance: user.balance });
     } catch (e) {
       cb && cb({ ok: false, error: e.message });
