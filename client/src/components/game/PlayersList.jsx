@@ -32,39 +32,55 @@ const PlayersList = ({
     const idx = room.players.findIndex((x) => x.socketId === p.socketId);
     const isCurrentAttacker = idx === gameState.attackerIndex;
     const isCurrentDefender = idx === gameState.defenderIndex;
-    const ringClass = isCurrentAttacker
-      ? 'border-2 border-primary'
-      : isCurrentDefender
-      ? 'border-2 border-accent'
-      : '';
+    const statusText = isCurrentAttacker ? 'Атака' : isCurrentDefender ? 'Защита' : '';
     return (
       <div
         key={p.socketId}
-        className={`flex flex-col items-center bg-surface rounded p-2 mb-2 basis-1/4 md:basis-1/6 ${ringClass}`}
+        className="flex flex-col items-center p-2 mb-2 basis-1/4 md:basis-1/6"
       >
-        <div
-          className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
-            isCurrentAttacker ? 'bg-danger' : ''
-          } ${isCurrentDefender ? 'bg-accent' : ''}`}
-        >
-          {isCurrentAttacker ? 'Атака' : isCurrentDefender ? 'Защита' : ''}
-        </div>
-        <img
-          className="w-16 h-16 rounded-full object-cover cursor-pointer"
-          src={resolveAvatarUrl(
-            p.avatarUrl,
-            `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`
-          )}
-          onClick={() => openProfile(p)}
-          alt=""
-        />
-        <p
-          className="font-semibold mt-1 truncate cursor-pointer w-full text-center"
-          onClick={() => openProfile(p)}
-        >
-          {p.username}
-        </p>
-        <div className={`flex justify-center items-center h-28 w-full ${isMine ? 'mt-2' : '-mt-6'}`}>
+        {isMine ? (
+          <>
+            <div
+              className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+                isCurrentAttacker ? 'bg-danger' : ''
+              } ${isCurrentDefender ? 'bg-accent' : ''}`}
+            >
+              {statusText}
+            </div>
+            <p
+              className="font-semibold mb-1 truncate w-full text-center cursor-pointer"
+              onClick={() => openProfile(p)}
+            >
+              {p.username}
+            </p>
+          </>
+        ) : (
+          <>
+            <div
+              className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+                isCurrentAttacker ? 'bg-danger' : ''
+              } ${isCurrentDefender ? 'bg-accent' : ''}`}
+            >
+              {statusText}
+            </div>
+            <img
+              className="w-16 h-16 rounded-full object-cover cursor-pointer"
+              src={resolveAvatarUrl(
+                p.avatarUrl,
+                `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`
+              )}
+              onClick={() => openProfile(p)}
+              alt=""
+            />
+            <p
+              className="font-semibold mt-1 truncate cursor-pointer w-full text-center"
+              onClick={() => openProfile(p)}
+            >
+              {p.username}
+            </p>
+          </>
+        )}
+        <div className={`flex justify-center items-center h-28 w-full ${isMine ? 'mt-2' : '-mt-10'}`}>
           {isMine ? (
             (() => {
               const hand = myPlayer.hand;
@@ -149,7 +165,7 @@ const PlayersList = ({
                     <Card
                       {...pair.defense}
                       layoutId={pair.defense.id}
-                      className="absolute top-1/2 left-0 -translate-y-1/2 rotate-12 translate-x-2 z-10"
+                      className="absolute left-1/2 top-2 rotate-12 z-10"
                     />
                   )}
                 </motion.div>
