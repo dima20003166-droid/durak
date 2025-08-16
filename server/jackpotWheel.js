@@ -14,6 +14,7 @@ class JackpotWheel extends EventEmitter {
       RAKE: 0.05,
       MIN_BET: 1,
       MAX_BET: 1000,
+      SPIN_MS: 3000,
     }, config);
     this.roundId = 0;
     this.state = 'OPEN';
@@ -85,9 +86,13 @@ class JackpotWheel extends EventEmitter {
 
   spinRound() {
     this.state = 'SPIN';
-    this.spinUntil = Date.now() + 2000;
-    this.io.emit('round:state', { roundId: this.roundId, state: this.state, timeLeftMs: this.getTimeLeft() });
-    this.spinTimer = setTimeout(() => this.resultRound(), 2000);
+    this.spinUntil = Date.now() + this.config.SPIN_MS;
+    this.io.emit('round:state', {
+      roundId: this.roundId,
+      state: this.state,
+      timeLeftMs: this.getTimeLeft(),
+    });
+    this.spinTimer = setTimeout(() => this.resultRound(), this.config.SPIN_MS);
   }
 
   async resultRound() {

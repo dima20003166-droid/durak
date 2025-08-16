@@ -30,7 +30,6 @@ function segmentPath(cx, cy, r, startAngle, endAngle) {
 
 export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) {
   const { segments, redAngle } = useWheel(bank);
-  const [rotation, setRotation] = useState(0);
   const arrowRef = useRef(null);
   const wheelRef = useRef(null);
   const [radius, setRadius] = useState(0);
@@ -38,8 +37,9 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
   const spinSound = useRef();
   const winSound = useRef();
   const hasCelebrated = useRef(false);
-  const spins = 6;
+  const spins = useRef(Math.floor(Math.random() * 4) + 7);
   const startOffsetRef = useRef(0);
+  const spinTween = useRef(null);
 
   useEffect(() => {
     startSound.current = new Audio('/start.mp3');
@@ -65,7 +65,8 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
   useEffect(() => {
     if (state === 'OPEN') {
       startOffsetRef.current = Math.random() * 360;
-      setRotation(startOffsetRef.current);
+      spins.current = Math.floor(Math.random() * 4) + 7;
+      spinTween.current?.kill();
       gsap.set(arrowRef.current, { rotation: startOffsetRef.current });
       hasCelebrated.current = false;
       if (spinSound.current) {
@@ -87,6 +88,13 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
         spinSound.current.play();
         gsap.to(spinSound.current, { volume, duration: 0.5 });
       }
+      spinTween.current = gsap.to(arrowRef.current, {
+        rotation: '+=360',
+        duration: 1,
+        ease: 'linear',
+        repeat: -1,
+        transformOrigin: 'center center',
+      });
       gsap.fromTo(
         arrowRef.current,
         { filter: 'blur(2px)', opacity: 0.6 },
@@ -99,8 +107,17 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
     if (!winner) return;
     const winAngle =
       winner === 'red' ? redAngle / 2 : redAngle + (360 - redAngle) / 2;
-    const target = spins * 360 + winAngle + startOffsetRef.current;
-    setRotation(target);
+    const currentRot = gsap.getProperty(arrowRef.current, 'rotation');
+    const currentNorm = ((currentRot % 360) + 360) % 360;
+    const finalNorm = (startOffsetRef.current + winAngle) % 360;
+    const delta = (finalNorm - currentNorm + 360) % 360;
+    spinTween.current?.kill();
+    gsap.to(arrowRef.current, {
+      rotation: currentRot + spins.current * 360 + delta,
+      duration: 5,
+      ease: 'power2.out',
+      transformOrigin: 'center center',
+    });
     if (spinSound.current) {
       gsap.to(spinSound.current, {
         volume: 0,
@@ -126,14 +143,6 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
       hasCelebrated.current = true;
     }
   }, [winner, redAngle, volume]);
-  useEffect(() => {
-    gsap.to(arrowRef.current, {
-      rotation,
-      duration: 4,
-      ease: 'power4.out',
-      transformOrigin: 'center center',
-    });
-  }, [rotation]);
 
   return (
     <div
