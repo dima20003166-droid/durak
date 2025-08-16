@@ -38,6 +38,7 @@ export default function Card({
   style,
   dealFrom,
   isWinning = false,
+  ...motionProps
 }) {
   const sizes = {
     sm: { w: 64, h: 90, rank: 14, corner: 16, pip: 24 },
@@ -69,17 +70,27 @@ export default function Card({
     onClick?.(e);
   };
 
+  const variants = {
+    deal: (origin) => ({
+      x: origin?.x ?? 0,
+      y: origin?.y ?? -200,
+      rotate: origin?.rotate ?? -90,
+    }),
+    idle: { x: 0, y: 0, rotate: 0 },
+  };
+
   return (
     <motion.div
       role="button"
       tabIndex={0}
       onClick={handleClick}
-      initial={dealFrom ? { x: dealFrom.x, y: dealFrom.y, rotate: -20 } : undefined}
-      animate={{ x: 0, y: 0, rotate: 0 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      variants={variants}
+      custom={dealFrom}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       className={`relative rounded-xl cursor-pointer select-none card-3d ${borderSel} ${isWinning ? 'win-effect' : ''} ${className}`}
       style={{ width: S.w, height: S.h, ...style }}
       whileHover={{ y: -4 }}
+      {...motionProps}
     >
       <motion.div
         className="relative w-full h-full card-flip-inner"

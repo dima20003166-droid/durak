@@ -18,6 +18,15 @@
     --neon-primary: #00f6ff;
     --neon-accent: #ff00e5;
     --neon-danger: #ff4d4d;
+    --neon-primary-100: #a5f3ff;
+    --neon-primary-200: #5cdcff;
+    --neon-primary-300: #00c4ff;
+    --neon-accent-100: #ff9afa;
+    --neon-accent-200: #ff61f5;
+    --neon-accent-300: #ff00e5;
+    --neon-danger-100: #ff9aa0;
+    --neon-danger-200: #ff6b70;
+    --neon-danger-300: #ff4d4d;
     --parallax-x: 0px;
     --parallax-y: 0px;
 
@@ -45,12 +54,24 @@
     --neon-primary: #06b6d4;
     --neon-accent: #e000d0;
     --neon-danger: #ff6b6b;
+    --neon-primary-100: #a5f3ff;
+    --neon-primary-200: #5cdcff;
+    --neon-primary-300: #00c4ff;
+    --neon-accent-100: #ff9afa;
+    --neon-accent-200: #ff61f5;
+    --neon-accent-300: #ff00e5;
+    --neon-danger-100: #ff9aa0;
+    --neon-danger-200: #ff6b70;
+    --neon-danger-300: #ff4d4d;
   }
 
   html, body, #root { height: 100%; }
   body {
     @apply bg-bg text-text font-sans transition-colors duration-300;
-    background: radial-gradient(circle at 20% 20%, #1f0036 0%, #000 80%);
+    background: linear-gradient(135deg, var(--neon-primary), var(--neon-accent), var(--neon-danger), var(--neon-primary));
+    background-size: 400% 400%;
+    filter: hue-rotate(0deg);
+    animation: gradientShift 20s ease infinite, colorRotate 30s linear infinite;
     background-attachment: fixed;
   }
   .parallax-bg {
@@ -74,6 +95,15 @@
 @layer utilities {
   .border-divider {
     border-color: var(--color-border);
+  }
+}
+
+@layer components {
+  .glass-surface {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 10px var(--neon-primary);
   }
 }
 
@@ -166,12 +196,13 @@
 
 /* Animated game background */
 .game-bg {
-  background: linear-gradient(120deg, var(--color-bg), #1a082c, var(--color-bg));
+  background: linear-gradient(135deg, var(--neon-primary), var(--neon-accent), var(--neon-danger), var(--neon-primary));
   background-size: 400% 400%;
-  animation: gameGradient 20s ease infinite;
+  filter: hue-rotate(0deg);
+  animation: gradientShift 20s ease infinite, colorRotate 30s linear infinite;
 }
 
-@keyframes gameGradient {
+@keyframes gradientShift {
   0% {
     background-position: 0% 50%;
   }
@@ -180,5 +211,14 @@
   }
   100% {
     background-position: 0% 50%;
+  }
+}
+
+@keyframes colorRotate {
+  from {
+    filter: hue-rotate(0deg);
+  }
+  to {
+    filter: hue-rotate(360deg);
   }
 }
