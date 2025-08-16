@@ -1,0 +1,13 @@
+.table-center {
+  position: relative;
+}
+
+.pair-container {
+  position: absolute;
+  pointer-events: none;
+}
+
+.defense-card {
+  transform: translate(10px, -12px) rotate(6deg);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
