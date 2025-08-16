@@ -15,6 +15,9 @@
     --color-primary: #3b82f6;
     --color-accent: #ff00e5;
     --color-danger: #ff3e3e;
+    --neon-primary: #00f6ff;
+    --neon-accent: #ff00e5;
+    --neon-danger: #ff4d4d;
     --parallax-x: 0px;
     --parallax-y: 0px;
   }
@@ -28,6 +31,9 @@
     --color-primary: #3b82f6; /* blue-500 */
     --color-accent: #9333ea; /* purple-600 */
     --color-danger: #dc2626; /* red-600 */
+    --neon-primary: #06b6d4;
+    --neon-accent: #e000d0;
+    --neon-danger: #ff6b6b;
   }
 
   html, body, #root { height: 100%; }

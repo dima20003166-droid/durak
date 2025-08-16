@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import AnimatedCounter from '../components/AnimatedCounter';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
@@ -258,7 +259,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
         <h1 className="text-3xl font-bold text-primary">DURAK.IO</h1>
         <div className="flex items-center space-x-4">
           <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
-          <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user.balance} ₽</button>
+          <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> <AnimatedCounter value={user.balance} /> ₽</button>
           <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> Профиль</button>
           <div className="flex items-center gap-1">
             <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${user.username.charAt(0)}` , socketService?.getServerUrl ? socketService.getServerUrl() : undefined)} alt="avatar" />

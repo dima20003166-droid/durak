@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 const WalletScreen = ({ user, setPage }) => {
   const [tab, setTab] = useState('deposit');
@@ -12,7 +13,7 @@ const WalletScreen = ({ user, setPage }) => {
           <button onClick={() => setPage('lobby')} className="bg-primary text-text font-bold py-2 px-4 rounded-lg hover:bg-primary/80">Вернуться в лобби</button>
         </header>
         <div className="max-w-md mx-auto bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-8">
-          <p className="text-center text-lg mb-4">Текущий баланс: <span className="font-bold text-accent">{balance} ₽</span></p>
+          <p className="text-center text-lg mb-4">Текущий баланс: <AnimatedCounter value={balance} className="font-bold text-accent" /> ₽</p>
           <div className="flex border-b border-border mb-6">
             <button type="button" onClick={() => setTab('deposit')} className={`flex-1 py-2 font-semibold ${tab === 'deposit' ? 'text-primary border-b-2 border-primary' : 'text-muted'}`}>Пополнить</button>
             <button type="button" onClick={() => setTab('withdraw')} className={`flex-1 py-2 font-semibold ${tab === 'withdraw' ? 'text-primary border-b-2 border-primary' : 'text-muted'}`}>Вывести</button>
