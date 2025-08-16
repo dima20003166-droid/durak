@@ -20,7 +20,7 @@ function useWheel(bank) {
       { color: 'var(--jackpot-red)', start: 0, end: redAngle },
       { color: 'var(--jackpot-orange)', start: redAngle, end: 360 },
     ];
-    return { segments, redAngle };
+    return { segments };
   }, [bank.red, bank.orange]);
 }
 
@@ -48,7 +48,7 @@ export default function JackpotWheel({
   volume,
   spinConfig,
 }) {
-  const { segments, redAngle } = useWheel(bank);
+  const { segments } = useWheel(bank);
   const arrowRef = useRef(null);
   const wheelRef = useRef(null);
   const [radius, setRadius] = useState(0);
@@ -58,7 +58,6 @@ export default function JackpotWheel({
   const hasCelebrated = useRef(false);
   const config = useMemo(() => ({ ...defaultSpinConfig, ...(spinConfig || {}) }), [spinConfig]);
   const spins = useRef(defaultSpinConfig.maxSpins);
-  const startOffsetRef = useRef(0);
   const spinTween = useRef(null);
   const ringRadius = 49;
   const circumference = 2 * Math.PI * ringRadius;
@@ -132,70 +131,32 @@ export default function JackpotWheel({
 
   useEffect(() => {
     if (!winner) return;
-    const winAngle =
-      winner === 'red' ? redAngle / 2 : redAngle + (360 - redAngle) / 2;
     spinTween.current?.kill();
-    const currentRot = gsap.getProperty(arrowRef.current, 'rotation');
-    const currentNorm = ((currentRot % 360) + 360) % 360;
-    const finalNorm = (startOffsetRef.current + winAngle) % 360;
-    const delta = (finalNorm - currentNorm + 360) % 360;
-    const totalSpins = Math.min(spins.current, config.maxSpins);
-    const totalRotation = totalSpins * 360 + delta;
-    const accelRot = config.initialSpeed * config.acceleration;
-    let decelRot = config.initialSpeed * config.deceleration;
-    let constRot = totalRotation - accelRot - decelRot;
-    if (constRot < 0) {
-      decelRot += constRot;
-      constRot = 0;
-    }
-    const constDur = constRot / config.initialSpeed;
-    spinTween.current = gsap.timeline({
-      defaults: { transformOrigin: 'center center' },
-      onComplete: () => {
-        if (spinSound.current) {
-          gsap.to(spinSound.current, {
-            volume: 0,
-            duration: 0.5,
-            onComplete: () => {
-              spinSound.current.pause();
-              spinSound.current.volume = volume;
-            },
-          });
-        }
-        winSound.current?.play();
-        if (!hasCelebrated.current) {
-          const rect = arrowRef.current.getBoundingClientRect();
-          confetti({
-            particleCount: 40,
-            spread: 45,
-            origin: { x: rect.left / window.innerWidth, y: rect.top / window.innerHeight },
-          });
-          const cTl = gsap.timeline();
-          cTl.to(arrowRef.current, { className: '+=win-effect', duration: 0 });
-          cTl.to(arrowRef.current, { className: '-=win-effect', delay: 0.8, duration: 0 });
-          cTl.play();
-          hasCelebrated.current = true;
-        }
-      },
-    });
-    spinTween.current.to(arrowRef.current, {
-      rotation: currentRot + accelRot,
-      duration: config.acceleration,
-      ease: 'power2.in',
-    });
-    if (constRot > 0) {
-      spinTween.current.to(arrowRef.current, {
-        rotation: `+=${constRot}`,
-        duration: constDur,
-        ease: 'linear',
+    if (spinSound.current) {
+      gsap.to(spinSound.current, {
+        volume: 0,
+        duration: 0.5,
+        onComplete: () => {
+          spinSound.current.pause();
+          spinSound.current.volume = volume;
+        },
       });
     }
-    spinTween.current.to(arrowRef.current, {
-      rotation: `+=${decelRot}`,
-      duration: config.deceleration,
-      ease: config.ease || 'power4.out',
-    });
-  }, [winner, redAngle, volume, config]);
+    winSound.current?.play();
+    if (!hasCelebrated.current) {
+      const rect = arrowRef.current.getBoundingClientRect();
+      confetti({
+        particleCount: 40,
+        spread: 45,
+        origin: { x: rect.left / window.innerWidth, y: rect.top / window.innerHeight },
+      });
+      const cTl = gsap.timeline();
+      cTl.to(arrowRef.current, { className: '+=win-effect', duration: 0 });
+      cTl.to(arrowRef.current, { className: '-=win-effect', delay: 0.8, duration: 0 });
+      cTl.play();
+      hasCelebrated.current = true;
+    }
+  }, [winner, volume]);
 
   return (
     <div
@@ -242,7 +203,7 @@ export default function JackpotWheel({
       {totalTime > 0 && (
         <svg
           viewBox="0 0 100 100"
-          className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
+          className={`absolute inset-0 w-full h-full -rotate-90 pointer-events-none ${phase !== 'idle' ? 'opacity-50' : ''}`}
         >
           <circle
             cx="50"
@@ -257,7 +218,7 @@ export default function JackpotWheel({
           />
         </svg>
       )}
-      <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none">
+      <div className={`absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none ${phase !== 'idle' ? 'opacity-50' : ''}`}>
         {totalTime > 0 ? Math.ceil(timeLeft / 1000) : ''}
       </div>
     </div>

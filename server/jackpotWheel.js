@@ -15,6 +15,7 @@ class JackpotWheel extends EventEmitter {
       MIN_BET: 1,
       MAX_BET: 1000,
       SPIN_MS: 3000,
+      SYNC_OFFSET_MS: 500,
       RESULT_DISPLAY_MS: 3000,
     }, config);
     if (this.config.LOCK_MS >= this.config.ROUND_DURATION_MS) {
@@ -113,11 +114,11 @@ class JackpotWheel extends EventEmitter {
       const redAngle = total ? (bank.red / total) * 360 : 180;
       targetAngle =
         winnerColor === 'red'
-          ? rand * redAngle
-          : redAngle + rand * (360 - redAngle);
+          ? redAngle / 2
+          : redAngle + (360 - redAngle) / 2;
       this.round.result = { color: winnerColor, sectorIndex: winnerColor === 'red' ? 0 : 1 };
     }
-    const startTime = Date.now() + 500;
+    const startTime = Date.now() + this.config.SYNC_OFFSET_MS;
     this.spinUntil = startTime + this.config.SPIN_MS;
     this.round = {
       ...this.round,
@@ -132,17 +133,30 @@ class JackpotWheel extends EventEmitter {
       animationDuration: this.config.SPIN_MS,
       targetAngle,
     });
-    if (this.round.result) {
-      this.io.emit('jackpot:result', { roundId: this.roundId, result: this.round.result });
-    }
-    this.spinTimer = setTimeout(() => this.resultRound(), this.config.SPIN_MS);
+    const delay = this.spinUntil - Date.now();
+    this.spinTimer = setTimeout(() => this.resultRound(), delay);
   }
 
   async resultRound() {
     this.state = 'RESULT';
     const bank = this.getBank();
     const total = bank.red + bank.orange;
-    const winnerColor = this.round.result ? this.round.result.color : null;
+    let winnerColor = null;
+    if (total > 0) {
+      const rand =
+        parseInt(
+          crypto.createHash('sha256').update(this.serverSeed).digest('hex').slice(0, 8),
+          16,
+        ) / 0x100000000;
+      const pick = rand * total;
+      winnerColor = pick < bank.red ? 'red' : 'orange';
+      const redAngle = total ? (bank.red / total) * 360 : 180;
+      this.round.targetAngle =
+        winnerColor === 'red'
+          ? redAngle / 2
+          : redAngle + (360 - redAngle) / 2;
+      this.round.result = { color: winnerColor, sectorIndex: winnerColor === 'red' ? 0 : 1 };
+    }
     if (total === 0 || !winnerColor) {
       this.round.phase = 'settled';
       this.betIds.clear();
@@ -152,11 +166,10 @@ class JackpotWheel extends EventEmitter {
         payouts: [],
         serverSeed: this.serverSeed,
       });
-      return setTimeout(
-        () => this.startRound(),
-        this.config.RESULT_DISPLAY_MS,
-      );
+      this.startRound();
+      return;
     }
+    this.io.emit('jackpot:result', { roundId: this.roundId, result: this.round.result });
     const rake = total * this.config.RAKE;
     const payoutPool = total - rake;
     const winnerBank = bank[winnerColor];
@@ -180,35 +193,38 @@ class JackpotWheel extends EventEmitter {
       }
     }
     const payouts = payoutsRaw.map(({ userId, amount }) => ({ userId, amount }));
-    const failed = [];
-    for (const { userId, amount } of payouts) {
-      try {
-        const ref = this.db.collection('users').doc(userId);
-        await ref.update({ balance: admin.firestore.FieldValue.increment(amount) });
-        const snap = await ref.get();
-        const bal = snap.exists ? snap.data().balance : null;
-        this.emitToUser(userId, 'current_user_update', { balance: bal });
-      } catch (e) {
-        console.error('balance update error', userId, e);
-        failed.push({ userId, amount });
-      }
-    }
-    if (failed.length) {
-      for (const f of failed) {
+    if (this.db && typeof this.db.collection === 'function') {
+      const failed = [];
+      for (const { userId, amount } of payouts) {
         try {
-          const ref = this.db.collection('users').doc(f.userId);
-          await ref.update({ balance: admin.firestore.FieldValue.increment(f.amount) });
+          const ref = this.db.collection('users').doc(userId);
+          await ref.update({ balance: admin.firestore.FieldValue.increment(amount) });
           const snap = await ref.get();
           const bal = snap.exists ? snap.data().balance : null;
-          this.emitToUser(f.userId, 'current_user_update', { balance: bal });
+          this.emitToUser(userId, 'current_user_update', { balance: bal });
         } catch (e) {
-          console.error('balance retry failed', f.userId, e);
-          this.emitToUser(f.userId, 'balance_update_error', { amount: f.amount });
+          console.error('balance update error', userId, e);
+          failed.push({ userId, amount });
+        }
+      }
+      if (failed.length) {
+        for (const f of failed) {
+          try {
+            const ref = this.db.collection('users').doc(f.userId);
+            await ref.update({ balance: admin.firestore.FieldValue.increment(f.amount) });
+            const snap = await ref.get();
+            const bal = snap.exists ? snap.data().balance : null;
+            this.emitToUser(f.userId, 'current_user_update', { balance: bal });
+          } catch (e) {
+            console.error('balance retry failed', f.userId, e);
+            this.emitToUser(f.userId, 'balance_update_error', { amount: f.amount });
+          }
         }
       }
     }
     this.saveRoundState({ winnerColor, payouts, serverSeed: this.serverSeed });
     this.round.phase = 'settled';
+    this.io.emit('round:result', { winnerColor, payouts });
     this.io.emit('jackpot:settled', {
       roundId: this.roundId,
       result: this.round.result,
