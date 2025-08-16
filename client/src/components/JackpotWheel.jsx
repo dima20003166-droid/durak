@@ -10,6 +10,7 @@ const defaultSpinConfig = {
   deceleration: 2,
   maxSpins: 12,
   ease: 'circ.out',
+  glowColor: '#00eaff',
 };
 
 function useWheel(bank) {
@@ -107,7 +108,7 @@ export default function JackpotWheel({
     if (phase === 'idle') {
       spins.current = config.maxSpins;
       spinTween.current?.kill();
-      gsap.set(arrowRef.current, { rotation: 0 });
+      gsap.set(arrowRef.current, { rotation: 0, boxShadow: 'none' });
       hasCelebrated.current = false;
       glowTl.current?.kill();
       gsap.set(wheelRef.current?.querySelectorAll('.wheel-segment'), { opacity: 1 });
@@ -153,6 +154,11 @@ export default function JackpotWheel({
         const segs = wheelRef.current?.querySelectorAll('.wheel-segment');
         glowTl.current = gsap.timeline({ repeat: -1, yoyo: true });
         glowTl.current.to(segs, { opacity: 0.7, duration: 0.3, stagger: 0.1 });
+        glowTl.current.to(
+          arrowRef.current,
+          { boxShadow: `0 0 15px ${config.glowColor}`, duration: 0.3 },
+          0
+        );
       }
     }
   }, [phase, startTime, animationDuration, targetAngle, volume, config, prefersReducedMotion]);
@@ -207,7 +213,7 @@ export default function JackpotWheel({
                 <stop offset="100%" stopColor="#ccc" />
               </linearGradient>
               <filter id="arrowShadow" x="-50%" y="-50%" width="200%" height="200%">
-                <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#00eaff" />
+                <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor={config.glowColor} />
               </filter>
             </defs>
             <polygon
@@ -224,8 +230,27 @@ export default function JackpotWheel({
           className="w-full h-full rounded-full overflow-hidden"
           style={{ filter: 'drop-shadow(0 0 5px var(--neon-primary))' }}
         >
+          <defs>
+            <linearGradient id="redSegment" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#ff7f7f" />
+              <stop offset="100%" stopColor="#ff0000" />
+            </linearGradient>
+            <linearGradient id="orangeSegment" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#ffd27f" />
+              <stop offset="100%" stopColor="#ff8c00" />
+            </linearGradient>
+            <filter id="segmentShadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor={config.glowColor} />
+            </filter>
+          </defs>
           {segments.map((seg, i) => (
-            <path key={i} className="wheel-segment wheel-glow" d={segmentPath(50, 50, 50, seg.start, seg.end)} fill={seg.color} />
+            <path
+              key={i}
+              className="wheel-segment"
+              d={segmentPath(50, 50, 50, seg.start, seg.end)}
+              fill={`url(#${seg.color === 'var(--jackpot-red)' ? 'redSegment' : 'orangeSegment'})`}
+              filter="url(#segmentShadow)"
+            />
           ))}
         </svg>
         <div className="absolute inset-0 rounded-full pointer-events-none bg-white/10" />
@@ -293,6 +318,7 @@ JackpotWheel.propTypes = {
     deceleration: PropTypes.number,
     maxSpins: PropTypes.number,
     ease: PropTypes.string,
+    glowColor: PropTypes.string,
   }),
 };
 
