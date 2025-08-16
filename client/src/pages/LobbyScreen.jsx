@@ -93,7 +93,12 @@ const TrophyIcon = () => (
 );
 
 const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthModal }) => {
+  const [createMode, setCreateMode] = useState('classic');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const startCreate = (mode) => {
+    setCreateMode(mode);
+    setShowCreateModal(true);
+  };
   const [chatMessages, setChatMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [profileOpen, setProfileOpen] = useState(null);
@@ -227,7 +232,32 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
         <div className="w-full lg:w-2/3 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-3xl font-semibold">Игровые столы</h2>
-              <button onClick={() => user && !iAmInAnyRoom && setShowCreateModal(true)} className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors" disabled={!user || iAmInAnyRoom} title={!user ? "Требуется авторизация" : iAmInAnyRoom ? "Нельзя: у вас есть активная игра" : ""}>Создать игру</button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => startCreate('classic')}
+                className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
+                disabled={!user || iAmInAnyRoom}
+                title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
+              >
+                Дурак
+              </button>
+              <button
+                onClick={() => startCreate('jackpot')}
+                className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
+                disabled={!user || iAmInAnyRoom}
+                title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
+              >
+                Джекпот
+              </button>
+              <button
+                onClick={() => startCreate('klondike')}
+                className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
+                disabled={!user || iAmInAnyRoom}
+                title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
+              >
+                Косинка
+              </button>
+            </div>
           </div>
 
           <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 space-y-4 flex-grow">
@@ -366,7 +396,12 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
         onClose={handleCloseModerationMenu} 
       />
       {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
-      {showCreateModal && <CreateRoomModal onClose={() => setShowCreateModal(false)} />}
+      {showCreateModal && (
+        <CreateRoomModal
+          initialMode={createMode}
+          onClose={() => setShowCreateModal(false)}
+        />
+      )}
       {joinPrompt && (
         <ConfirmDialog
           open={!!joinPrompt}
