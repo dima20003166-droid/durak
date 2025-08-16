@@ -6,14 +6,12 @@ const JackpotWheel = require('../jackpotWheel');
 const originalSetTimeout = global.setTimeout;
 const originalClearTimeout = global.clearTimeout;
 
-test('idempotent clientBetId', () => {
+test('duplicate clientBetId throws', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
   const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
   jw.placeBet('u1', 'User', 'red', 10, 'bet1');
-  jw.placeBet('u1', 'User', 'red', 10, 'bet1');
-  const bank = jw.getBank();
-  assert.strictEqual(bank.red, 10);
+  assert.throws(() => jw.placeBet('u1', 'User', 'red', 10, 'bet1'), /duplicate_bet_id/);
   global.setTimeout = originalSetTimeout;
 });
 

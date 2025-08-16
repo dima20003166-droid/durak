@@ -179,7 +179,7 @@ class JackpotWheel extends EventEmitter {
     if (!['red', 'orange'].includes(color)) throw new Error('invalid_color');
     const id = String(clientBetId || '');
     if (id && this.betIds.has(id)) {
-      return; // идемпотентность
+      throw new Error('duplicate_bet_id');
     }
     const amt = Number(amount);
     if (!Number.isFinite(amt) || amt <= 0) throw new Error('invalid_amount');
