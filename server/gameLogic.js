@@ -1,4 +1,5 @@
 // server/gameLogic.js
+const crypto = require('crypto');
 const SUITS = ['♠', '♣', '♥', '♦'];
 const RANKS = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 const RANK_VALUES = { '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
@@ -9,7 +10,7 @@ const createDeck = () => {
   let id = 0;
   const deck = SUITS.flatMap(suit => RANKS.map(rank => ({ suit, rank, id: id++ })));
   for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = crypto.randomInt(i + 1);
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
   return deck;

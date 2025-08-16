@@ -81,6 +81,7 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: 'http://localhost:5173', methods: ['GET', 'POST'] } });
 
 let jackpotWheel;
+const jackpotReady = initJackpotWheel();
 
 const uploadsDir = path.join(__dirname, 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
@@ -171,7 +172,6 @@ async function initJackpotWheel() {
     MAX_BET: siteSettings.maxBet,
   }, initial);
 }
-initJackpotWheel();
 // ---------------------- Admin Stats Helper ----------------------
 async function computeAndBroadcastStats(range = '1d') {
   try {
@@ -531,21 +531,25 @@ function takeToken(key, event, store) {
   const now = Date.now();
   let bucket = store.get(key);
   if (!bucket) {
-    bucket = { tokens: {}, ts: now };
+    bucket = { tokens: {}, eventTs: {}, ts: now };
     store.set(key, bucket);
   }
   const cfg = RATE_LIMITS[event];
   if (!cfg) return true;
-  const elapsed = now - bucket.ts;
+  const last = bucket.eventTs[event] ?? 0;
+  const elapsed = now - last;
   const refills = Math.floor(elapsed / cfg.intervalMs);
-  if (refills > 0) {
-    bucket.ts = now;
-    bucket.tokens[event] = Math.min((bucket.tokens[event] ?? cfg.tokens) + refills * cfg.refill, cfg.tokens);
-  } else if (bucket.tokens[event] == null) {
+  if (bucket.tokens[event] == null) {
     bucket.tokens[event] = cfg.tokens;
+    bucket.eventTs[event] = now;
+  } else if (refills > 0) {
+    bucket.tokens[event] = Math.min(bucket.tokens[event] + refills * cfg.refill, cfg.tokens);
+    bucket.eventTs[event] = last + refills * cfg.intervalMs;
   }
   if (bucket.tokens[event] <= 0) return false;
   bucket.tokens[event] -= 1;
+  bucket.eventTs[event] = now;
+  bucket.ts = now;
   return true;
 }
 
@@ -582,7 +586,12 @@ setInterval(() => {
 // Допустимый логин: 3–20 символов, буквы/цифры/подчёркивания
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
+  await jackpotReady;
+  if (!jackpotWheel) {
+    socket.emit('error', 'JackpotWheel not initialized');
+    return socket.disconnect(true);
+  }
   socket.on('bet:place', withRateLimit('bet:place', async (payload, cb) => {
     try {
       const user = socket.data.user;
@@ -929,8 +938,9 @@ io.on('connection', (socket) => {
         if (muteUntil > Date.now()) return socket.emit('chat_error', 'Вы временно не можете отправлять сообщения.');
         mutedUsers.delete(user.id);
       }
+      const sanitized = String(message || '').replace(/[<>]/g, '').slice(0, 200);
       const chatMessage = {
-        user: safeUser(user), text: String(message || '').slice(0, 200),
+        user: safeUser(user), text: sanitized,
         timestamp: new Date().toISOString(), createdAt: Date.now(),
       };
       if (!chatMessage.text.trim()) return;
@@ -1177,7 +1187,12 @@ socket.on('admin_get_all_users', async () => {
 // ---------------------- Запуск ----------------------
 const PORT = 4000;
 if (require.main === module) {
-  server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+  jackpotReady.then(() => {
+    server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+  }).catch((e) => {
+    console.error('Не удалось инициализировать JackpotWheel', e);
+    process.exit(1);
+  });
 }
 
 module.exports = { performSettlementAndCleanup };

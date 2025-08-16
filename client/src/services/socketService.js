@@ -51,7 +51,11 @@ class SocketService {
 
     const onConnError = () => {
       this.eventQueue = [];
-      alert('Проблемы с подключением к серверу. Очередь событий очищена.');
+      console.error('Проблемы с подключением к серверу. Очередь событий очищена.');
+      const handlers = this.handlers.get('connection_error');
+      if (handlers) {
+        for (const cb of handlers) cb();
+      }
     };
     this.socket.on('connect_error', onConnError);
     this.socket.io.on('reconnect_failed', onConnError);
@@ -113,7 +117,11 @@ class SocketService {
     const payload = { color, amount, clientBetId };
     const callback = (res) => {
       if (!res?.ok) {
-        alert(res?.error || 'Ошибка ставки');
+        console.error(res?.error || 'Ошибка ставки');
+        const handlers = this.handlers.get('bet_error');
+        if (handlers) {
+          for (const h of handlers) h(res);
+        }
       }
       cb && cb(res);
     };
