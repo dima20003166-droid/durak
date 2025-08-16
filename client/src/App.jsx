@@ -8,6 +8,7 @@ import ProfileScreen from './pages/ProfileScreen';
 import WalletScreen from './pages/WalletScreen';
 import LeaderboardScreen from './pages/LeaderboardScreen';
 import AdminPanel from './pages/AdminPanel';
+import JackpotWheelPage from './pages/JackpotWheelPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import AuthModal from './components/AuthModal';
 import './index.css';
@@ -102,6 +103,8 @@ export default function App() {
         return <WalletScreen user={currentUser} setPage={setPage} />;
       case 'leaderboard':
         return <LeaderboardScreen setPage={setPage} leaderboard={leaderboard} />;
+      case 'jackpot':
+        return <JackpotWheelPage setPage={setPage} />;
       case 'admin':
         return <AdminPanel user={currentUser} setPage={setPage} siteSettings={siteSettings} />;
       default:
