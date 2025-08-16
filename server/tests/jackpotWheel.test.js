@@ -110,6 +110,31 @@ test('round starts with openUntil and timer active', () => {
   global.setTimeout = originalSetTimeout;
 });
 
+test('updateConfig adjusts active open timer', () => {
+  const timeouts = [];
+  const originalDateNow = Date.now;
+  let currentTime = 0;
+  Date.now = () => currentTime;
+  global.setTimeout = (fn, ms) => {
+    timeouts.push({ fn, ms });
+    return timeouts.length - 1;
+  };
+  global.clearTimeout = (id) => {
+    timeouts[id] = null;
+  };
+  const io = { emit() {} };
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000, LOCK_MS: 100 });
+  jw.placeBet('u1', 'User1', 'red', 10);
+  jw.placeBet('u2', 'User2', 'orange', 10);
+  assert.strictEqual(timeouts[0].ms, 900);
+  currentTime = 400;
+  jw.updateConfig({ ROUND_DURATION_MS: 800 });
+  assert.strictEqual(timeouts[1].ms, 300);
+  global.setTimeout = originalSetTimeout;
+  global.clearTimeout = originalClearTimeout;
+  Date.now = originalDateNow;
+});
+
 test('payouts sum to payoutPool', () => {
   global.setTimeout = () => 0;
   let result = null;
