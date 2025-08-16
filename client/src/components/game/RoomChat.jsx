@@ -31,10 +31,10 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
         {open ? 'Скрыть чат' : 'Показать чат'}
       </Button>
       <div
-        className={`${open ? 'flex' : 'hidden'} md:flex bg-surface rounded-xl border border-border p-4 flex-col h-full`}
+        className={`${open ? 'grid' : 'hidden'} md:grid chatPanel bg-surface rounded-xl border border-border`}
       >
-        <div className="font-semibold mb-2">Чат стола</div>
-        <div className="flex-1 overflow-y-auto custom-scroll space-y-2">
+        <div className="chatMessages p-4 space-y-2 custom-scroll">
+          <div className="font-semibold mb-2">Чат стола</div>
         {chat.map((m, i) => {
           const isMine =
             (m.user?.id && myPlayer?.id && m.user.id === myPlayer.id) ||
@@ -78,20 +78,25 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
             </div>
           );
         })}
-        <div ref={chatEndRef} />
+          <div ref={chatEndRef} />
         </div>
-        <div className="flex mt-2 w-full">
+        <form
+          className="chatInputRow"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
+        >
           <input
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
-            onKeyDown={(e) => (e.key === 'Enter' ? send() : null)}
-            className="flex-1 bg-surface rounded-l px-2 py-1"
+            className="bg-surface rounded px-2 py-1"
             placeholder="Сообщение..."
           />
-          <Button className="rounded-l-none rounded-r" onClick={send} variant="primary">
+          <button type="submit" className="bg-primary text-text px-3 py-1 rounded">
             Отправить
-          </Button>
-        </div>
+          </button>
+        </form>
       </div>
     </motion.div>
   );
