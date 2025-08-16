@@ -107,8 +107,7 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 async function verifyCaptcha(token) {
   try {
     const secret = process.env.RECAPTCHA_SECRET;
-    if (!secret) return true;
-    if (!token) return false;
+
     const params = new URLSearchParams();
     params.append('secret', secret);
     params.append('response', token);

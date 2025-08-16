@@ -62,7 +62,7 @@ export default function AuthModal({ onClose }) {
     if (!USERNAME_REGEX.test(unameNorm)) return setError('Имя может содержать только латиницу, цифры и подчёркивания (3-20 символов)');
     if (!PASSWORD_REGEX.test(password)) return setError('Пароль должен быть не менее 8 символов, с буквами разных регистров, цифрами и спецсимволом');
     if (password !== password2) return setError('Пароли не совпадают');
-    if (RECAPTCHA_SITE_KEY && !captchaToken) return setError('Подтвердите, что вы не робот');
+
     setLoading(true);
     socketService.register({ username: uname, password, captcha: captchaToken });
   };
@@ -104,11 +104,7 @@ export default function AuthModal({ onClose }) {
             {mode === 'register' && (
               <>
                 <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text" />
-                {RECAPTCHA_SITE_KEY ? (
-                  <ReCAPTCHA sitekey={RECAPTCHA_SITE_KEY} onChange={setCaptchaToken} />
-                ) : (
-                  <div className="text-danger text-sm">reCAPTCHA не настроена</div>
-                )}
+
               </>
             )}
             {mode === 'login' ? (
