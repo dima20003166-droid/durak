@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import PropTypes from 'prop-types';
 import Button from '../Button';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
@@ -24,15 +25,21 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
   return (
     <motion.div className="h-full flex flex-col" initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }}>
       <Button
-        className="md:hidden mb-2"
+        className="md:hidden mb-2 w-10 h-10 p-0"
         variant="primary"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(true)}
       >
-        {open ? 'Скрыть чат' : 'Показать чат'}
+        💬
       </Button>
       <div
-        className={`${open ? 'grid' : 'hidden'} md:grid chatPanel bg-surface rounded-xl border border-border`}
+        className={`chatPanel grid bg-surface rounded-xl border border-border md:static md:translate-x-0 md:w-full md:h-full fixed top-0 right-0 h-full w-64 z-50 transition-transform ${open ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}
       >
+        <button
+          className="md:hidden absolute top-2 left-2 text-text"
+          onClick={() => setOpen(false)}
+        >
+          ✕
+        </button>
         <div className="chatMessages p-4 space-y-2 custom-scroll">
           <div className="font-semibold mb-2">Чат стола</div>
         {chat.map((m, i) => {
@@ -103,3 +110,10 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
 };
 
 export default RoomChat;
+
+RoomChat.propTypes = {
+  chat: PropTypes.array,
+  myPlayer: PropTypes.object,
+  onSend: PropTypes.func,
+  openProfile: PropTypes.func,
+};

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 import TableCenter from './TableCenter';
+import useCardSize from '../../utils/useCardSize';
 
 const PlayersList = ({
   room,
@@ -14,6 +15,7 @@ const PlayersList = ({
   setSelectedCard,
   openProfile,
 }) => {
+  const { width: cardW } = useCardSize();
   const myIdx = room.players.findIndex((x) => x.socketId === mySocketId);
   const orderedPlayers =
     myIdx >= 0
@@ -63,7 +65,7 @@ const PlayersList = ({
             {(() => {
               const hand = myPlayer.hand;
               const mid = (hand.length - 1) / 2;
-              const width = 60 + hand.length * 24;
+              const width = cardW - 4 + hand.length * 24;
               return (
                 <div className="relative" style={{ width }}>
                   {hand.map((card, i) => {
@@ -93,7 +95,7 @@ const PlayersList = ({
       );
     }
 
-    const width = `calc(5.375rem + ${(p.hand.length - 1) * 4}px)`;
+    const width = cardW + (p.hand.length - 1) * 4;
     return (
       <div
         key={p.socketId}
