@@ -77,17 +77,16 @@ export default function Card({
       initial={dealFrom ? { x: dealFrom.x, y: dealFrom.y, rotate: -20 } : undefined}
       animate={{ x: 0, y: 0, rotate: 0 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className={`relative rounded-xl cursor-pointer select-none ${borderSel} ${isWinning ? 'win-effect' : ''} ${className}`}
-      style={{ width: S.w, height: S.h, perspective: 600, ...style }}
+      className={`relative rounded-xl cursor-pointer select-none card-3d ${borderSel} ${isWinning ? 'win-effect' : ''} ${className}`}
+      style={{ width: S.w, height: S.h, ...style }}
       whileHover={{ y: -4 }}
     >
       <motion.div
-        className="relative w-full h-full"
-        style={{ transformStyle: 'preserve-3d' }}
+        className="relative w-full h-full card-flip-inner"
         animate={{ rotateY: isFaceUp ? 0 : 180 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden' }}>
+        <div className="absolute inset-0 card-face">
           <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
             <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
               <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
@@ -102,7 +101,7 @@ export default function Card({
             </div>
           </div>
         </div>
-        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+        <div className="absolute inset-0 card-face" style={{ transform: 'rotateY(180deg)' }}>
           <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
             <div className="w-full h-full grid place-items-center">
               <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />

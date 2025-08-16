@@ -1,4 +1,5 @@
 import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
@@ -15,7 +16,8 @@ const PlayersList = ({
 
   return (
     <div className="relative flex-grow w-full h-full mt-2">
-      {room.players.map((p, index) => {
+      <AnimatePresence>
+        {room.players.map((p, index) => {
         const relativeIndex = (index - myIdx + room.players.length) % room.players.length;
         const pos =
           relativeIndex === 0
@@ -33,7 +35,14 @@ const PlayersList = ({
         const isCurrentDefender = index === gameState.defenderIndex;
 
         return (
-          <div key={p.socketId} className="absolute transition-all duration-500" style={pos}>
+          <motion.div
+            key={p.socketId}
+            className="absolute transition-all duration-500"
+            style={pos}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+          >
             <div className="relative flex flex-col items-center w-40">
               <div
                 className={`absolute -top-6 px-2 py-0.5 text-xs rounded-full whitespace-nowrap ${
@@ -84,9 +93,10 @@ const PlayersList = ({
                       ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         );
-      })}
+        })}
+      </AnimatePresence>
 
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-4">
         <div className="flex flex-col items-center w-24">
