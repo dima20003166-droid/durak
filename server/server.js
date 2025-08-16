@@ -768,6 +768,7 @@ io.on('connection', (socket) => {
     if (roomChatDoc.exists) socket.emit('room_chat_history', roomChatDoc.data().messages || []);
 
     io.to(roomId).emit('room_update', room);
+    io.to(roomId).emit('players_update', room.players);
 
     const humanPlayers = room.players.filter(p => !p.isBot).length;
     if (humanPlayers === room.maxPlayers && room.status === 'waiting') {
@@ -933,6 +934,7 @@ io.on('connection', (socket) => {
       } else {
         io.to(roomId).emit('room_update', room);
         io.emit('update_rooms', Object.values(gameRooms));
+        io.to(roomId).emit('players_update', room.players);
       }
     }
   });
@@ -949,10 +951,14 @@ io.on('connection', (socket) => {
         player.disconnected = true;
         player.socketId = null; // Убираем ID сокета, чтобы нельзя было управлять
         io.to(room.id).emit('room_update', room);
+        io.to(room.id).emit('players_update', room.players);
       } else {
         room.players = room.players.filter(p => p.id !== user.id);
         if (room.players.length === 0) delete gameRooms[room.id];
-        else io.to(room.id).emit('room_update', room);
+        else {
+          io.to(room.id).emit('room_update', room);
+          io.to(room.id).emit('players_update', room.players);
+        }
       }
     });
     io.emit('update_rooms', Object.values(gameRooms));

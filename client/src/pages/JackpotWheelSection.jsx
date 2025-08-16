@@ -27,18 +27,26 @@ export default function JackpotWheelSection() {
     });
     socketService.on('bet:placed', (d) => {
       if (d.bank) setBank(d.bank);
-      setBets((prev) => ({
-        ...prev,
-        [d.color]: [
-          ...prev[d.color],
-          {
-            userId: d.userId,
-            username: d.username || d.userId,
-            amount: d.amount,
-            id: d.clientBetId || `${d.userId}-${Date.now()}`,
-          },
-        ],
-      }));
+      setBets((prev) => {
+        const betId = d.clientBetId || `${d.userId}-${Date.now()}`;
+        const colorList = prev[d.color];
+        if (colorList.some((b) => b.id === betId)) {
+          console.log('Duplicate bet ignored:', betId);
+          return prev;
+        }
+        return {
+          ...prev,
+          [d.color]: [
+            ...colorList,
+            {
+              userId: d.userId,
+              username: d.username || d.userId,
+              amount: d.amount,
+              id: betId,
+            },
+          ],
+        };
+      });
     });
     socketService.on('round:locked', () => {
       setState('LOCK');

@@ -79,6 +79,9 @@ export default function App() {
     socketService.on('game_started', handleGameStarted);
     socketService.on('joined_room', (room) => { setCurrentRoom(room); setPage('game'); });
     socketService.on('game_state_update', handleRoomUpdate);
+    socketService.on('players_update', (players) => {
+      setCurrentRoom((prev) => (prev ? { ...prev, players } : prev));
+    });
     // Не редиректим здесь — модалка в GameScreen сама покажется
     socketService.on('game_over', () => {});
 
