@@ -101,6 +101,28 @@ const isPlayerInAnyRoom = (userId) => {
   );
 };
 
+const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+async function verifyCaptcha(token) {
+  try {
+    const secret = process.env.RECAPTCHA_SECRET;
+    if (!secret || !token) return false;
+    const params = new URLSearchParams();
+    params.append('secret', secret);
+    params.append('response', token);
+    const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      body: params,
+    });
+    const data = await res.json();
+    return !!data.success;
+  } catch (e) {
+    console.error('Captcha verification error:', e);
+    return false;
+  }
+}
+
 // ---------------------- Онлайн-пользователи ----------------------
 function getOnlineCount() {
   try {
@@ -448,6 +470,47 @@ setInterval(async () => {
 }, 500);
 
 // ---------------------- Socket.IO Events ----------------------
+
+const RATE_LIMITS = {
+  'send_room_message': { tokens: 6, refill: 6, intervalMs: 3000 },
+  'create_room':      { tokens: 2, refill: 1, intervalMs: 5000 },
+  'room:create':      { tokens: 2, refill: 1, intervalMs: 5000 },
+  'login':            { tokens: 5, refill: 5, intervalMs: 60000 },
+  'register':         { tokens: 5, refill: 5, intervalMs: 60000 }
+};
+
+const socketBuckets = new WeakMap();
+const ipBuckets = new Map();
+
+function takeToken(key, event, store) {
+  const now = Date.now();
+  let bucket = store.get(key);
+  if (!bucket) {
+    bucket = { tokens: {}, ts: now };
+    store.set(key, bucket);
+  }
+  const cfg = RATE_LIMITS[event];
+  if (!cfg) return true;
+  const elapsed = now - bucket.ts;
+  const refills = Math.floor(elapsed / cfg.intervalMs);
+  if (refills > 0) {
+    bucket.ts = now;
+    bucket.tokens[event] = Math.min((bucket.tokens[event] ?? cfg.tokens) + refills * cfg.refill, cfg.tokens);
+  } else if (bucket.tokens[event] == null) {
+    bucket.tokens[event] = cfg.tokens;
+  }
+  if (bucket.tokens[event] <= 0) return false;
+  bucket.tokens[event] -= 1;
+  return true;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, bucket] of ipBuckets.entries()) {
+    if (now - bucket.ts > 60 * 60 * 1000) ipBuckets.delete(ip);
+  }
+}, 60 * 60 * 1000);
+
 io.on('connection', (socket) => {
   socket.on('force_recompute_stats', async (range) => { if (socket.data.user?.role!=='admin') return; await computeAndBroadcastStats(range||'1d'); });
   // Статистика: сумма заработка за периоды и кол-во игр
@@ -458,51 +521,25 @@ io.on('connection', (socket) => {
     socket.emit('admin_stats', payload);
   });
 
-    // === Simple per-socket rate limiter ===
-const RATE_LIMITS = {
-  'send_room_message': { tokens: 6, refill: 6, intervalMs: 3000 },
-  'create_room':      { tokens: 2, refill: 1, intervalMs: 5000 },
-  'room:create':      { tokens: 2, refill: 1, intervalMs: 5000 }, // можно оставить, даже если событие не используется
-  'login':            { tokens: 5, refill: 5, intervalMs: 60000 },
-  'register':         { tokens: 5, refill: 5, intervalMs: 60000 }
-};
-const buckets = new WeakMap();
-function takeToken(socket, event) {
-  const now = Date.now();
-  let bucket = buckets.get(socket);
-  if (!bucket) {
-    bucket = { tokens: {}, ts: now };
-    buckets.set(socket, bucket);
-  }
-  const cfg = RATE_LIMITS[event];
-  if (!cfg) return true;
-  const elapsed = now - bucket.ts;
-  const refills = Math.floor(elapsed / cfg.intervalMs);
-  if (refills > 0) {
-    bucket.ts = now;
-    bucket.tokens[event] =
-      Math.min((bucket.tokens[event] ?? cfg.tokens) + refills * cfg.refill, cfg.tokens);
-  } else if (bucket.tokens[event] == null) {
-    bucket.tokens[event] = cfg.tokens;
-  }
-  if (bucket.tokens[event] <= 0) return false;
-  bucket.tokens[event] -= 1;
-  return true;
-}
-function withRateLimit(event, handler) {
-  return function (payload, cb) {
-    if (!takeToken(socket, event)) {
-      if (cb) {
-        return cb({ ok: false, code: 'ERR_RATE_LIMIT', msg: 'Слишком часто. Попробуйте чуть позже.' });
-      }
-      socket.emit(`${event}_error`, 'Слишком часто. Попробуйте чуть позже.');
-      return;
-    }
-    return handler(payload, cb);
-  };
-}
+  const ip = socket.handshake.address;
+  socket.data.ip = ip;
 
-  console.log(`[+] Игрок подключился: ${socket.id}`);
+  function withRateLimit(event, handler, useIp = false) {
+    return function (payload, cb) {
+      const key = useIp ? ip : socket;
+      const store = useIp ? ipBuckets : socketBuckets;
+      if (!takeToken(key, event, store)) {
+        if (cb) {
+          return cb({ ok: false, code: 'ERR_RATE_LIMIT', msg: 'Слишком часто. Попробуйте чуть позже.' });
+        }
+        socket.emit(`${event}_error`, 'Слишком часто. Попробуйте чуть позже.');
+        return;
+      }
+      return handler(payload, cb);
+    };
+  }
+
+  console.log(`[+] Игрок подключился: ${socket.id} (${ip})`);
   setTimeout(broadcastOnlineCount, 0);
   try { socket.emit('update_rooms', Object.values(gameRooms)); } catch {}
   (async () => {
@@ -529,7 +566,11 @@ function withRateLimit(event, handler) {
 
   socket.on('login', withRateLimit('login', async ({ username, password }) => {
     try {
-      const snap = await db.collection('users').where('username', '==', username).limit(1).get();
+      const usernameNorm = String(username || '').trim().toLowerCase();
+      if (!USERNAME_REGEX.test(usernameNorm) || !password) {
+        return socket.emit('login_error', 'Неверный логин или пароль');
+      }
+      const snap = await db.collection('users').where('usernameNorm', '==', usernameNorm).limit(1).get();
       if (snap.empty) return socket.emit('login_error', 'Пользователь не найден');
       let userDoc; snap.forEach(doc => userDoc = { id: doc.id, ...doc.data() });
       let valid = false;
@@ -547,20 +588,30 @@ function withRateLimit(event, handler) {
       globalChatCache = chatHistory;
       socket.emit('global_chat_history', chatHistory);
     } catch (e) { console.error('Ошибка логина:', e); socket.emit('login_error', 'Ошибка сервера'); }
-  }));
+  }, true));
 
-  socket.on('register', withRateLimit('register', async ({ username, password }) => {
+  socket.on('register', withRateLimit('register', async ({ username, password, captcha }) => {
     try {
-      if (!username || !password || username.length < 3 || password.length < 3) {
-        return socket.emit('register_error', 'Имя пользователя и пароль должны быть не менее 3 символов.');
+      const rawName = String(username || '').trim();
+      const usernameNorm = rawName.toLowerCase();
+      if (!USERNAME_REGEX.test(usernameNorm)) {
+        return socket.emit('register_error', 'Имя пользователя может содержать только латинские буквы, цифры и подчёркивания (3-20 символов).');
       }
-      const snap = await db.collection('users').where('username', '==', username).limit(1).get();
+      if (!PASSWORD_REGEX.test(String(password || ''))) {
+        return socket.emit('register_error', 'Пароль должен быть не менее 8 символов и содержать строчные и заглавные буквы, цифры и спецсимвол.');
+      }
+      const captchaOk = await verifyCaptcha(captcha);
+      if (!captchaOk) {
+        return socket.emit('register_error', 'Капча не пройдена');
+      }
+      const snap = await db.collection('users').where('usernameNorm', '==', usernameNorm).limit(1).get();
       if (!snap.empty) {
         return socket.emit('register_error', 'Пользователь с таким именем уже существует.');
       }
       const hashed = await bcrypt.hash(password, 10);
       const newUser = {
-        username,
+        username: rawName,
+        usernameNorm,
         password: hashed,
         role: 'user',
         balance: 100, // Начальный баланс для новых игроков
@@ -576,7 +627,7 @@ function withRateLimit(event, handler) {
       console.error('Ошибка регистрации:', e);
       socket.emit('register_error', 'Ошибка сервера при регистрации.');
     }
-  }));
+  }, true));
 
   socket.on('create_room', withRateLimit('create_room', (options) => {
   const user = socket.data.user;
