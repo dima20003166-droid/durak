@@ -33,56 +33,28 @@ const PlayersList = ({
     const isCurrentAttacker = idx === gameState.attackerIndex;
     const isCurrentDefender = idx === gameState.defenderIndex;
     const statusText = isCurrentAttacker ? 'Атака' : isCurrentDefender ? 'Защита' : '';
-    return (
-      <div
-        key={p.socketId}
-        className="flex flex-col items-center p-2 mb-2 basis-1/4 md:basis-1/6"
-      >
-        {isMine ? (
-          <>
-            <div
-              className={`mb-0.5 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
-                isCurrentAttacker ? 'bg-danger' : ''
-              } ${isCurrentDefender ? 'bg-accent' : ''}`}
-            >
-              {statusText}
-            </div>
-            <p
-              className="font-semibold mb-0.5 truncate w-full text-center cursor-pointer"
-              onClick={() => openProfile(p)}
-            >
-              {p.username}
-            </p>
-          </>
-        ) : (
-          <>
-            <div
-              className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
-                isCurrentAttacker ? 'bg-danger' : ''
-              } ${isCurrentDefender ? 'bg-accent' : ''}`}
-            >
-              {statusText}
-            </div>
-            <img
-              className="w-16 h-16 rounded-full object-cover cursor-pointer"
-              src={resolveAvatarUrl(
-                p.avatarUrl,
-                `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`
-              )}
-              onClick={() => openProfile(p)}
-              alt=""
-            />
-            <p
-              className="font-semibold mt-1 truncate cursor-pointer w-full text-center"
-              onClick={() => openProfile(p)}
-            >
-              {p.username}
-            </p>
-          </>
-        )}
-        <div className={`flex justify-center items-center h-28 w-full ${isMine ? 'mt-1' : '-mt-12'}`}>
-          {isMine ? (
-            (() => {
+
+    if (isMine) {
+      return (
+        <div
+          key={p.socketId}
+          className="flex flex-col items-center p-2 mb-2 basis-1/4 md:basis-1/6"
+        >
+          <div
+            className={`mb-0.5 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+              isCurrentAttacker ? 'bg-danger' : ''
+            } ${isCurrentDefender ? 'bg-accent' : ''}`}
+          >
+            {statusText}
+          </div>
+          <p
+            className="font-semibold mb-0.5 truncate w-full text-center cursor-pointer"
+            onClick={() => openProfile(p)}
+          >
+            {p.username}
+          </p>
+          <div className="flex justify-center items-center h-28 w-full mt-1">
+            {(() => {
               const hand = myPlayer.hand;
               const mid = (hand.length - 1) / 2;
               const width = 60 + hand.length * 24;
@@ -109,28 +81,71 @@ const PlayersList = ({
                   })}
                 </div>
               );
-            })()
-          ) : (
-            (() => {
-              const width = 40 + p.hand.length * 6;
-              return (
-                <div className="relative" style={{ width }}>
-                  {Array(p.hand.length)
-                    .fill(0)
-                    .map((_, i) => (
-                      <div
-                        key={i}
-                        className="absolute"
-                        style={{ left: i * 6, transform: `rotate(${i % 2 ? 3 : -3}deg)` }}
-                      >
-                        <Card isFaceUp={false} layoutId={`${p.socketId}-card-${i}`} />
-                      </div>
-                    ))}
-                </div>
-              );
-            })()
-          )}
+            })()}
+          </div>
         </div>
+      );
+    }
+
+    const width = `calc(5.375rem + ${(p.hand.length - 1) * 4}px)`;
+    return (
+      <div
+        key={p.socketId}
+        className="flex flex-col items-center p-2 mb-2 basis-1/4 md:basis-1/6"
+      >
+        <div
+          className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+            isCurrentAttacker ? 'bg-danger' : ''
+          } ${isCurrentDefender ? 'bg-accent' : ''}`}
+        >
+          {statusText}
+        </div>
+        <div className="opponentZone relative flex flex-col items-center pb-40">
+          <img
+            className="opAvatar w-16 h-16 rounded-full object-cover cursor-pointer"
+            src={resolveAvatarUrl(
+              p.avatarUrl,
+              `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`
+            )}
+            onClick={() => openProfile(p)}
+            alt=""
+          />
+          <div
+            className="opHand stacked"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: 'calc(100% + 48px)',
+              transform: 'translateX(-50%)',
+              width,
+            }}
+          >
+            {Array(p.hand.length)
+              .fill(0)
+              .map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    transform: `translateX(${i * 4}px) translateY(${-i * 8}px)`,
+                    zIndex: i,
+                  }}
+                >
+                  <Card
+                    isFaceUp={false}
+                    layoutId={`${p.socketId}-card-${i}`}
+                    style={{ boxShadow: '0 8px 24px rgba(0,0,0,.35)' }}
+                  />
+                </div>
+              ))}
+          </div>
+        </div>
+        <p
+          className="font-semibold mt-1 truncate cursor-pointer w-full text-center"
+          onClick={() => openProfile(p)}
+        >
+          {p.username}
+        </p>
       </div>
     );
   };
