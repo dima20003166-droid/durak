@@ -1,7 +1,7 @@
 // client/src/components/Card.jsx
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const suitColor = (suit) => (suit === '♥' || suit === '♦' ? 'text-danger' : 'text-bg');
 const suitFill  = (suit) => (suit === '♥' || suit === '♦' ? 'var(--color-danger)' : 'var(--color-bg)');
@@ -45,7 +45,9 @@ export default function Card({
     lg: { rank: 18, corner: 20, pip: 32, class: 'w-card-lg h-card-lg' },
   };
   const S = sizes[size] || sizes.md;
-  const borderSel = isSelected ? 'ring-2 ring-primary shadow-primary/40 -translate-y-2' : 'ring-1 ring-border';
+  const borderSel = isSelected
+    ? 'ring-2 ring-primary shadow-primary scale-105 -translate-y-2'
+    : 'ring-1 ring-border';
   const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   useEffect(() => {
     if (isWinning && typeof window !== 'undefined') {
@@ -78,39 +80,48 @@ export default function Card({
       initial={dealFrom ? { x: dealFrom.x, y: dealFrom.y, rotate: -20 } : undefined}
       animate={{ x: 0, y: 0, rotate: 0 }}
       transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 500, damping: 30 }}
-      className={`relative rounded-xl cursor-pointer select-none card-3d ${S.class} ${borderSel} ${isWinning ? 'win-effect' : ''} ${className}`}
+      className={`relative rounded-xl cursor-pointer select-none card-3d transition-transform transition-shadow ${S.class} ${borderSel} ${
+        isWinning ? 'win-effect' : ''
+      } ${className}`}
       style={style}
       whileHover={prefersReducedMotion ? {} : { y: -4 }}
     >
-      <motion.div
-        className="relative w-full h-full card-flip-inner"
-        initial={{ rotateY: isFaceUp ? 0 : 180 }}
-        animate={{ rotateY: isFaceUp ? 0 : 180 }}
-        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6 }}
-      >
-        <div className="absolute inset-0 card-face">
-          <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
-            <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
-              <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
-              <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={isFaceUp ? 'face' : 'back'}
+          className="relative w-full h-full card-flip-inner"
+          initial={{ rotateY: 180 }}
+          animate={{ rotateY: 0 }}
+          exit={{ rotateY: -180 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: 'easeInOut' }}
+        >
+          {isFaceUp ? (
+            <div className="absolute inset-0 card-face">
+              <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
+                <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
+                  <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
+                  <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+                </div>
+                <div className="absolute bottom-1 right-1 flex flex-col items-center rotate-180 leading-none">
+                  <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
+                  <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+                </div>
+                <div className="w-full h-full flex items-center justify-center">
+                  <SuitSvg suit={suit} size={S.pip} />
+                </div>
+              </div>
             </div>
-            <div className="absolute bottom-1 right-1 flex flex-col items-center rotate-180 leading-none">
-              <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
-              <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+          ) : (
+            <div className="absolute inset-0 card-face" style={{ transform: 'rotateY(180deg)' }}>
+              <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
+                <div className="w-full h-full grid place-items-center">
+                  <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
+                </div>
+              </div>
             </div>
-            <div className="w-full h-full flex items-center justify-center">
-              <SuitSvg suit={suit} size={S.pip} />
-            </div>
-          </div>
-        </div>
-        <div className="absolute inset-0 card-face" style={{ transform: 'rotateY(180deg)' }}>
-          <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
-            <div className="w-full h-full grid place-items-center">
-              <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
-            </div>
-          </div>
-        </div>
-      </motion.div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </motion.div>
   );
 }
