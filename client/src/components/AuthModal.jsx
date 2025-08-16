@@ -59,9 +59,10 @@ export default function AuthModal({ onClose }) {
     if (!uname || !password || !password2) return setError('Заполните все поля');
 
     if (password !== password2) return setError('Пароли не совпадают');
+    if (!captchaToken) return setError('Подтвердите, что вы не робот');
 
     setLoading(true);
-
+    socketService.register({ username: unameNorm, password, captchaToken });
   };
 
   const handleGuest = () => {
@@ -96,15 +97,55 @@ export default function AuthModal({ onClose }) {
           </div>
           {error && <div className="text-danger text-sm">{error}</div>}
           <div className="space-y-4">
-
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Логин"
+              className="w-full p-3 bg-bg border border-border rounded-lg"
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Пароль"
+              className="w-full p-3 bg-bg border border-border rounded-lg"
+            />
+            {mode === 'register' && (
+              <>
+                <input
+                  type="password"
+                  value={password2}
+                  onChange={(e) => setPassword2(e.target.value)}
+                  placeholder="Повторите пароль"
+                  className="w-full p-3 bg-bg border border-border rounded-lg"
+                />
+                <ReCAPTCHA
+                  sitekey={RECAPTCHA_SITE_KEY}
+                  onChange={setCaptchaToken}
+                />
               </>
             )}
-            {mode === 'login' ? (
-              <button type="button" onClick={handleLogin} disabled={loading} className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80">Войти</button>
-            ) : (
-              <button type="button" onClick={handleRegister} disabled={loading} className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80">Зарегистрироваться</button>
-            )}
           </div>
+          {mode === 'login' ? (
+            <button
+              type="button"
+              onClick={handleLogin}
+              disabled={loading}
+              className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80"
+            >
+              Войти
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleRegister}
+              disabled={loading}
+              className="w-full py-3 font-semibold text-text bg-primary rounded-lg hover:bg-primary/80"
+            >
+              Зарегистрироваться
+            </button>
+          )}
           <div className="text-center text-xs text-muted pt-2">
             Аккаунты: player/player, admin/admin
           </div>
