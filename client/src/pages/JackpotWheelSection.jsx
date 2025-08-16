@@ -42,9 +42,17 @@ export default function JackpotWheelSection() {
       <JackpotWheel state={state} winner={winner} />
       <BetPanel bank={bank} state={state} />
       {serverSeedHash && (
-        <div className="text-xs text-center">
+        <div className="text-xs text-center flex flex-col items-center gap-1">
           <div>Server hash: {serverSeedHash}</div>
           {serverSeed && <div>Server seed: {serverSeed}</div>}
+          <a
+            href="https://github.com/dima20003166-droid/durak/blob/extract-files/server/README.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline"
+          >
+            Проверить честность
+          </a>
         </div>
       )}
     </div>
