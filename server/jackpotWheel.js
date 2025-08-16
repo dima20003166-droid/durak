@@ -109,7 +109,7 @@ class JackpotWheel extends EventEmitter {
     };
   }
 
-  placeBet(userId, color, amount, clientBetId) {
+  placeBet(userId, username, color, amount, clientBetId) {
     if (this.state !== 'OPEN') throw new Error('bets_closed');
     if (!['red', 'orange'].includes(color)) throw new Error('invalid_color');
     const id = String(clientBetId || '');
@@ -119,7 +119,7 @@ class JackpotWheel extends EventEmitter {
     const amt = Number(amount);
     if (!Number.isFinite(amt) || amt <= 0) throw new Error('invalid_amount');
     if (amt < this.config.MIN_BET || amt > this.config.MAX_BET) throw new Error('invalid_amount');
-    this.bets[color].push({ userId, amount: amt, clientBetId: id });
+    this.bets[color].push({ userId, username, amount: amt, clientBetId: id });
     if (id) {
       this.betIds.set(id, true);
       if (this.betIds.size > 1000) {
@@ -129,6 +129,7 @@ class JackpotWheel extends EventEmitter {
     }
     this.io.emit('bet:placed', {
       userId,
+      username,
       color,
       amount: amt,
       roundId: this.roundId,

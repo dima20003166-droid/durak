@@ -521,7 +521,13 @@ io.on('connection', (socket) => {
       const amt = Number(amount);
       if (!Number.isFinite(amt) || amt <= 0) throw new Error('invalid_amount');
       if (amt > Number(user.balance || 0)) throw new Error('insufficient_funds');
-      jackpotWheel.placeBet(user.id || socket.id, color, amt, clientBetId);
+      jackpotWheel.placeBet(
+        user.id || socket.id,
+        user.username || user.name || `Гость`,
+        color,
+        amt,
+        clientBetId,
+      );
       user.balance = Number(user.balance || 0) - amt;
       if (user.id) {
         try {

@@ -3,6 +3,7 @@ import socketService from '../services/socketService';
 import JackpotWheel from '../components/JackpotWheel';
 import BetPanel from '../components/BetPanel';
 import AnimatedCounter from '../components/AnimatedCounter';
+import PlayerBetList from '../components/PlayerBetList';
 
 export default function JackpotWheelSection() {
   const [state, setState] = useState('OPEN');
@@ -32,6 +33,7 @@ export default function JackpotWheelSection() {
           ...prev[d.color],
           {
             userId: d.userId,
+            username: d.username || d.userId,
             amount: d.amount,
             id: d.clientBetId || `${d.userId}-${Date.now()}`,
           },
@@ -77,22 +79,19 @@ export default function JackpotWheelSection() {
       <h1 className="text-3xl font-bold">Джекпот-колесо</h1>
       <JackpotWheel state={state} winner={winner} bank={bank} timeLeft={timeLeft} />
       <BetPanel bank={bank} state={state} />
-      <div className="w-full flex flex-col md:flex-row gap-4">
-        <div className="flex-1 bg-surface rounded shadow flex flex-col">
-          <div className="p-3 font-bold border-b text-red-400">Красный — {bank.red}</div>
-          <ul className="p-3 overflow-y-auto h-56 text-red-400 space-y-1">
-            {bets.red.map(b => (
-              <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
-            ))}
-          </ul>
+      <div className="w-full relative bg-surface rounded shadow flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-gray-700">
+        <div className="flex-1 flex flex-col">
+          <div className="p-3 font-bold border-b border-gray-700 text-red-400">Красный — {bank.red}</div>
+          <PlayerBetList bets={bets.red} textColor="text-red-400" />
         </div>
-        <div className="flex-1 bg-surface rounded shadow flex flex-col">
-          <div className="p-3 font-bold border-b text-orange-400">Оранжевый — {bank.orange}</div>
-          <ul className="p-3 overflow-y-auto h-56 text-orange-400 space-y-1">
-            {bets.orange.map(b => (
-              <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
-            ))}
-          </ul>
+        <div className="flex-1 flex flex-col">
+          <div className="p-3 font-bold border-b md:border-b-0 border-gray-700 text-orange-400">Оранжевый — {bank.orange}</div>
+          <PlayerBetList bets={bets.orange} textColor="text-orange-400" />
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="bg-surface px-4 py-2 rounded-full shadow text-primary font-semibold">
+            Банк: <AnimatedCounter value={totalBank} />
+          </div>
         </div>
       </div>
       <div className="w-full flex flex-col md:flex-row justify-between text-center gap-6">
