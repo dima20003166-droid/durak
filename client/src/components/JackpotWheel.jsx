@@ -105,6 +105,20 @@ export default function JackpotWheel({
   const glowTl = useRef(null);
 
   useEffect(() => {
+    return () => {
+      [startSound.current, spinSound.current, winSound.current].forEach((s) => {
+        if (s) {
+          s.pause();
+          s.currentTime = 0;
+        }
+      });
+      spinTween.current?.kill();
+      audioTl.current?.kill();
+      glowTl.current?.kill();
+    };
+  }, []);
+
+  useEffect(() => {
     if (phase === 'idle') {
       spins.current = config.maxSpins;
       spinTween.current?.kill();

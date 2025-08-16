@@ -57,7 +57,7 @@ test('deterministic winner by serverSeed', () => {
   let winner = null;
   const io = {
     emit(event, data) {
-      if (event === 'round:result') winner = data.winnerColor;
+      if (event === 'jackpot:roundResult') winner = data.winnerColor;
     },
   };
   const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
@@ -148,7 +148,7 @@ test('payouts sum to payoutPool', () => {
   let result = null;
   const io = {
     emit(event, data) {
-      if (event === 'round:result') result = data;
+      if (event === 'jackpot:roundResult') result = data;
     },
   };
   const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
@@ -173,7 +173,7 @@ test('payouts sum to payoutPool when rounding up', () => {
   let result = null;
   const io = {
     emit(event, data) {
-      if (event === 'round:result') result = data;
+      if (event === 'jackpot:roundResult') result = data;
     },
   };
   const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
@@ -234,7 +234,7 @@ test('probability distribution', () => {
     orange = 0;
   const io = {
     emit(event, data) {
-      if (event === 'round:result') {
+      if (event === 'jackpot:roundResult') {
         if (data.winnerColor === 'red') red++;
         else if (data.winnerColor === 'orange') orange++;
       }

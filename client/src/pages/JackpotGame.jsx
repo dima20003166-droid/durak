@@ -17,13 +17,17 @@ export default function JackpotGame({ initialRound, user }) {
   const [startTime, setStartTime] = useState(initialRound?.startTime || 0);
   const [animationDuration, setAnimationDuration] = useState(initialRound?.animationDuration || 0);
   const [targetAngle, setTargetAngle] = useState(initialRound?.targetAngle || 0);
-  const [timeLeft, setTimeLeft] = useState(initialRound?.timeLeftMs || 0);
-  const [openMs, setOpenMs] = useState(initialRound?.openDuration || initialRound?.openMs || 0);
+  const [skew, setSkew] = useState(() =>
+    typeof initialRound?.serverNow === 'number' ? initialRound.serverNow - Date.now() : 0,
+  );
   const [openUntil, setOpenUntil] = useState(
-    initialRound?.openUntil ||
+    initialRound?.openUntil ??
       (typeof initialRound?.timeLeftMs === 'number' ? Date.now() + initialRound.timeLeftMs : 0),
   );
-  const [skew, setSkew] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(
+    openUntil ? Math.max(0, openUntil - (Date.now() + skew)) : 0,
+  );
+  const [openMs, setOpenMs] = useState(initialRound?.openDuration || initialRound?.openMs || 0);
   const [result, setResult] = useState(initialRound?.result || null);
   const [spinEndAt, setSpinEndAt] = useState(0);
   const [pendingPayout, setPendingPayout] = useState(null);
@@ -118,7 +122,7 @@ export default function JackpotGame({ initialRound, user }) {
     socketService.on('jackpot:start', onStart);
     socketService.on('jackpot:result', onResult);
     socketService.on('jackpot:settled', onSettled);
-    socketService.on('round:result', onRoundResult);
+    socketService.on('jackpot:roundResult', onRoundResult);
     socketService.connect();
     return () => {
       socketService.off('jackpot:state', onState);
@@ -126,7 +130,7 @@ export default function JackpotGame({ initialRound, user }) {
       socketService.off('jackpot:start', onStart);
       socketService.off('jackpot:result', onResult);
       socketService.off('jackpot:settled', onSettled);
-      socketService.off('round:result', onRoundResult);
+      socketService.off('jackpot:roundResult', onRoundResult);
     };
   }, [user]);
 
