@@ -5,18 +5,22 @@ import { TrophyIcon, WalletIcon } from './icons';
 import socketService from '../services/socketService';
 
 function NeonButton({ color, disabled, onClick, Icon, children }) {
+  const gradients = {
+    red: 'from-[var(--jackpot-red)] to-[#ff6b6b]',
+    orange: 'from-[var(--jackpot-orange)] to-[#ffb347]',
+  };
+  const gradient = disabled ? 'from-gray-500 to-gray-600' : gradients[color];
+  const base = [
+    'flex items-center justify-center gap-2 px-4 py-2 rounded font-neon text-white',
+    'w-full md:w-auto transition-all duration-300 bg-gradient-to-r',
+  ].join(' ');
   return (
     <motion.button
-      whileHover={{ scale: 1.05, boxShadow: `0 0 15px var(--jackpot-${color})` }}
+      whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       disabled={disabled}
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 rounded border-2 font-neon text-white ${disabled ? 'opacity-50' : ''}`}
-      style={{
-        borderColor: `var(--jackpot-${color})`,
-        boxShadow: `0 0 10px var(--jackpot-${color})`,
-        color: `var(--jackpot-${color})`,
-      }}
+      className={`${base} ${gradient} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >
       <Icon />
       {children}
@@ -44,15 +48,43 @@ export default function BetPanel({ state }) {
     const clientBetId = Date.now().toString(36) + Math.random().toString(36).slice(2);
     socketService.placeWheelBet(color, amount, clientBetId);
   };
+  const increment = () => setAmount((a) => Number(a) + 1);
+  const decrement = () => setAmount((a) => Math.max(1, Number(a) - 1));
+  const inputClasses = [
+    'w-full md:w-32 text-center bg-bg border border-border rounded',
+    'transition-all duration-300 focus:outline-none',
+  ].join(' ');
   return (
-    <div className="flex items-center gap-4 justify-center p-3 border-b border-divider">
-      <input
-        type="number"
-        min="1"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        className="w-32 text-center bg-bg border border-border rounded"
-      />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className="flex flex-wrap md:flex-nowrap items-center gap-2 justify-center p-2 border-b border-divider"
+    >
+      <div className="flex items-center gap-2 w-full md:w-auto">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={decrement}
+          className="px-3 py-2 rounded bg-gradient-to-r from-gray-600 to-gray-700 text-white transition-all duration-300"
+        >
+          -
+        </motion.button>
+        <motion.input
+          type="number"
+          min="1"
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          className={inputClasses}
+          whileFocus={{ scale: 1.02, boxShadow: '0 0 8px var(--jackpot-red)' }}
+        />
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={increment}
+          className="px-3 py-2 rounded bg-gradient-to-r from-gray-600 to-gray-700 text-white transition-all duration-300"
+        >
+          +
+        </motion.button>
+      </div>
       <NeonButton
         color="red"
         disabled={state !== 'OPEN'}
@@ -69,7 +101,7 @@ export default function BetPanel({ state }) {
       >
         Orange
       </NeonButton>
-    </div>
+    </motion.div>
   );
 }
 
