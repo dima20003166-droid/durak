@@ -98,10 +98,16 @@ test('betIds cleared when round has no bets', () => {
   global.setTimeout = originalSetTimeout;
 });
 
-test('round starts with openUntil and timer active', () => {
+test('timer activates only after both colors have bets', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000, LOCK_MS: 100 });
+  assert.strictEqual(jw.openTimer, null);
+  assert.strictEqual(jw.openUntil, null);
+  jw.placeBet('u1', 'User', 'red', 10);
+  assert.strictEqual(jw.openTimer, null);
+  assert.strictEqual(jw.openUntil, null);
+  jw.placeBet('u2', 'User2', 'orange', 10);
   assert.ok(jw.openTimer !== null);
   assert.ok(typeof jw.openUntil === 'number');
   const state = jw.getState();
@@ -125,7 +131,9 @@ test('updateConfig adjusts active open timer', () => {
   const io = { emit() {} };
   const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000, LOCK_MS: 100 });
   jw.placeBet('u1', 'User1', 'red', 10);
+  assert.strictEqual(jw.openTimer, null);
   jw.placeBet('u2', 'User2', 'orange', 10);
+  assert.ok(jw.openTimer !== null);
   assert.strictEqual(timeouts[0].ms, 900);
   currentTime = 400;
   jw.updateConfig({ ROUND_DURATION_MS: 800 });
