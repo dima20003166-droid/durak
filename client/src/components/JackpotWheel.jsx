@@ -11,7 +11,7 @@ function useWheel(bank) {
   }, [bank.red, bank.orange]);
 }
 
-export default function JackpotWheel({ state, winner, bank }) {
+export default function JackpotWheel({ state, winner, bank, timeLeft }) {
   const { gradient, redAngle } = useWheel(bank);
   const [rotation, setRotation] = useState(0);
 
@@ -39,6 +39,9 @@ export default function JackpotWheel({ state, winner, bank }) {
         <div className="w-full h-full rounded-full" style={{ background: gradient }} />
         <div className="absolute inset-0 rounded-full pointer-events-none bg-white/10" />
       </div>
+      <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none">
+        {timeLeft > 0 ? Math.ceil(timeLeft) : ''}
+      </div>
       <motion.div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full origin-bottom pointer-events-none"
         animate={{ rotate: rotation }}
@@ -61,8 +64,10 @@ JackpotWheel.propTypes = {
     red: PropTypes.number,
     orange: PropTypes.number,
   }).isRequired,
+  timeLeft: PropTypes.number,
 };
 
 JackpotWheel.defaultProps = {
   winner: null,
+  timeLeft: 0,
 };

@@ -21,7 +21,8 @@ export default function JackpotWheelSection() {
       setWinner(null);
       setServerSeed('');
       setBets({ red: [], orange: [] });
-      if (d.state === 'OPEN') setTimeLeft(30);
+      if (d.state === 'OPEN') setTimeLeft(Math.round((d.openMs || 0) / 1000));
+      else setTimeLeft(0);
     });
     socketService.on('bet:placed', (d) => {
       if (d.bank) setBank(d.bank);
@@ -37,7 +38,10 @@ export default function JackpotWheelSection() {
         ],
       }));
     });
-    socketService.on('round:locked', () => setState('LOCK'));
+    socketService.on('round:locked', () => {
+      setState('LOCK');
+      setTimeLeft(0);
+    });
     socketService.on('round:result', (d) => {
       setState('RESULT');
       setWinner(d.winnerColor);
@@ -71,7 +75,7 @@ export default function JackpotWheelSection() {
   return (
     <div className="max-w-4xl mx-auto px-4 flex flex-col items-center gap-6 py-10">
       <h1 className="text-3xl font-bold">Джекпот-колесо</h1>
-      <JackpotWheel state={state} winner={winner} bank={bank} />
+      <JackpotWheel state={state} winner={winner} bank={bank} timeLeft={timeLeft} />
       <BetPanel bank={bank} state={state} />
       <div className="w-full flex flex-col md:flex-row gap-4">
         <ul className="flex-1 bg-surface/30 rounded p-3 overflow-y-auto h-56 text-red-400 space-y-1">
@@ -94,22 +98,6 @@ export default function JackpotWheelSection() {
         </div>
         <div className="flex-1 flex flex-col items-center">
           <div className="font-semibold">Банк</div>
-          <div className="relative">
-            <svg className="w-16 h-16 -rotate-90">
-              <circle cx="32" cy="32" r="28" stroke="var(--color-border)" strokeWidth="4" fill="transparent" />
-              <circle
-                cx="32"
-                cy="32"
-                r="28"
-                stroke="var(--neon-primary)"
-                strokeWidth="4"
-                fill="transparent"
-                strokeDasharray={2 * Math.PI * 28}
-                strokeDashoffset={(1 - timeLeft / 30) * 2 * Math.PI * 28}
-              />
-            </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">{Math.max(timeLeft, 0)}</span>
-          </div>
           <div className="mt-1">Сумма: <AnimatedCounter value={totalBank} /></div>
         </div>
         <div className="flex-1 text-orange-400">
