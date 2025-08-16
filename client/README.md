@@ -20,4 +20,4 @@ Ensure you execute these commands inside the `client` directory.
 ## Переменные окружения
 
 Используйте переменную `VITE_SERVER_URL`, чтобы указать адрес сервера Socket.IO.
-Если она не задана, по умолчанию используется `http://localhost:4000`.
+Если она не задана, по умолчанию используется `http://185.233.47.116:4000`.

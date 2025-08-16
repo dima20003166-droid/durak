@@ -5,6 +5,7 @@ const fs = require('fs');
 const { Server } = require('socket.io');
 const bcrypt = require('bcrypt');
 const admin = require('firebase-admin');
+const cors = require('cors');
 
 let serviceAccount = null;
 try {
@@ -77,14 +78,17 @@ async function saveSiteSettings(settings) {
 
 // ---------------------- HTTP + Socket.IO ----------------------
 const app = express();
+app.use(cors({
+  origin: 'http://185.233.47.116',
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: [
-      'http://localhost:5173',
-      'http://185.233.47.116'
-    ],
-    methods: ['GET', 'POST']
+    origin: 'http://185.233.47.116',
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
