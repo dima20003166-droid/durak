@@ -13,6 +13,8 @@ export default function JackpotGame({ initialRound }) {
   const [startTime, setStartTime] = useState(initialRound?.startTime || 0);
   const [animationDuration, setAnimationDuration] = useState(initialRound?.animationDuration || 0);
   const [targetAngle, setTargetAngle] = useState(initialRound?.targetAngle || 0);
+  const [timeLeft, setTimeLeft] = useState(initialRound?.timeLeftMs || 0);
+  const [openMs, setOpenMs] = useState(initialRound?.openMs || 0);
   const [result, setResult] = useState(initialRound?.result || null);
   const winner = phase === 'settled' && result ? result.color : null;
   const bankRef = useRef(bank);
@@ -26,6 +28,8 @@ export default function JackpotGame({ initialRound }) {
       setAnimationDuration(d.animationDuration || 0);
       setTargetAngle(d.targetAngle || 0);
       setResult(d.result || null);
+      if (typeof d.timeLeftMs === 'number') setTimeLeft(d.timeLeftMs);
+      if (typeof d.openMs === 'number') setOpenMs(d.openMs);
     });
     socketService.on('bet:placed', (d) => {
       if (d.bank) setBank(d.bank);
@@ -56,6 +60,8 @@ export default function JackpotGame({ initialRound }) {
       if (d.bank) setBank(d.bank);
       setResult(d.result);
       setBets({ red: [], orange: [] });
+      setTimeLeft(0);
+      setOpenMs(0);
     });
     socketService.connect();
     return () => {
@@ -71,7 +77,16 @@ export default function JackpotGame({ initialRound }) {
     bankRef.current = bank;
   }, [bank]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft((t) => (t > 0 ? t - 1000 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const totalBank = bank.red + bank.orange;
+  const redChance = totalBank ? (bank.red / totalBank) * 100 : 50;
+  const orangeChance = 100 - redChance;
 
   return (
     <motion.div
@@ -93,7 +108,17 @@ export default function JackpotGame({ initialRound }) {
         startTime={startTime}
         animationDuration={animationDuration}
         targetAngle={targetAngle}
+        timeLeft={timeLeft}
+        totalTime={openMs}
       />
+      <div className={`flex gap-4 text-sm font-bold mt-2 ${phase !== 'idle' ? 'opacity-50' : ''}`}>
+        <div className="text-red-300">
+          Red ~ <AnimatedCounter value={redChance} formatValue={(v) => `${v.toFixed(0)}%`} />
+        </div>
+        <div className="text-orange-300">
+          Orange ~ <AnimatedCounter value={orangeChance} formatValue={(v) => `${v.toFixed(0)}%`} />
+        </div>
+      </div>
       <motion.div
         className="w-full bg-black/40 backdrop-blur-md rounded-xl overflow-hidden shadow-lg"
         initial={{ opacity: 0, scale: 0.95 }}
@@ -102,14 +127,15 @@ export default function JackpotGame({ initialRound }) {
         <BetPanel state={phase} />
         <div className="flex flex-col">
           <div className="flex flex-col md:flex-row items-center justify-center border-b border-white/20">
-            <div className="flex-1 p-3 font-bold text-red-300 text-left">
+            <div className="flex-1 p-3 font-bold text-red-300 text-left leading-tight">
               Красный — {bank.red}
             </div>
-            <div className="p-3 font-bold flex items-center justify-center">
-              Банк: <AnimatedCounter value={totalBank} />
+            <div className="p-3 font-bold flex flex-col items-center text-center leading-tight">
+              <span>Банк:</span>
+              <AnimatedCounter value={totalBank} />
             </div>
-            <div className="flex-1 p-3 font-bold text-orange-300 text-right">
-              Оранжевый — {bank.orange}
+            <div className="flex-1 p-3 font-bold text-orange-300 text-right leading-tight">
+              — {bank.orange} Оранжевый
             </div>
           </div>
           <div className="flex flex-col md:flex-row">
