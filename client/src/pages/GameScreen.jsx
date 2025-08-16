@@ -9,6 +9,7 @@ import PlayersList from '../components/game/PlayersList';
 import RoomChat from '../components/game/RoomChat';
 import ProfileModal from '../components/game/ProfileModal';
 import ActionPanel from '../components/game/ActionPanel';
+import confetti from 'canvas-confetti';
 
 function playWinDing() {
   try {
@@ -37,6 +38,10 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
   const [gameOverMessage, setGameOverMessage] = useState(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [now, setNow] = useState(Date.now());
+
+  const mySocketId = socketService.getSocketId();
+  const myPlayer = room?.players?.find((p) => p.socketId === mySocketId);
+  const confettiDisabled = localStorage.getItem('disableConfetti') === 'true';
 
   // чат комнаты
   const [chat, setChat] = useState([]);
@@ -90,10 +95,13 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
     const onGameOver = (data) => {
       setGameOverMessage(data?.message || 'Игра окончена');
       playWinDing();
+      if (!confettiDisabled && data?.winnerId && data.winnerId === myPlayer?.id) {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      }
     };
     socketService.on('game_over', onGameOver);
     return () => socketService.off('game_over', onGameOver);
-  }, []);
+  }, [myPlayer?.id, confettiDisabled]);
   useEffect(() => {
     const onUpdate = (r) => {
       if (r?.status === 'finished' && !gameOverMessage) setGameOverMessage('Игра окончена');
@@ -110,8 +118,6 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
     );
   }
 
-  const mySocketId = socketService.getSocketId();
-  const myPlayer = room?.players?.find((p) => p.socketId === mySocketId);
   const gameState = room?.gameState;
   const isOwner = !!((room?.ownerId && myPlayer?.id && room.ownerId === myPlayer.id) ||
                      (room?.ownerSocketId && room.ownerSocketId === mySocketId));
