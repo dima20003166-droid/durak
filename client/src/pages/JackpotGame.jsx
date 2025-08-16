@@ -7,37 +7,25 @@ import AnimatedCounter from '../components/AnimatedCounter';
 import PlayerBetList from '../components/PlayerBetList';
 
 export default function JackpotGame({ initialRound }) {
-  const [state, setState] = useState(initialRound?.state || 'OPEN');
+  const [phase, setPhase] = useState(initialRound?.phase || 'idle');
   const [bank, setBank] = useState(initialRound?.bank || { red: 0, orange: 0 });
-  const [winner, setWinner] = useState(null);
-  const [bets, setBets] = useState({ red: [], orange: [] });
-  const [timeLeft, setTimeLeft] = useState(initialRound?.timeLeftMs ? Math.round(initialRound.timeLeftMs / 1000) : 0);
+  const [bets, setBets] = useState(initialRound?.bets || { red: [], orange: [] });
+  const [startTime, setStartTime] = useState(initialRound?.startTime || 0);
+  const [animationDuration, setAnimationDuration] = useState(initialRound?.animationDuration || 0);
+  const [targetAngle, setTargetAngle] = useState(initialRound?.targetAngle || 0);
+  const [result, setResult] = useState(initialRound?.result || null);
+  const winner = phase === 'settled' && result ? result.color : null;
   const bankRef = useRef(bank);
-  const bankAfterResultRef = useRef(null);
-  const delayedBankTimer = useRef(null);
 
   useEffect(() => {
-    socketService.on('round:state', (d) => {
-      if (d.state === 'OPEN') {
-        setState('OPEN');
-        setWinner(null);
-        if (!(d.openMs || d.timeLeftMs)) setBets({ red: [], orange: [] });
-        const ms = d.timeLeftMs != null ? d.timeLeftMs : d.openMs;
-        setTimeLeft(Math.round((ms || 0) / 1000));
-        if (delayedBankTimer.current) clearTimeout(delayedBankTimer.current);
-        const snapshot = bankAfterResultRef.current || bankRef.current;
-        setBank(snapshot);
-        delayedBankTimer.current = setTimeout(() => {
-          if (d.bank) setBank(d.bank);
-          bankAfterResultRef.current = null;
-        }, 3000);
-      } else {
-        setState(d.state);
-        setWinner(null);
-        const ms = d.timeLeftMs != null ? d.timeLeftMs : d.openMs;
-        if (['OPEN', 'LOCK', 'SPIN'].includes(d.state)) setTimeLeft(Math.round((ms || 0) / 1000));
-        else setTimeLeft(0);
-      }
+    socketService.on('jackpot:state', (d) => {
+      setPhase(d.phase);
+      if (d.bank) setBank(d.bank);
+      if (d.bets) setBets(d.bets);
+      setStartTime(d.startTime || 0);
+      setAnimationDuration(d.animationDuration || 0);
+      setTargetAngle(d.targetAngle || 0);
+      setResult(d.result || null);
     });
     socketService.on('bet:placed', (d) => {
       if (d.bank) setBank(d.bank);
@@ -54,35 +42,34 @@ export default function JackpotGame({ initialRound }) {
         ],
       }));
     });
-    socketService.on('round:locked', (d) => {
-      if (d.bankSnapshot) setBank(d.bankSnapshot);
-      setState('LOCK');
-      setTimeLeft(0);
+    socketService.on('jackpot:start', (d) => {
+      setPhase('spinning');
+      setStartTime(d.startTime);
+      setAnimationDuration(d.animationDuration);
+      setTargetAngle(d.targetAngle);
     });
-    socketService.on('round:result', (d) => {
-      bankAfterResultRef.current = bankRef.current;
-      setState('RESULT');
-      setWinner(d.winnerColor);
+    socketService.on('jackpot:result', (d) => {
+      setResult(d.result);
+    });
+    socketService.on('jackpot:settled', (d) => {
+      setPhase('settled');
+      if (d.bank) setBank(d.bank);
+      setResult(d.result);
+      setBets({ red: [], orange: [] });
     });
     socketService.connect();
     return () => {
-      socketService.off('round:state');
+      socketService.off('jackpot:state');
       socketService.off('bet:placed');
-      socketService.off('round:locked');
-      socketService.off('round:result');
-      if (delayedBankTimer.current) clearTimeout(delayedBankTimer.current);
+      socketService.off('jackpot:start');
+      socketService.off('jackpot:result');
+      socketService.off('jackpot:settled');
     };
   }, []);
 
   useEffect(() => {
     bankRef.current = bank;
   }, [bank]);
-
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-    return () => clearInterval(id);
-  }, [timeLeft]);
 
   const totalBank = bank.red + bank.orange;
 
@@ -99,13 +86,20 @@ export default function JackpotGame({ initialRound }) {
       >
         Джекпот
       </motion.h2>
-      <JackpotWheel state={state} winner={winner} bank={bank} timeLeft={timeLeft} />
+      <JackpotWheel
+        phase={phase}
+        winner={winner}
+        bank={bank}
+        startTime={startTime}
+        animationDuration={animationDuration}
+        targetAngle={targetAngle}
+      />
       <motion.div
         className="w-full bg-black/40 backdrop-blur-md rounded-xl overflow-hidden shadow-lg"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        <BetPanel state={state} />
+        <BetPanel state={phase} />
         <div className="flex flex-col">
           <div className="flex flex-col md:flex-row items-center justify-center border-b border-white/20">
             <div className="flex-1 p-3 font-bold text-red-300 text-left">

@@ -137,8 +137,8 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
 
   useEffect(() => {
     const handler = (d) => setInitialRound(d);
-    socketService.on('round:state', handler);
-    return () => socketService.off('round:state', handler);
+    socketService.on('jackpot:state', handler);
+    return () => socketService.off('jackpot:state', handler);
   }, []);
 
   useEffect(() => {

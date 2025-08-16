@@ -36,7 +36,7 @@ function segmentPath(cx, cy, r, startAngle, endAngle) {
   return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y} Z`;
 }
 
-export default function JackpotWheel({ state, winner, bank, timeLeft, volume, spinConfig }) {
+export default function JackpotWheel({ phase, winner, bank, startTime, animationDuration, targetAngle, volume, spinConfig }) {
   const { segments, redAngle } = useWheel(bank);
   const arrowRef = useRef(null);
   const wheelRef = useRef(null);
@@ -72,11 +72,10 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume, sp
   }, []);
 
   useEffect(() => {
-    if (state === 'OPEN') {
-      startOffsetRef.current = Math.random() * 360;
+    if (phase === 'idle') {
       spins.current = Math.min(Math.floor(Math.random() * 4) + 7, config.maxSpins);
       spinTween.current?.kill();
-      gsap.set(arrowRef.current, { rotation: startOffsetRef.current });
+      gsap.set(arrowRef.current, { rotation: 0 });
       hasCelebrated.current = false;
       if (spinSound.current) {
         gsap.to(spinSound.current, {
@@ -89,7 +88,7 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume, sp
         });
       }
     }
-    if (state === 'SPIN') {
+    if (phase === 'spinning') {
       startSound.current?.play();
       if (spinSound.current) {
         spinSound.current.volume = 0;
@@ -97,26 +96,24 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume, sp
         spinSound.current.play();
         gsap.to(spinSound.current, { volume, duration: 0.5 });
       }
-      const tl = gsap.timeline({ defaults: { transformOrigin: 'center center' } });
-      tl.to(arrowRef.current, {
-        rotation: `+=${config.initialSpeed * config.acceleration}`,
-        duration: config.acceleration,
-        ease: 'power2.in',
-      });
-      tl.to(arrowRef.current, {
-        rotation: '+=360',
-        duration: 360 / config.initialSpeed,
-        ease: 'linear',
-        repeat: -1,
-      });
-      spinTween.current = tl;
-      gsap.fromTo(
-        arrowRef.current,
-        { filter: 'blur(2px)', opacity: 0.6 },
-        { filter: 'blur(0)', opacity: 1, duration: 0.5 }
-      );
+      const totalRotation = spins.current * 360 + targetAngle;
+      const now = Date.now();
+      const drift = now - startTime;
+      const duration = Math.max(0, animationDuration - Math.max(0, drift)) / 1000;
+      const current = totalRotation * Math.max(0, drift) / animationDuration;
+      spinTween.current?.kill();
+      gsap.set(arrowRef.current, { rotation: current });
+      if (duration > 0) {
+        spinTween.current = gsap.to(arrowRef.current, {
+          rotation: totalRotation,
+          duration,
+          ease: config.ease || 'power4.out',
+        });
+      } else {
+        gsap.set(arrowRef.current, { rotation: totalRotation });
+      }
     }
-  }, [state, volume, config]);
+  }, [phase, startTime, animationDuration, targetAngle, volume, config]);
 
   useEffect(() => {
     if (!winner) return;
@@ -227,21 +224,21 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume, sp
         </svg>
         <div className="absolute inset-0 rounded-full pointer-events-none bg-white/10" />
       </div>
-      <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none">
-        {timeLeft > 0 ? Math.ceil(timeLeft) : ''}
-      </div>
+      <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none" />
     </div>
   );
 }
 
 JackpotWheel.propTypes = {
-  state: PropTypes.string.isRequired,
+  phase: PropTypes.string.isRequired,
   winner: PropTypes.string,
   bank: PropTypes.shape({
     red: PropTypes.number,
     orange: PropTypes.number,
   }).isRequired,
-  timeLeft: PropTypes.number,
+  startTime: PropTypes.number,
+  animationDuration: PropTypes.number,
+  targetAngle: PropTypes.number,
   volume: PropTypes.number,
   spinConfig: PropTypes.shape({
     initialSpeed: PropTypes.number,
@@ -254,7 +251,9 @@ JackpotWheel.propTypes = {
 
 JackpotWheel.defaultProps = {
   winner: null,
-  timeLeft: 0,
+  startTime: 0,
+  animationDuration: 0,
+  targetAngle: 0,
   volume: 1,
   spinConfig: defaultSpinConfig,
 };
