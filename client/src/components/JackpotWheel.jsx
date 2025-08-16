@@ -36,7 +36,18 @@ function segmentPath(cx, cy, r, startAngle, endAngle) {
   return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y} Z`;
 }
 
-export default function JackpotWheel({ phase, winner, bank, startTime, animationDuration, targetAngle, volume, spinConfig }) {
+export default function JackpotWheel({
+  phase,
+  winner,
+  bank,
+  startTime,
+  animationDuration,
+  targetAngle,
+  timeLeft,
+  totalTime,
+  volume,
+  spinConfig,
+}) {
   const { segments, redAngle } = useWheel(bank);
   const arrowRef = useRef(null);
   const wheelRef = useRef(null);
@@ -46,9 +57,13 @@ export default function JackpotWheel({ phase, winner, bank, startTime, animation
   const winSound = useRef();
   const hasCelebrated = useRef(false);
   const config = useMemo(() => ({ ...defaultSpinConfig, ...(spinConfig || {}) }), [spinConfig]);
-  const spins = useRef(Math.floor(Math.random() * 4) + 7);
+  const spins = useRef(defaultSpinConfig.maxSpins);
   const startOffsetRef = useRef(0);
   const spinTween = useRef(null);
+  const ringRadius = 49;
+  const circumference = 2 * Math.PI * ringRadius;
+  const progress = totalTime > 0 ? timeLeft / totalTime : 0;
+  const dashOffset = circumference * (1 - progress);
 
   useEffect(() => {
     startSound.current = new Audio('/start.mp3');
@@ -73,7 +88,7 @@ export default function JackpotWheel({ phase, winner, bank, startTime, animation
 
   useEffect(() => {
     if (phase === 'idle') {
-      spins.current = Math.min(Math.floor(Math.random() * 4) + 7, config.maxSpins);
+      spins.current = config.maxSpins;
       spinTween.current?.kill();
       gsap.set(arrowRef.current, { rotation: 0 });
       hasCelebrated.current = false;
@@ -224,7 +239,27 @@ export default function JackpotWheel({ phase, winner, bank, startTime, animation
         </svg>
         <div className="absolute inset-0 rounded-full pointer-events-none bg-white/10" />
       </div>
-      <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none" />
+      {totalTime > 0 && (
+        <svg
+          viewBox="0 0 100 100"
+          className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
+        >
+          <circle
+            cx="50"
+            cy="50"
+            r={ringRadius}
+            stroke="rgba(255,255,255,0.6)"
+            strokeWidth="2"
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+            style={{ transition: 'stroke-dashoffset 1s linear' }}
+          />
+        </svg>
+      )}
+      <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white pointer-events-none">
+        {totalTime > 0 ? Math.ceil(timeLeft / 1000) : ''}
+      </div>
     </div>
   );
 }
@@ -239,6 +274,8 @@ JackpotWheel.propTypes = {
   startTime: PropTypes.number,
   animationDuration: PropTypes.number,
   targetAngle: PropTypes.number,
+  timeLeft: PropTypes.number,
+  totalTime: PropTypes.number,
   volume: PropTypes.number,
   spinConfig: PropTypes.shape({
     initialSpeed: PropTypes.number,
@@ -254,6 +291,8 @@ JackpotWheel.defaultProps = {
   startTime: 0,
   animationDuration: 0,
   targetAngle: 0,
+  timeLeft: 0,
+  totalTime: 0,
   volume: 1,
   spinConfig: defaultSpinConfig,
 };
