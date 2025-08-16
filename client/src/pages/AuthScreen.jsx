@@ -34,8 +34,7 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
     };
   }, [setPage, setCurrentUser]);
 
-  const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
-  const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
 
   const handleLogin = () => {
     setError('');
@@ -50,12 +49,11 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
     const uname = username.trim();
     const unameNorm = uname.toLowerCase();
     if (!uname || !password || !password2) return setError('Заполните все поля');
-    if (!USERNAME_REGEX.test(unameNorm)) return setError('Имя может содержать только латиницу, цифры и подчёркивания (3-20 символов)');
-    if (!PASSWORD_REGEX.test(password)) return setError('Пароль должен быть не менее 8 символов, с буквами разных регистров, цифрами и спецсимволом');
+
     if (password !== password2) return setError('Пароли не совпадают');
 
     setLoading(true);
-    socketService.register({ username: uname, password, captcha: captchaToken });
+
   };
 
   const handleGuest = () => {
@@ -76,11 +74,6 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
           {error && <div className="text-danger text-sm">{error}</div>}
 
           <div className="space-y-4">
-            <input type="text" placeholder="Имя пользователя" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text"/>
-            <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text"/>
-            {mode === 'register' && (
-              <>
-                <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text"/>
 
               </>
             )}

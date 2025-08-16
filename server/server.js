@@ -101,27 +101,7 @@ const isPlayerInAnyRoom = (userId) => {
   );
 };
 
-const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
-async function verifyCaptcha(token) {
-  try {
-    const secret = process.env.RECAPTCHA_SECRET;
-
-    const params = new URLSearchParams();
-    params.append('secret', secret);
-    params.append('response', token);
-    const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      body: params,
-    });
-    const data = await res.json();
-    return !!data.success;
-  } catch (e) {
-    console.error('Captcha verification error:', e);
-    return false;
-  }
-}
 
 // ---------------------- Онлайн-пользователи ----------------------
 function getOnlineCount() {
@@ -595,14 +575,7 @@ io.on('connection', (socket) => {
       const rawName = String(username || '').trim();
       const usernameNorm = rawName.toLowerCase();
       if (!USERNAME_REGEX.test(usernameNorm)) {
-        return socket.emit('register_error', 'Имя пользователя может содержать только латинские буквы, цифры и подчёркивания (3-20 символов).');
-      }
-      if (!PASSWORD_REGEX.test(String(password || ''))) {
-        return socket.emit('register_error', 'Пароль должен быть не менее 8 символов и содержать строчные и заглавные буквы, цифры и спецсимвол.');
-      }
-      const captchaOk = await verifyCaptcha(captcha);
-      if (!captchaOk) {
-        return socket.emit('register_error', 'Капча не пройдена');
+
       }
       const snap = await db.collection('users').where('usernameNorm', '==', usernameNorm).limit(1).get();
       if (!snap.empty) {
