@@ -1,10 +1,7 @@
 // client/src/pages/AuthScreen.jsx
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import ReCAPTCHA from 'react-google-recaptcha';
 import socketService from '../services/socketService';
-
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 const AuthScreen = ({ setPage, setCurrentUser }) => {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
@@ -13,7 +10,6 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
   const [password2, setPassword2] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(null);
 
   useEffect(() => {
     const onLoginError = (msg) => { setError(msg || 'Ошибка входа'); setLoading(false); };
@@ -34,8 +30,7 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
     };
   }, [setPage, setCurrentUser]);
 
-  const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
-  const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  const USERNAME_REGEX = /^[a-z0-9_]{6,20}$/;
 
   const handleLogin = () => {
     setError('');
@@ -50,12 +45,11 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
     const uname = username.trim();
     const unameNorm = uname.toLowerCase();
     if (!uname || !password || !password2) return setError('Заполните все поля');
-    if (!USERNAME_REGEX.test(unameNorm)) return setError('Имя может содержать только латиницу, цифры и подчёркивания (3-20 символов)');
-    if (!PASSWORD_REGEX.test(password)) return setError('Пароль должен быть не менее 8 символов, с буквами разных регистров, цифрами и спецсимволом');
+    if (!USERNAME_REGEX.test(unameNorm)) return setError('Имя может содержать только латиницу, цифры и подчёркивания (минимум 6 символов)');
+    if (password.length < 6) return setError('Пароль должен быть не короче 6 символов');
     if (password !== password2) return setError('Пароли не совпадают');
-    if (RECAPTCHA_SITE_KEY && !captchaToken) return setError('Подтвердите, что вы не робот');
     setLoading(true);
-    socketService.register({ username: uname, password, captcha: captchaToken });
+    socketService.register({ username: uname, password });
   };
 
   const handleGuest = () => {
@@ -76,16 +70,11 @@ const AuthScreen = ({ setPage, setCurrentUser }) => {
           {error && <div className="text-danger text-sm">{error}</div>}
 
           <div className="space-y-4">
-            <input type="text" placeholder="Имя пользователя" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text"/>
-            <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text"/>
+            <input type="text" placeholder="Имя пользователя" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-white placeholder-gray-400"/>
+            <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-white placeholder-gray-400"/>
             {mode === 'register' && (
               <>
-                <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-text"/>
-                {RECAPTCHA_SITE_KEY ? (
-                  <ReCAPTCHA sitekey={RECAPTCHA_SITE_KEY} onChange={setCaptchaToken}/>
-                ) : (
-                  <div className="text-danger text-sm">reCAPTCHA не настроена</div>
-                )}
+                <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-white placeholder-gray-400"/>
               </>
             )}
             {mode === 'login' ? (
