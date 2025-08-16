@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 import socketService from '../services/socketService';
 
-export default function CreateRoomModal({ onClose }) {
+export default function CreateRoomModal({ initialMode = 'classic', onClose }) {
   const [bet, setBet] = useState(50);
-  const [mode, setMode] = useState('classic');
+  const [mode, setMode] = useState(initialMode);
   const [isPrivate, setIsPrivate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -126,6 +126,7 @@ export default function CreateRoomModal({ onClose }) {
 }
 
 CreateRoomModal.propTypes = {
+  initialMode: PropTypes.string,
   onClose: PropTypes.func,
 };
 
