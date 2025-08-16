@@ -498,6 +498,9 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000);
 
+// Допустимый логин: 3–20 символов, буквы/цифры/подчёркивания
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+
 io.on('connection', (socket) => {
   socket.on('bet:place', (payload, cb) => {
     try {
