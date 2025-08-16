@@ -153,17 +153,12 @@
 
 /* End admin badge styles */
 
-/* Card 3D flip styles */
-.card-3d {
-  perspective: 1000px;
-}
+/* Card flip styles (2D) */
 .card-flip-inner {
-  transform-style: preserve-3d;
   transition: transform 0.6s;
   will-change: transform;
 }
 .card-face {
-  backface-visibility: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -174,32 +169,55 @@
   animation: gameGradient 20s ease infinite;
 }
 
-/* Game layout grid */
+/* Game layout */
 .game-layout {
-  display: grid;
-  grid-template-areas:
-    'header header'
-    'table sidebar'
-    'footer footer';
-  grid-template-columns: 1fr 300px;
-  grid-template-rows: auto 1fr auto;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   padding: 1rem;
+  gap: 1rem;
 }
-.game-header { grid-area: header; }
-.game-table { grid-area: table; }
-.game-sidebar { grid-area: sidebar; }
-.game-footer { grid-area: footer; }
-
+.game-header { flex: 0 0 auto; }
+.game-footer { flex: 0 0 auto; }
+.game-main {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 1rem;
+}
+.game-center {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.game-left,
+.game-right {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+@media (max-width: 1024px) {
+  .game-left,
+  .game-right {
+    width: 200px;
+  }
+}
 @media (max-width: 768px) {
-  .game-layout {
-    grid-template-areas:
-      'header'
-      'table'
-      'footer'
-      'sidebar';
-    grid-template-columns: 1fr;
+  .game-main {
+    flex-direction: column;
+  }
+  .game-left,
+  .game-right {
+    width: 100%;
+    order: 3;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .game-center {
+    order: 1;
   }
 }
 

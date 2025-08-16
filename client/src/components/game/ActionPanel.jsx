@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { motion } from 'framer-motion';
 import Button from '../Button';
 
 const ActionPanel = ({
@@ -14,7 +15,12 @@ const ActionPanel = ({
   canSurrender,
 }) => {
   return (
-    <div className="flex flex-col md:flex-row items-center w-full gap-y-2 md:gap-x-4 p-4">
+    <motion.div
+      className="flex flex-col md:flex-row items-center w-full gap-y-2 md:gap-x-4 p-4"
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 40 }}
+    >
       <div className="flex justify-center gap-x-4 flex-1">
         {(isAttacker || canThrowIn) && (
           <Button
@@ -72,7 +78,7 @@ const ActionPanel = ({
           Сдаться
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import Button from '../Button';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
 const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
@@ -20,13 +22,14 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <button
-        className="md:hidden mb-2 bg-primary text-text rounded px-3 py-1"
+    <motion.div className="h-full flex flex-col" initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }}>
+      <Button
+        className="md:hidden mb-2"
+        variant="primary"
         onClick={() => setOpen((o) => !o)}
       >
         {open ? 'Скрыть чат' : 'Показать чат'}
-      </button>
+      </Button>
       <div
         className={`${open ? 'flex' : 'hidden'} md:flex bg-surface rounded-xl border border-border p-4 flex-col h-full`}
       >
@@ -85,15 +88,12 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
             className="flex-1 bg-surface rounded-l px-2 py-1"
             placeholder="Сообщение..."
           />
-          <button
-            className="bg-primary hover:bg-primary/80 rounded-r px-3 transition-colors"
-            onClick={send}
-          >
+          <Button className="rounded-l-none" onClick={send} variant="primary">
             Отправить
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
