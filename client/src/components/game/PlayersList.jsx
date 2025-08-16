@@ -40,20 +40,24 @@ const PlayersList = ({
           key={p.socketId}
           className="flex flex-col items-center p-2 mb-2 basis-1/4 md:basis-1/6"
         >
-          <div
-            className={`mb-0.5 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
-              isCurrentAttacker ? 'bg-danger' : ''
-            } ${isCurrentDefender ? 'bg-accent' : ''}`}
-          >
-            {statusText}
-          </div>
-          <p
-            className="font-semibold mb-0.5 truncate w-full text-center cursor-pointer"
-            onClick={() => openProfile(p)}
-          >
-            {p.username}
-          </p>
-          <div className="flex justify-center items-center h-28 w-full mt-1">
+          <div className="relative flex justify-center items-start h-28 w-full mt-1 pt-16">
+            <div
+              className="absolute top-3 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-sm md:text-base font-semibold"
+            >
+              <p
+                className="truncate cursor-pointer"
+                onClick={() => openProfile(p)}
+              >
+                {p.username}
+              </p>
+              <div
+                className={`rounded-[10px] px-[10px] py-[6px] whitespace-nowrap ${
+                  isCurrentAttacker ? 'bg-danger' : ''
+                } ${isCurrentDefender ? 'bg-accent' : ''}`}
+              >
+                {statusText}
+              </div>
+            </div>
             {(() => {
               const hand = myPlayer.hand;
               const mid = (hand.length - 1) / 2;
