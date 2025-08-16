@@ -98,15 +98,15 @@ test('betIds cleared when round has no bets', () => {
   global.setTimeout = originalSetTimeout;
 });
 
-test('countdown starts only after bets on both colors', () => {
+test('round starts with openUntil and timer active', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
   const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
-  assert.strictEqual(jw.openTimer, null);
-  jw.placeBet('u1', 'User', 'red', 10);
-  assert.strictEqual(jw.openTimer, null);
-  jw.placeBet('u2', 'User', 'orange', 10);
   assert.ok(jw.openTimer !== null);
+  assert.ok(typeof jw.openUntil === 'number');
+  const state = jw.getState();
+  assert.ok(typeof state.openUntil === 'number');
+  assert.ok(typeof state.timeLeftMs === 'number');
   global.setTimeout = originalSetTimeout;
 });
 

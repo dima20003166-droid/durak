@@ -44,20 +44,10 @@ class JackpotWheel extends EventEmitter {
       this.serverSeed = initialData.serverSeed || '';
       this.serverSeedHash = initialData.serverSeedHash || '';
       this.state = 'OPEN';
-      const bank = this.getBank();
-      const hasRed = this.bets.red.length > 0;
-      const hasOrange = this.bets.orange.length > 0;
-      const openTime = this.openDuration;
-      this.io.emit('jackpot:state', {
-        ...this.getState(),
-        bank,
-        openMs: hasRed && hasOrange ? openTime : null,
-        timeLeftMs: hasRed && hasOrange ? openTime : null,
-      });
-      if (hasRed && hasOrange) {
-        this.openTimer = setTimeout(() => this.lockRound(), openTime);
-        this.openUntil = Date.now() + openTime;
-      }
+      this.openUntil = initialData.openUntil || Date.now() + this.openDuration;
+      const timeLeft = Math.max(0, this.openUntil - Date.now());
+      this.openTimer = setTimeout(() => this.lockRound(), timeLeft);
+      this.io.emit('jackpot:state', this.getState());
     } else {
       this.startRound();
     }
@@ -85,16 +75,21 @@ class JackpotWheel extends EventEmitter {
       targetAngle: 0,
       result: null,
     };
-    this.saveRoundState();
+    this.openUntil = Date.now() + this.openDuration;
+    this.openTimer = setTimeout(() => this.lockRound(), this.openDuration);
+    this.saveRoundState({ openUntil: this.openUntil });
     this.io.emit('jackpot:state', this.getState());
   }
 
   lockRound() {
     this.state = 'LOCK';
+    clearTimeout(this.openTimer);
+    this.openTimer = null;
     const bank = this.getBank();
     this.io.emit('jackpot:state', { ...this.getState(), bank });
     this.lockTimer = setTimeout(() => this.spinRound(), this.config.LOCK_MS);
     this.lockUntil = Date.now() + this.config.LOCK_MS;
+    this.openUntil = null;
   }
 
   spinRound() {
@@ -260,6 +255,11 @@ class JackpotWheel extends EventEmitter {
       ...this.round,
       bank: this.getBank(),
       bets: this.bets,
+      openDuration: this.state === 'OPEN' ? this.openDuration : null,
+      openUntil: this.state === 'OPEN' ? this.openUntil : null,
+      timeLeftMs:
+        this.state === 'OPEN' && this.openUntil ? Math.max(0, this.openUntil - Date.now()) : null,
+      serverNow: Date.now(),
     };
   }
 
@@ -290,22 +290,7 @@ class JackpotWheel extends EventEmitter {
       bank: this.getBank(),
       clientBetId: id,
     });
-    this.saveRoundState();
-    if (!this.openTimer) {
-      const hasRed = this.bets.red.length > 0;
-      const hasOrange = this.bets.orange.length > 0;
-      if (hasRed && hasOrange) {
-        const openTime = this.openDuration;
-        this.io.emit('jackpot:state', {
-          ...this.getState(),
-          bank: this.getBank(),
-          openMs: openTime,
-          timeLeftMs: openTime,
-        });
-        this.openTimer = setTimeout(() => this.lockRound(), openTime);
-        this.openUntil = Date.now() + openTime;
-      }
-    }
+    this.saveRoundState({ openUntil: this.openUntil });
   }
 
   async saveRoundState(extra = {}) {
