@@ -107,14 +107,15 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
     if (!winner) return;
     const winAngle =
       winner === 'red' ? redAngle / 2 : redAngle + (360 - redAngle) / 2;
+    spinTween.current?.kill();
     const currentRot = gsap.getProperty(arrowRef.current, 'rotation');
     const currentNorm = ((currentRot % 360) + 360) % 360;
     const finalNorm = (startOffsetRef.current + winAngle) % 360;
     const delta = (finalNorm - currentNorm + 360) % 360;
-    spinTween.current?.kill();
+    const spinDuration = spins.current + delta / 360;
     gsap.to(arrowRef.current, {
       rotation: currentRot + spins.current * 360 + delta,
-      duration: 5,
+      duration: spinDuration,
       ease: 'power2.out',
       transformOrigin: 'center center',
     });
