@@ -7,6 +7,8 @@ import AdminBadge from '../components/AdminBadge';
 import resolveAvatarUrl from '../utils/resolveAvatarUrl';
 import ProfileModal from '../components/game/ProfileModal';
 import CreateRoomModal from '../components/CreateRoomModal';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -93,6 +95,7 @@ const TrophyIcon = () => (
 );
 
 const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthModal }) => {
+  const { t } = useTranslation();
   const [createMode, setCreateMode] = useState('classic');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const startCreate = (mode) => {
@@ -208,13 +211,13 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
       <header className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold text-primary">DURAK.IO</h1>
         <div className="flex items-center space-x-4">
-          <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
+          <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> {t('ratings')}</button>
           {user ? (
             <>
               <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> <AnimatedCounter value={user.balance || 0} /> ₽</button>
-              <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> Профиль</button>
+              <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> {t('profile')}</button>
               <div className="flex items-center gap-1">
-                <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${(user.username || 'U')[0]}` , socketService?.getServerUrl ? socketService.getServerUrl() : undefined)} alt="avatar" />
+                <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${(user.username || 'U')[0]}` , socketService?.getServerUrl ? socketService.getServerUrl() : undefined)} alt="avatar" title={t('openProfile')} />
                 <span className="font-semibold">{user.username}</span>
                 {user.role === 'admin' && <AdminBadge />}
               </div>
@@ -222,8 +225,9 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
               <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
             </>
           ) : (
-            <button onClick={openAuthModal} className="px-4 py-2 bg-primary text-text rounded-lg hover:bg-primary/80">Авторизация</button>
+            <button onClick={openAuthModal} className="px-4 py-2 bg-primary text-text rounded-lg hover:bg-primary/80">{t('auth')}</button>
           )}
+          <LanguageSwitcher />
         </div>
       </header>
 
@@ -231,7 +235,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
         {/* столы */}
         <div className="w-full lg:w-2/3 flex flex-col">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-semibold">Игровые столы</h2>
+            <h2 className="text-3xl font-semibold">{t('gameTables')}</h2>
             <div className="flex gap-2">
               <button
                 onClick={() => startCreate('classic')}
@@ -373,7 +377,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => (user && e.key === 'Enter' ? handleSendMessage() : null)}
-                  placeholder={user ? 'Сообщение...' : 'Только для авторизованных'}
+                  placeholder={user ? t('messagePlaceholder') : t('authOnly')}
                   className="flex-grow bg-surface border border-border rounded-l-lg p-2"
                   disabled={!user}
                 />
@@ -382,7 +386,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
                   className="bg-primary text-text font-bold p-2 rounded-r-lg hover:bg-primary/80 disabled:bg-border"
                   disabled={!user}
                 >
-                  Отправить
+                  {t('send')}
                 </button>
               </div>
           </div>
