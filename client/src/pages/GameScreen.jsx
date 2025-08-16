@@ -188,7 +188,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
               </div>
             </div>
           }
-          sidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />}
+          rightSidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />}
         />
         <ConfirmDialog
           open={cancelOpen}
@@ -256,7 +256,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
             </div>
           </>
         }
-        table={
+        players={
           <PlayersList
             room={room}
             mySocketId={mySocketId}
@@ -267,7 +267,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
             openProfile={openProfile}
           />
         }
-        sidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />}
+        rightSidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />}
         footer={
           <ActionPanel
             isAttacker={isAttacker}

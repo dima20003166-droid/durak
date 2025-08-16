@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
@@ -78,13 +78,13 @@ const PlayersList = ({
                     const translateY = Math.abs(i - mid) * -6;
                     return (
                       <motion.div
-                        layout
                         key={card.id}
-                        className="absolute" 
+                        className="absolute"
                         style={{ left: offset, transform: `translateY(${translateY}px) rotate(${rotate}deg)` }}
                       >
                         <Card
                           {...card}
+                          layoutId={card.id}
                           isSelected={selectedCard?.id === card.id}
                           onClick={() => setSelectedCard(card)}
                         />
@@ -107,7 +107,7 @@ const PlayersList = ({
                         className="absolute"
                         style={{ left: i * 6, transform: `rotate(${i % 2 ? 3 : -3}deg)` }}
                       >
-                        <Card isFaceUp={false} />
+                        <Card isFaceUp={false} layoutId={`${p.socketId}-card-${i}`} />
                       </div>
                     ))}
                 </div>
@@ -120,43 +120,51 @@ const PlayersList = ({
   };
 
   return (
-    <div className="flex flex-col w-full h-full">
-      <div className="flex justify-center gap-4 flex-wrap">
+    <div className="w-full h-full grid grid-rows-[auto_1fr_auto] grid-cols-3">
+      <div className="col-span-3 flex justify-center gap-4 flex-wrap">
         {topPlayers.map((p) => renderPlayer(p))}
       </div>
-      <div className="flex flex-1">
-        <div className="hidden md:flex flex-col justify-center items-start gap-4 flex-wrap basis-1/6">
-          {leftPlayers.map((p) => renderPlayer(p))}
-        </div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <div className="flex flex-col items-center w-24">
-              <Card {...gameState.trumpCard} />
-              <p className="mt-2">{gameState.deck.length} карт</p>
-            </div>
-            <div className="flex items-center justify-center gap-4 min-w-[300px] flex-wrap">
-              {gameState.table.map((pair, i) => (
-                <div key={i} className="relative w-20 h-28">
-                  <Card {...pair.attack} className="relative z-0" />
+      <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 hidden md:flex flex-col justify-center items-start gap-4 flex-wrap">
+        {leftPlayers.map((p) => renderPlayer(p))}
+      </div>
+      <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 flex items-center justify-center">
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <div className="flex flex-col items-center w-24">
+            <Card {...gameState.trumpCard} layoutId="trump" />
+            <p className="mt-2">{gameState.deck.length} карт</p>
+          </div>
+          <div className="flex items-center justify-center gap-4 min-w-[300px] flex-wrap">
+            <AnimatePresence>
+              {gameState.table.map((pair) => (
+                <motion.div
+                  key={pair.attack.id}
+                  className="relative w-20 h-28"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  layout
+                >
+                  <Card {...pair.attack} layoutId={pair.attack.id} className="relative z-0" />
                   {pair.defense && (
                     <Card
                       {...pair.defense}
+                      layoutId={pair.defense.id}
                       className="absolute inset-0 rotate-12 translate-x-2 translate-y-2 z-10"
                     />
                   )}
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </AnimatePresence>
           </div>
         </div>
-        <div className="hidden md:flex flex-col justify-center items-end gap-4 flex-wrap basis-1/6">
-          {rightPlayers.map((p) => renderPlayer(p))}
-        </div>
       </div>
-      <div className="flex justify-center gap-4 flex-wrap mt-4">
+      <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 hidden md:flex flex-col justify-center items-end gap-4 flex-wrap">
+        {rightPlayers.map((p) => renderPlayer(p))}
+      </div>
+      <div className="col-span-3 flex justify-center gap-4 flex-wrap mt-4">
         {renderPlayer(myPlayer, true)}
       </div>
-      <div className="md:hidden flex overflow-x-auto gap-4 mt-2 px-2">
+      <div className="md:hidden flex overflow-x-auto gap-4 mt-2 px-2 col-span-3">
         {leftPlayers.concat(rightPlayers).map((p) => (
           <div key={p.socketId} className="flex-shrink-0">
             {renderPlayer(p)}

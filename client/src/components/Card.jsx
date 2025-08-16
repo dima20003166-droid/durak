@@ -36,7 +36,8 @@ export default function Card({
   size = 'md',
   className = '',
   style,
-  dealFrom,
+  from,
+  layoutId,
   isWinning = false,
 }) {
   const sizes = {
@@ -77,10 +78,15 @@ export default function Card({
       role="button"
       tabIndex={0}
       onClick={handleClick}
-      initial={dealFrom ? { x: dealFrom.x, y: dealFrom.y, rotate: -20 } : undefined}
-      animate={{ x: 0, y: 0, rotate: 0 }}
-      transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 500, damping: 30 }}
-      className={`relative rounded-xl cursor-pointer select-none card-3d transition-transform transition-shadow ${S.class} ${borderSel} ${
+      layoutId={layoutId}
+      initial={from ? { x: from.x, y: from.y, scale: 0.8, opacity: 0 } : { scale: 0.8, opacity: 0 }}
+      animate={{ x: 0, y: 0, scale: 1, opacity: 1 }}
+      transition={
+        prefersReducedMotion
+          ? { duration: 0 }
+          : { type: 'spring', stiffness: 500, damping: 30 }
+      }
+      className={`relative rounded-xl cursor-pointer select-none transition-transform transition-shadow ${S.class} ${borderSel} ${
         isWinning ? 'win-effect' : ''
       } ${className}`}
       style={style}
@@ -89,11 +95,11 @@ export default function Card({
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={isFaceUp ? 'face' : 'back'}
-          className="relative w-full h-full card-flip-inner"
-          initial={{ rotateY: 180 }}
-          animate={{ rotateY: 0 }}
-          exit={{ rotateY: -180 }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: 'easeInOut' }}
+          className="relative w-full h-full"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
         >
           {isFaceUp ? (
             <div className="absolute inset-0 card-face">
@@ -112,7 +118,7 @@ export default function Card({
               </div>
             </div>
           ) : (
-            <div className="absolute inset-0 card-face" style={{ transform: 'rotateY(180deg)' }}>
+            <div className="absolute inset-0 card-face">
               <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
                 <div className="w-full h-full grid place-items-center">
                   <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
@@ -135,6 +141,7 @@ Card.propTypes = {
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
   className: PropTypes.string,
   style: PropTypes.object,
-  dealFrom: PropTypes.shape({ x: PropTypes.number, y: PropTypes.number }),
+  from: PropTypes.shape({ x: PropTypes.number, y: PropTypes.number }),
+  layoutId: PropTypes.string,
   isWinning: PropTypes.bool,
 };
