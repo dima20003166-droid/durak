@@ -9,6 +9,7 @@ import ProfileModal from '../components/game/ProfileModal';
 import CreateRoomModal from '../components/CreateRoomModal';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import JackpotWheelSection from './JackpotWheelSection';
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -98,6 +99,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
   const { t } = useTranslation();
   const [createMode, setCreateMode] = useState('classic');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [activeGameTab, setActiveGameTab] = useState('durak');
   const startCreate = (mode) => {
     setCreateMode(mode);
     setShowCreateModal(true);
@@ -232,85 +234,98 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
       </header>
 
       <main className="flex-grow flex flex-col lg:flex-row gap-8">
-        {/* столы */}
+        {/* Game Hub */}
         <div className="w-full lg:w-2/3 flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-semibold">{t('gameTables')}</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => startCreate('classic')}
-                className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
-                disabled={!user || iAmInAnyRoom}
-                title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
-              >
-                {t('durak')}
-              </button>
-              <button
-                onClick={() => setPage('jackpotWheel')}
-                className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
-                disabled={!user || iAmInAnyRoom}
-                title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
-              >
-                {t('jackpotWheel')}
-              </button>
-            </div>
+          <div className="flex gap-2 mb-6">
+            <button
+              onClick={() => setActiveGameTab('durak')}
+              className={`px-6 py-3 font-bold rounded-lg transition-colors ${activeGameTab === 'durak' ? 'bg-primary' : 'bg-surface'}`}
+            >
+              {t('durak')}
+            </button>
+            <button
+              onClick={() => setActiveGameTab('jackpot')}
+              className={`px-6 py-3 font-bold rounded-lg transition-colors ${activeGameTab === 'jackpot' ? 'bg-primary' : 'bg-surface'}`}
+            >
+              {t('jackpotWheel')}
+            </button>
           </div>
 
-          <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 space-y-4 flex-grow">
-            <AnimatePresence>
-              {rooms.map((room, idx) => {
-                const iAmHere = room.players.some((p) => p.socketId === mySocketId);
-                return (
-                  <motion.div
-                    key={room.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className={`p-4 rounded-lg flex items-center justify-between border transition-all ${iAmHere ? "bg-surface/80 border-primary shadow-[0_0_0_3px_rgba(22,163,74,0.2)]" : "bg-surface border-border"}`}
-                  >
-                    <div>
-                      <h3 className="font-bold text-lg">{room.name}</h3>
-                      <p className="text-sm text-muted">
-                        {room.mode}, Ставка: {room.bet} ₽ • {room.status === 'waiting' ? `Ожидание (ещё ${Math.max(0, (Number(room.maxPlayers||2) - Number(room.players?.length||0)))})` : 'В игре'}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-6">
-                      <div className="text-center font-bold text-lg">
-                        {room.players.length}/{room.maxPlayers}
-                      </div>
-                      {iAmHere ? (
-                        <>
-                          <button onClick={() => setPage('game')} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">
-                            Вернуться
-                          </button>
-                          {(room.status === 'waiting' && user && room.creatorId === user.id) && (
+          {activeGameTab === 'durak' && (
+            <>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-semibold">{t('gameTables')}</h2>
+                <button
+                  onClick={() => startCreate('classic')}
+                  className="px-6 py-3 font-bold rounded-lg bg-primary hover:bg-primary/80 transition-colors"
+                  disabled={!user || iAmInAnyRoom}
+                  title={!user ? 'Требуется авторизация' : iAmInAnyRoom ? 'Нельзя: у вас есть активная игра' : ''}
+                >
+                  {t('createTable')}
+                </button>
+              </div>
+
+              <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 space-y-4 flex-grow">
+                <AnimatePresence>
+                  {rooms.map((room, idx) => {
+                    const iAmHere = room.players.some((p) => p.socketId === mySocketId);
+                    return (
+                      <motion.div
+                        key={room.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className={`p-4 rounded-lg flex items-center justify-between border transition-all ${iAmHere ? "bg-surface/80 border-primary shadow-[0_0_0_3px_rgba(22,163,74,0.2)]" : "bg-surface border-border"}`}
+                      >
+                        <div>
+                          <h3 className="font-bold text-lg">{room.name}</h3>
+                          <p className="text-sm text-muted">
+                            {room.mode}, Ставка: {room.bet} ₽ • {room.status === 'waiting' ? `Ожидание (ещё ${Math.max(0, (Number(room.maxPlayers||2) - Number(room.players?.length||0)))})` : 'В игре'}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-6">
+                          <div className="text-center font-bold text-lg">
+                            {room.players.length}/{room.maxPlayers}
+                          </div>
+                          {iAmHere ? (
+                            <>
+                              <button onClick={() => setPage('game')} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">
+                                Вернуться
+                              </button>
+                              {(room.status === 'waiting' && user && room.creatorId === user.id) && (
+                                <button
+                                  onClick={() => setCancelPrompt(room)}
+                                  className="font-bold py-2 px-4 rounded-lg bg-danger hover:bg-danger/80 transition-colors"
+                                  title="Отменить стол (пока идёт поиск игроков)"
+                                >
+                                  Отменить
+                                </button>
+                              )}
+                            </>
+                          ) : (
                             <button
-                              onClick={() => setCancelPrompt(room)}
-                              className="font-bold py-2 px-4 rounded-lg bg-danger hover:bg-danger/80 transition-colors"
-                              title="Отменить стол (пока идёт поиск игроков)"
+                              onClick={() => user && handleJoinGame(room.id)}
+                              disabled={!user || room.players.length >= room.maxPlayers || room.status === 'playing'}
+                              className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border"
+                              title={!user ? 'Требуется авторизация' : ''}
                             >
-                              Отменить
+                              {room.status === 'playing' ? 'Идёт игра' : 'Играть'}
                             </button>
                           )}
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => user && handleJoinGame(room.id)}
-                          disabled={!user || room.players.length >= room.maxPlayers || room.status === 'playing'}
-                          className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80 disabled:bg-border"
-                          title={!user ? 'Требуется авторизация' : ''}
-                        >
-                          {room.status === 'playing' ? 'Идёт игра' : 'Играть'}
-                        </button>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-            {rooms.length === 0 && <p className="text-center text-muted">Открытых столов нет.</p>}
-          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+                {rooms.length === 0 && <p className="text-center text-muted">Открытых столов нет.</p>}
+              </div>
+            </>
+          )}
+
+          {activeGameTab === 'jackpot' && (
+            <JackpotWheelSection />
+          )}
         </div>
 
         {/* общий чат */}
