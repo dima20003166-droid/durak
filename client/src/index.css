@@ -20,6 +20,17 @@
     --neon-danger: #ff4d4d;
     --parallax-x: 0px;
     --parallax-y: 0px;
+
+    /* jackpot wheel theme */
+    --surface-900: #0b0f15;
+    --surface-800: #121826;
+    --text-100: #eef2ff;
+    --text-300: #c7d2fe;
+    --neon-primary-400: #5b8dff;
+    --neon-primary-500: #3f6cff;
+    --neon-primary-700: #2b3a55;
+    --jackpot-red: #ff3b3b;
+    --jackpot-orange: #ff9a1a;
   }
 
   .light {

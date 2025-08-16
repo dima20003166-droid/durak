@@ -6,7 +6,7 @@ function useWheel(bank) {
   return useMemo(() => {
     const total = bank.red + bank.orange;
     const redAngle = total ? (bank.red / total) * 360 : 180;
-    const gradient = `conic-gradient(from -90deg, #ef4444 0deg ${redAngle}deg, #fb923c ${redAngle}deg 360deg)`;
+    const gradient = `conic-gradient(from -90deg, var(--jackpot-red) 0deg ${redAngle}deg, var(--jackpot-orange) ${redAngle}deg 360deg)`;
     return { gradient, redAngle };
   }, [bank.red, bank.orange]);
 }
