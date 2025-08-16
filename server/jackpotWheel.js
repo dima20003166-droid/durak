@@ -15,6 +15,7 @@ class JackpotWheel extends EventEmitter {
       MIN_BET: 1,
       MAX_BET: 1000,
       SPIN_MS: 3000,
+      RESULT_DISPLAY_MS: 3000,
     }, config);
     if (this.config.LOCK_MS >= this.config.ROUND_DURATION_MS) {
       throw new Error('LOCK_MS must be less than ROUND_DURATION_MS');
@@ -111,7 +112,10 @@ class JackpotWheel extends EventEmitter {
         payouts: [],
         serverSeed: this.serverSeed,
       });
-      return this.startRound();
+      return setTimeout(
+        () => this.startRound(),
+        this.config.SPIN_MS + this.config.RESULT_DISPLAY_MS,
+      );
     }
     const rand =
       parseInt(
@@ -178,7 +182,10 @@ class JackpotWheel extends EventEmitter {
       serverSeed: this.serverSeed,
     });
     this.betIds.clear();
-    setTimeout(() => this.startRound(), 2000);
+    setTimeout(
+      () => this.startRound(),
+      this.config.SPIN_MS + this.config.RESULT_DISPLAY_MS,
+    );
   }
 
   getBank() {

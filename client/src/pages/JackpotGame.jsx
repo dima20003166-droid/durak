@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import socketService from '../services/socketService';
 import JackpotWheel from '../components/JackpotWheel';
@@ -12,16 +12,32 @@ export default function JackpotGame({ initialRound }) {
   const [winner, setWinner] = useState(null);
   const [bets, setBets] = useState({ red: [], orange: [] });
   const [timeLeft, setTimeLeft] = useState(initialRound?.timeLeftMs ? Math.round(initialRound.timeLeftMs / 1000) : 0);
+  const bankRef = useRef(bank);
+  const bankAfterResultRef = useRef(null);
+  const delayedBankTimer = useRef(null);
 
   useEffect(() => {
     socketService.on('round:state', (d) => {
-      setState(d.state);
-      if (d.bank) setBank(d.bank);
-      setWinner(null);
-      if (d.state === 'OPEN' && !(d.openMs || d.timeLeftMs)) setBets({ red: [], orange: [] });
-      const ms = d.timeLeftMs != null ? d.timeLeftMs : d.openMs;
-      if (['OPEN', 'LOCK', 'SPIN'].includes(d.state)) setTimeLeft(Math.round((ms || 0) / 1000));
-      else setTimeLeft(0);
+      if (d.state === 'OPEN') {
+        setState('OPEN');
+        setWinner(null);
+        if (!(d.openMs || d.timeLeftMs)) setBets({ red: [], orange: [] });
+        const ms = d.timeLeftMs != null ? d.timeLeftMs : d.openMs;
+        setTimeLeft(Math.round((ms || 0) / 1000));
+        if (delayedBankTimer.current) clearTimeout(delayedBankTimer.current);
+        const snapshot = bankAfterResultRef.current || bankRef.current;
+        setBank(snapshot);
+        delayedBankTimer.current = setTimeout(() => {
+          if (d.bank) setBank(d.bank);
+          bankAfterResultRef.current = null;
+        }, 3000);
+      } else {
+        setState(d.state);
+        setWinner(null);
+        const ms = d.timeLeftMs != null ? d.timeLeftMs : d.openMs;
+        if (['OPEN', 'LOCK', 'SPIN'].includes(d.state)) setTimeLeft(Math.round((ms || 0) / 1000));
+        else setTimeLeft(0);
+      }
     });
     socketService.on('bet:placed', (d) => {
       if (d.bank) setBank(d.bank);
@@ -38,16 +54,29 @@ export default function JackpotGame({ initialRound }) {
         ],
       }));
     });
-    socketService.on('round:locked', () => { setState('LOCK'); setTimeLeft(0); });
-    socketService.on('round:result', (d) => { setState('RESULT'); setWinner(d.winnerColor); });
+    socketService.on('round:locked', (d) => {
+      if (d.bankSnapshot) setBank(d.bankSnapshot);
+      setState('LOCK');
+      setTimeLeft(0);
+    });
+    socketService.on('round:result', (d) => {
+      bankAfterResultRef.current = bankRef.current;
+      setState('RESULT');
+      setWinner(d.winnerColor);
+    });
     socketService.connect();
     return () => {
       socketService.off('round:state');
       socketService.off('bet:placed');
       socketService.off('round:locked');
       socketService.off('round:result');
+      if (delayedBankTimer.current) clearTimeout(delayedBankTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    bankRef.current = bank;
+  }, [bank]);
 
   useEffect(() => {
     if (timeLeft <= 0) return;
