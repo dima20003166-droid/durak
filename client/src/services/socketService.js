@@ -10,6 +10,7 @@ class SocketService {
   socket;
   serverUrl = import.meta.env?.VITE_SERVER_URL || DEFAULT_SERVER_URL;
   eventQueue = [];
+  maxEventAge = 30000;
   handlers = new Map();
 
   connect() {
@@ -28,12 +29,22 @@ class SocketService {
 
       // flush queued events once connected
       this.socket.on('connect', () => {
-      for (const { event, args } of this.eventQueue) {
-        this.socket.emit(event, ...args);
-      }
-      this.eventQueue = [];
-      this.socket.emit('request_init_state');
-    });
+        const now = Date.now();
+        for (const { event, args, ts } of this.eventQueue) {
+          if (now - ts <= this.maxEventAge) {
+            this.socket.emit(event, ...args);
+          }
+        }
+        this.eventQueue = [];
+        this.socket.emit('request_init_state');
+      });
+
+      const onConnError = () => {
+        this.eventQueue = [];
+        alert('Проблемы с подключением к серверу. Очередь событий очищена.');
+      };
+      this.socket.on('connect_error', onConnError);
+      this.socket.io.on('reconnect_failed', onConnError);
   }
 }
 
@@ -53,7 +64,9 @@ class SocketService {
     if (this.socket && this.socket.connected) {
       this.socket.emit(event, ...args);
     } else {
-      this.eventQueue.push({ event, args });
+      const now = Date.now();
+      this.eventQueue = this.eventQueue.filter((e) => now - e.ts <= this.maxEventAge);
+      this.eventQueue.push({ event, args, ts: now });
       if (this.eventQueue.length > 100) {
         this.eventQueue.shift();
         console.warn('Event queue overflow, oldest event dropped');
@@ -89,10 +102,18 @@ class SocketService {
   // Jackpot wheel
   placeWheelBet(color, amount, clientBetId, cb) {
     const payload = { color, amount, clientBetId };
+    const callback = (res) => {
+      if (!res?.ok) {
+        alert(res?.error || 'Ошибка ставки');
+      }
+      cb && cb(res);
+    };
     if (this.socket && this.socket.connected) {
-      this.socket.emit('bet:place', payload, cb);
+      this.socket.emit('bet:place', payload, callback);
     } else {
-      this.eventQueue.push({ event: 'bet:place', args: [payload, cb] });
+      const now = Date.now();
+      this.eventQueue = this.eventQueue.filter((e) => now - e.ts <= this.maxEventAge);
+      this.eventQueue.push({ event: 'bet:place', args: [payload, callback], ts: now });
       if (this.eventQueue.length > 100) {
         this.eventQueue.shift();
         console.warn('Event queue overflow, oldest event dropped');

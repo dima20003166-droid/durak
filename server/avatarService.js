@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { randomUUID } = require('crypto');
 
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2 MB
 
@@ -8,8 +9,6 @@ async function saveAvatarFromDataUrl(userId, dataUrl) {
   if (!match) throw new Error('INVALID_FORMAT');
   const ext = match[2] === 'jpeg' ? 'jpg' : match[2];
   const base64 = match[3];
-  const size = Math.floor(base64.length * 3 / 4);
-  if (size > MAX_AVATAR_SIZE) throw new Error('FILE_TOO_LARGE');
   let buffer;
   try {
     buffer = Buffer.from(base64, 'base64');
@@ -19,9 +18,13 @@ async function saveAvatarFromDataUrl(userId, dataUrl) {
   } catch {
     throw new Error('INVALID_FORMAT');
   }
+  if (buffer.length > MAX_AVATAR_SIZE) throw new Error('FILE_TOO_LARGE');
   const uploadsDir = path.join(__dirname, 'uploads', 'avatars');
   await fs.promises.mkdir(uploadsDir, { recursive: true });
-  const safeId = String(userId || '').replace(/[^A-Za-z0-9_-]/g, '');
+  let safeId = String(userId || '').replace(/[^A-Za-z0-9_-]/g, '');
+  if (!safeId) {
+    safeId = randomUUID();
+  }
   const filename = `${safeId}_${Date.now()}.${ext}`;
   const filePath = path.join(uploadsDir, filename);
   await fs.promises.writeFile(filePath, buffer);

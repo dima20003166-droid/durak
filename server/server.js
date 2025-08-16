@@ -292,11 +292,20 @@ async function performSettlementAndCleanup(room) {
     ? (Number(room.bet||0) * ((Number(siteSettings.commission||0))/100))
     : (houseCut);
 let message;
-  if (winnersAll.length === 0) message = 'Игра окончена! Ничья!';
-  else if (winnersAll.length === 1) message = `Игра окончена! Победитель: ${winnersAll[0].username}.` + (prizeEach > 0 ? ` Приз: ${prizeEach} ₽.` : '') + (loser ? ` Проигравший: ${loser.username}.` : '');
-  else message = `Игра окончена! Победители: ${winnersAll.map(w => w.username).join(', ')}.` + (prizeEach > 0 ? ` Приз: ${prizeEach} ₽ каждому.` : '') + (loser ? ` Проигравший: ${loser.username}.` : '');
-
-  const batch = db.batch();
+  if (winnersAll.length === 0) {
+    message = 'Игра окончена! Ничья!';
+  } else if (winnersAll.length === 1) {
+    message =
+      `Игра окончена! Победитель: ${winnersAll[0].username}.` +
+      (prizeEach > 0 ? ` Приз: ${prizeEach} ₽.` : '') +
+      (loser ? ` Проигравший: ${loser.username}.` : '');
+  } else {
+    message =
+      `Игра окончена! Победители: ${winnersAll.map(w => w.username).join(', ')}.` +
+      (prizeEach > 0 ? ` Приз: ${prizeEach} ₽ каждому.` : '') +
+      (loser ? ` Проигравший: ${loser.username}.` : '');
+  }
+const batch = db.batch();
   if (loser && !loser.isBot && loser.id) {
     let snap = null;
     try { snap = await db.collection('users').doc(loser.id).get(); } catch (e) { console.error('fetch loser data', e); }

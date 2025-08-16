@@ -227,29 +227,42 @@ const handlePlayerAction = (room, playerSocketId, action, card) => {
         return;
       }
 
-      if ((!isPrimaryAttacker && !canThrowIn) || !player.hand.some(c => c.id === card?.id)) return;
+      const cardInHand = player.hand.find(c => c.id === card?.id);
+      if ((!isPrimaryAttacker && !canThrowIn) || !cardInHand) return;
 
       const tableRanks = state.table.flatMap(p => [p.attack.rank, p.defense?.rank].filter(Boolean));
-      if (state.table.length > 0 && !tableRanks.includes(card.rank)) {
+      if (state.table.length > 0 && !tableRanks.includes(cardInHand.rank)) {
         state.message = "Нельзя подкинуть эту карту!";
         return;
       }
 
-      player.hand = player.hand.filter(c => c.id !== card.id);
-      state.table.push({ attack: card, defense: null });
-      state.message = `${player.username} ходит ${card.rank}${card.suit}`;
+      const duplicate = state.table.some(p => p.attack.id === cardInHand.id || p.defense?.id === cardInHand.id);
+      if (duplicate) {
+        state.message = "Эта карта уже на столе!";
+        return;
+      }
+
+      player.hand = player.hand.filter(c => c.id !== cardInHand.id);
+      state.table.push({ attack: { ...cardInHand }, defense: null });
+      state.message = `${player.username} ходит ${cardInHand.rank}${cardInHand.suit}`;
       state.turnFinishedBy = [];
       state.turnEndsAt = Date.now() + TURN_MS;
       break;
     }
 
     case 'defend': {
-      if (!isDefender || !player.hand.some(c => c.id === card?.id)) return;
+      const cardInHand = player.hand.find(c => c.id === card?.id);
+      if (!isDefender || !cardInHand) return;
+      const duplicate = state.table.some(p => p.attack.id === cardInHand.id || p.defense?.id === cardInHand.id);
+      if (duplicate) {
+        state.message = "Эта карта уже на столе!";
+        return;
+      }
       const undefendedCardPair = state.table.find(p => !p.defense);
-      if (undefendedCardPair && canBeat(undefendedCardPair.attack, card, state.trumpCard.suit)) {
-        player.hand = player.hand.filter(c => c.id !== card.id);
-        undefendedCardPair.defense = card;
-        state.message = `${player.username} отбивается ${card.rank}${card.suit}`;
+      if (undefendedCardPair && canBeat(undefendedCardPair.attack, cardInHand, state.trumpCard.suit)) {
+        player.hand = player.hand.filter(c => c.id !== cardInHand.id);
+        undefendedCardPair.defense = { ...cardInHand };
+        state.message = `${player.username} отбивается ${cardInHand.rank}${cardInHand.suit}`;
         state.turnEndsAt = Date.now() + TURN_MS;
       } else {
         state.message = "Этой картой нельзя побить!";
