@@ -21,7 +21,8 @@ async function saveAvatarFromDataUrl(userId, dataUrl) {
   }
   const uploadsDir = path.join(__dirname, 'uploads', 'avatars');
   await fs.promises.mkdir(uploadsDir, { recursive: true });
-  const filename = `${userId}_${Date.now()}.${ext}`;
+  const safeId = String(userId || '').replace(/[^A-Za-z0-9_-]/g, '');
+  const filename = `${safeId}_${Date.now()}.${ext}`;
   const filePath = path.join(uploadsDir, filename);
   await fs.promises.writeFile(filePath, buffer);
   return `/uploads/avatars/${filename}`;

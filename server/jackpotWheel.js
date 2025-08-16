@@ -113,7 +113,7 @@ class JackpotWheel extends EventEmitter {
       parseInt(
         crypto.createHash('sha256').update(this.serverSeed).digest('hex').slice(0, 8),
         16,
-      ) / 0xffffffff;
+      ) / 0x100000000; // [0,1)
     const pick = rand * total;
     const winnerColor = pick < bank.red ? 'red' : 'orange';
     const rake = total * this.config.RAKE;

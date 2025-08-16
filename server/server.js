@@ -293,8 +293,8 @@ async function performSettlementAndCleanup(room) {
     : (houseCut);
 let message;
   if (winnersAll.length === 0) message = 'Игра окончена! Ничья!';
-  else if (winnersAll.length === 1) message = `Игра окончена! Победитель: ${winnersAll[0].username}.` + (prizeEach > 0 ? " Приз: " + prizeEach + " ₽." : '') + (loser ? ` Проигравший: ${loser.username}.` : '');
-  else message = `Игра окончена! Победители: ${winnersAll.map(w => w.username).join(', ')}.` + (prizeEach > 0 ? " Приз: " + prizeEach + " ₽ каждому." : '') + (loser ? ` Проигравший: ${loser.username}.` : '');
+  else if (winnersAll.length === 1) message = `Игра окончена! Победитель: ${winnersAll[0].username}.` + (prizeEach > 0 ? ` Приз: ${prizeEach} ₽.` : '') + (loser ? ` Проигравший: ${loser.username}.` : '');
+  else message = `Игра окончена! Победители: ${winnersAll.map(w => w.username).join(', ')}.` + (prizeEach > 0 ? ` Приз: ${prizeEach} ₽ каждому.` : '') + (loser ? ` Проигравший: ${loser.username}.` : '');
 
   const batch = db.batch();
   if (loser && !loser.isBot && loser.id) {
@@ -507,6 +507,7 @@ setInterval(async () => {
 
 const RATE_LIMITS = {
   'send_room_message': { tokens: 6, refill: 6, intervalMs: 3000 },
+  'send_global_message': { tokens: 6, refill: 6, intervalMs: 3000 },
   'create_room':      { tokens: 2, refill: 1, intervalMs: 5000 },
   'room:create':      { tokens: 2, refill: 1, intervalMs: 5000 },
   'login':            { tokens: 5, refill: 5, intervalMs: 60000 },
@@ -557,6 +558,9 @@ setInterval(() => {
   }
   for (const [sock, bucket] of socketBuckets.entries()) {
     if (!sock.connected || now - bucket.ts > 60 * 60 * 1000) socketBuckets.delete(sock);
+  }
+  for (const [userId, until] of mutedUsers.entries()) {
+    if (until <= now) mutedUsers.delete(userId);
   }
   if (socketBuckets.size > MAX_BUCKET_ENTRIES) {
     const excess = socketBuckets.size - MAX_BUCKET_ENTRIES;
@@ -907,23 +911,30 @@ io.on('connection', (socket) => {
     }
   });
 
-    socket.on('send_global_message', async (message) => {
+    socket.on('send_global_message', withRateLimit('send_global_message', async (message) => {
       const user = socket.data.user;
       if (!user?.id) { socket.emit('chat_error', 'Требуется авторизация'); return; }
-    if (mutedUsers.has(user.id) && mutedUsers.get(user.id) > Date.now()) {
-      return socket.emit('chat_error', 'Вы временно не можете отправлять сообщения.');
-    }
-    const chatMessage = {
-      user: safeUser(user), text: String(message || '').slice(0, 200),
-      timestamp: new Date().toISOString(), createdAt: Date.now(),
-    };
-    if (!chatMessage.text.trim()) return;
-    const docRef = await db.collection('chat').add(chatMessage);
-    const finalMessage = { ...chatMessage, id: docRef.id };
-    globalChatCache.push(finalMessage);
-    if (globalChatCache.length > 100) globalChatCache.shift();
-    io.emit('new_global_message', finalMessage);
-  });
+      const muteUntil = mutedUsers.get(user.id);
+      if (muteUntil) {
+        if (muteUntil > Date.now()) return socket.emit('chat_error', 'Вы временно не можете отправлять сообщения.');
+        mutedUsers.delete(user.id);
+      }
+      const chatMessage = {
+        user: safeUser(user), text: String(message || '').slice(0, 200),
+        timestamp: new Date().toISOString(), createdAt: Date.now(),
+      };
+      if (!chatMessage.text.trim()) return;
+      try {
+        const docRef = await db.collection('chat').add(chatMessage);
+        const finalMessage = { ...chatMessage, id: docRef.id };
+        globalChatCache.push(finalMessage);
+        if (globalChatCache.length > 100) globalChatCache.shift();
+        io.emit('new_global_message', finalMessage);
+      } catch (e) {
+        console.error('send_global_message', e);
+        socket.emit('chat_error', 'Ошибка сохранения сообщения.');
+      }
+    }));
   
   // Модерация чата
   socket.on('chat:delete_message', async ({ messageId }) => {
@@ -960,12 +971,17 @@ io.on('connection', (socket) => {
     socket.on('send_room_message', async ({ roomId, text }) => {
       const user = socket.data.user;
       if (!user?.id || !gameRooms[roomId]) return;
-    const msg = { user: safeUser(user), text: String(text || '').slice(0, 200), timestamp: new Date().toISOString(), createdAt: Date.now() };
-    if (!msg.text.trim()) return;
-    const roomChatRef = db.collection('room_chats').doc(roomId);
-    await roomChatRef.set({ messages: admin.firestore.FieldValue.arrayUnion(msg) }, { merge: true });
-    io.to(roomId).emit('new_room_message', msg);
-  });
+      const msg = { user: safeUser(user), text: String(text || '').slice(0, 200), timestamp: new Date().toISOString(), createdAt: Date.now() };
+      if (!msg.text.trim()) return;
+      try {
+        const roomChatRef = db.collection('room_chats').doc(roomId);
+        await roomChatRef.set({ messages: admin.firestore.FieldValue.arrayUnion(msg) }, { merge: true });
+        io.to(roomId).emit('new_room_message', msg);
+      } catch (e) {
+        console.error('send_room_message', e);
+        socket.emit('chat_error', 'Ошибка сохранения сообщения.');
+      }
+    });
 
   socket.on('cancel_room', (payload) => {
     const roomId = getRoomId(payload);
@@ -1020,6 +1036,9 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    const ip = socket.data.ip;
+    socketBuckets.delete(socket);
+    if (ip) ipBuckets.delete(ip);
     setTimeout(broadcastOnlineCount, 0);
     console.log(`[-] Игрок отключился: ${socket.id}`);
     const user = socket.data.user;
