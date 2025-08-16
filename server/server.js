@@ -6,6 +6,7 @@ const { Server } = require('socket.io');
 const bcrypt = require('bcrypt');
 const admin = require('firebase-admin');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 let serviceAccount = null;
 try {
@@ -32,6 +33,8 @@ const {
 } = require('./gameLogic');
 const { saveAvatarFromDataUrl } = require('./avatarService');
 const JackpotWheel = require('./jackpotWheel');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'changeme-secret';
 
 // ---------------------- Firebase ----------------------
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
@@ -718,7 +721,7 @@ io.on('connection', async (socket) => {
     const username = String(name || '').trim() || `Гость_${Math.floor(Math.random()*1000)}`;
     socket.data.user = { username, role: 'guest', balance: 0, socketId: socket.id, id: null };
     try { broadcastOnlineCount(); } catch (e) { console.error('guest_login broadcastOnlineCount', e); }
-    socket.emit('login_success', safeUser(socket.data.user));
+    socket.emit('login_success', { user: safeUser(socket.data.user) });
     socket.emit('update_rooms', Object.values(gameRooms));
     socket.emit('global_chat_history', globalChatCache);
   });
@@ -738,8 +741,9 @@ io.on('connection', async (socket) => {
       if (userDoc.isBanned) return socket.emit('login_error', 'Аккаунт заблокирован');
 
       socket.data.user = { ...userDoc, socketId: socket.id };
+      const token = jwt.sign({ uid: userDoc.id }, JWT_SECRET, { expiresIn: '5d' });
       try { broadcastOnlineCount(); } catch (e) { console.error('login broadcastOnlineCount', e); }
-      socket.emit('login_success', safeUser(socket.data.user));
+      socket.emit('login_success', { user: safeUser(socket.data.user), token });
       socket.emit('update_rooms', Object.values(gameRooms));
 
       const chatSnap = await db.collection('chat').orderBy('timestamp', 'desc').limit(100).get();
@@ -747,6 +751,30 @@ io.on('connection', async (socket) => {
       globalChatCache = chatHistory;
       socket.emit('global_chat_history', chatHistory);
     } catch (e) { console.error('Ошибка логина:', e); socket.emit('login_error', 'Ошибка сервера'); }
+  }, true));
+
+  socket.on('token_login', withRateLimit('login', async ({ token }) => {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const snap = await db.collection('users').doc(decoded.uid).get();
+      if (!snap.exists) return socket.emit('login_error', 'Пользователь не найден');
+      const userDoc = { id: snap.id, ...snap.data() };
+      if (userDoc.isBanned) return socket.emit('login_error', 'Аккаунт заблокирован');
+
+      socket.data.user = { ...userDoc, socketId: socket.id };
+      const newToken = jwt.sign({ uid: userDoc.id }, JWT_SECRET, { expiresIn: '5d' });
+      try { broadcastOnlineCount(); } catch (e) { console.error('token_login broadcastOnlineCount', e); }
+      socket.emit('login_success', { user: safeUser(socket.data.user), token: newToken });
+      socket.emit('update_rooms', Object.values(gameRooms));
+
+      const chatSnap = await db.collection('chat').orderBy('timestamp', 'desc').limit(100).get();
+      const chatHistory = chatSnap.docs.map(doc => ({ ...doc.data(), id: doc.id })).reverse();
+      globalChatCache = chatHistory;
+      socket.emit('global_chat_history', chatHistory);
+    } catch (e) {
+      console.error('token_login', e);
+      socket.emit('login_error', 'Неверный токен');
+    }
   }, true));
 
   socket.on('register', withRateLimit('register', async ({ username, password }) => {

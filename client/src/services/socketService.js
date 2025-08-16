@@ -44,6 +44,12 @@ class SocketService {
         }
       }
       this.eventQueue = [];
+      if (typeof localStorage !== 'undefined') {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          this.socket.emit('token_login', { token });
+        }
+      }
       this.socket.emit('request_init_state');
     });
 
@@ -89,6 +95,7 @@ class SocketService {
   login(credentials) { this.emit('login', credentials); }
   register(credentials) { this.emit('register', credentials); }
   guestLogin(name) { this.emit('guest_login', { name }); }
+  tokenLogin(token) { this.emit('token_login', { token }); }
   createRoom(options) { this.emit('create_room', options); }
   joinRoom(roomId) { this.emit('join_room', { roomId }); }
   leaveRoom(roomId) { this.emit('leave_room', { roomId }); }
