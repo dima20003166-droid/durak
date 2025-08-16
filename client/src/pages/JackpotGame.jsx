@@ -18,7 +18,12 @@ export default function JackpotGame({ initialRound, user }) {
   const [animationDuration, setAnimationDuration] = useState(initialRound?.animationDuration || 0);
   const [targetAngle, setTargetAngle] = useState(initialRound?.targetAngle || 0);
   const [timeLeft, setTimeLeft] = useState(initialRound?.timeLeftMs || 0);
-  const [openMs, setOpenMs] = useState(initialRound?.openMs || 0);
+  const [openMs, setOpenMs] = useState(initialRound?.openDuration || initialRound?.openMs || 0);
+  const [openUntil, setOpenUntil] = useState(
+    initialRound?.openUntil ||
+      (typeof initialRound?.timeLeftMs === 'number' ? Date.now() + initialRound.timeLeftMs : 0),
+  );
+  const [skew, setSkew] = useState(0);
   const [result, setResult] = useState(initialRound?.result || null);
   const [spinEndAt, setSpinEndAt] = useState(0);
   const [pendingPayout, setPendingPayout] = useState(null);
@@ -39,8 +44,21 @@ export default function JackpotGame({ initialRound, user }) {
       setAnimationDuration(d.animationDuration || 0);
       setTargetAngle(d.targetAngle || 0);
       setResult(d.result || null);
-      if (typeof d.timeLeftMs === 'number') setTimeLeft(d.timeLeftMs);
-      if (typeof d.openMs === 'number') setOpenMs(d.openMs);
+      const now = Date.now();
+      let skewVal = skew;
+      if (typeof d.serverNow === 'number') {
+        skewVal = d.serverNow - now;
+        setSkew(skewVal);
+      }
+      if (typeof d.openUntil === 'number') {
+        setOpenUntil(d.openUntil);
+        setTimeLeft(Math.max(0, d.openUntil - (now + skewVal)));
+      } else if (typeof d.timeLeftMs === 'number') {
+        const deadline = now + d.timeLeftMs;
+        setOpenUntil(deadline);
+        setTimeLeft(d.timeLeftMs);
+      }
+      if (typeof d.openDuration === 'number') setOpenMs(d.openDuration);
       if ((d.state || 'OPEN') === 'OPEN') {
         setPendingPayout(null);
         setDisplayPayout(null);
@@ -118,11 +136,21 @@ export default function JackpotGame({ initialRound, user }) {
   }, [bank, bets]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft((t) => (state === 'OPEN' && t > 0 ? t - 1000 : t));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [state]);
+    const tick = () => {
+      if (state === 'OPEN' && openUntil) {
+        setTimeLeft(Math.max(0, openUntil - (Date.now() + skew)));
+      } else {
+        setTimeLeft(0);
+      }
+    };
+    tick();
+    const interval = setInterval(tick, 500);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', tick);
+    };
+  }, [openUntil, skew, state]);
 
   useEffect(() => {
     if (state === 'OPEN') {
