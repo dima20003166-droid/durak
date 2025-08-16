@@ -4,6 +4,14 @@ import { motion } from 'framer-motion';
 import { gsap } from 'gsap';
 import confetti from 'canvas-confetti';
 
+const defaultSpinConfig = {
+  initialSpeed: 360,
+  acceleration: 0.5,
+  deceleration: 2,
+  maxSpins: 12,
+  ease: 'circ.out',
+};
+
 function useWheel(bank) {
   return useMemo(() => {
     const total = bank.red + bank.orange;
@@ -28,7 +36,7 @@ function segmentPath(cx, cy, r, startAngle, endAngle) {
   return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y} Z`;
 }
 
-export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) {
+export default function JackpotWheel({ state, winner, bank, timeLeft, volume, spinConfig }) {
   const { segments, redAngle } = useWheel(bank);
   const arrowRef = useRef(null);
   const wheelRef = useRef(null);
@@ -37,6 +45,7 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
   const spinSound = useRef();
   const winSound = useRef();
   const hasCelebrated = useRef(false);
+  const config = useMemo(() => ({ ...defaultSpinConfig, ...(spinConfig || {}) }), [spinConfig]);
   const spins = useRef(Math.floor(Math.random() * 4) + 7);
   const startOffsetRef = useRef(0);
   const spinTween = useRef(null);
@@ -65,7 +74,7 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
   useEffect(() => {
     if (state === 'OPEN') {
       startOffsetRef.current = Math.random() * 360;
-      spins.current = Math.floor(Math.random() * 4) + 7;
+      spins.current = Math.min(Math.floor(Math.random() * 4) + 7, config.maxSpins);
       spinTween.current?.kill();
       gsap.set(arrowRef.current, { rotation: startOffsetRef.current });
       hasCelebrated.current = false;
@@ -88,20 +97,26 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
         spinSound.current.play();
         gsap.to(spinSound.current, { volume, duration: 0.5 });
       }
-      spinTween.current = gsap.to(arrowRef.current, {
+      const tl = gsap.timeline({ defaults: { transformOrigin: 'center center' } });
+      tl.to(arrowRef.current, {
+        rotation: `+=${config.initialSpeed * config.acceleration}`,
+        duration: config.acceleration,
+        ease: 'power2.in',
+      });
+      tl.to(arrowRef.current, {
         rotation: '+=360',
-        duration: 1,
+        duration: 360 / config.initialSpeed,
         ease: 'linear',
         repeat: -1,
-        transformOrigin: 'center center',
       });
+      spinTween.current = tl;
       gsap.fromTo(
         arrowRef.current,
         { filter: 'blur(2px)', opacity: 0.6 },
         { filter: 'blur(0)', opacity: 1, duration: 0.5 }
       );
     }
-  }, [state, volume]);
+  }, [state, volume, config]);
 
   useEffect(() => {
     if (!winner) return;
@@ -112,38 +127,63 @@ export default function JackpotWheel({ state, winner, bank, timeLeft, volume }) 
     const currentNorm = ((currentRot % 360) + 360) % 360;
     const finalNorm = (startOffsetRef.current + winAngle) % 360;
     const delta = (finalNorm - currentNorm + 360) % 360;
-    const spinDuration = spins.current + delta / 360;
-    gsap.to(arrowRef.current, {
-      rotation: currentRot + spins.current * 360 + delta,
-      duration: spinDuration,
-      ease: 'power2.out',
-      transformOrigin: 'center center',
+    const totalSpins = Math.min(spins.current, config.maxSpins);
+    const totalRotation = totalSpins * 360 + delta;
+    const accelRot = config.initialSpeed * config.acceleration;
+    let decelRot = config.initialSpeed * config.deceleration;
+    let constRot = totalRotation - accelRot - decelRot;
+    if (constRot < 0) {
+      decelRot += constRot;
+      constRot = 0;
+    }
+    const constDur = constRot / config.initialSpeed;
+    spinTween.current = gsap.timeline({
+      defaults: { transformOrigin: 'center center' },
+      onComplete: () => {
+        if (spinSound.current) {
+          gsap.to(spinSound.current, {
+            volume: 0,
+            duration: 0.5,
+            onComplete: () => {
+              spinSound.current.pause();
+              spinSound.current.volume = volume;
+            },
+          });
+        }
+        winSound.current?.play();
+        if (!hasCelebrated.current) {
+          const rect = arrowRef.current.getBoundingClientRect();
+          confetti({
+            particleCount: 40,
+            spread: 45,
+            origin: { x: rect.left / window.innerWidth, y: rect.top / window.innerHeight },
+          });
+          const cTl = gsap.timeline();
+          cTl.to(arrowRef.current, { className: '+=win-effect', duration: 0 });
+          cTl.to(arrowRef.current, { className: '-=win-effect', delay: 0.8, duration: 0 });
+          cTl.play();
+          hasCelebrated.current = true;
+        }
+      },
     });
-    if (spinSound.current) {
-      gsap.to(spinSound.current, {
-        volume: 0,
-        duration: 0.5,
-        onComplete: () => {
-          spinSound.current.pause();
-          spinSound.current.volume = volume;
-        },
+    spinTween.current.to(arrowRef.current, {
+      rotation: currentRot + accelRot,
+      duration: config.acceleration,
+      ease: 'power2.in',
+    });
+    if (constRot > 0) {
+      spinTween.current.to(arrowRef.current, {
+        rotation: `+=${constRot}`,
+        duration: constDur,
+        ease: 'linear',
       });
     }
-    winSound.current?.play();
-    if (!hasCelebrated.current) {
-      const rect = arrowRef.current.getBoundingClientRect();
-      confetti({
-        particleCount: 40,
-        spread: 45,
-        origin: { x: rect.left / window.innerWidth, y: rect.top / window.innerHeight },
-      });
-      const tl = gsap.timeline();
-      tl.to(arrowRef.current, { className: '+=win-effect', duration: 0 });
-      tl.to(arrowRef.current, { className: '-=win-effect', delay: 0.8, duration: 0 });
-      tl.play();
-      hasCelebrated.current = true;
-    }
-  }, [winner, redAngle, volume]);
+    spinTween.current.to(arrowRef.current, {
+      rotation: `+=${decelRot}`,
+      duration: config.deceleration,
+      ease: config.ease || 'power4.out',
+    });
+  }, [winner, redAngle, volume, config]);
 
   return (
     <div
@@ -203,10 +243,18 @@ JackpotWheel.propTypes = {
   }).isRequired,
   timeLeft: PropTypes.number,
   volume: PropTypes.number,
+  spinConfig: PropTypes.shape({
+    initialSpeed: PropTypes.number,
+    acceleration: PropTypes.number,
+    deceleration: PropTypes.number,
+    maxSpins: PropTypes.number,
+    ease: PropTypes.string,
+  }),
 };
 
 JackpotWheel.defaultProps = {
   winner: null,
   timeLeft: 0,
   volume: 1,
+  spinConfig: defaultSpinConfig,
 };

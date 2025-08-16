@@ -143,6 +143,7 @@ class JackpotWheel extends EventEmitter {
       }
     }
     const payouts = payoutsRaw.map(({ userId, amount }) => ({ userId, amount }));
+    const failed = [];
     for (const { userId, amount } of payouts) {
       try {
         const ref = this.db.collection('users').doc(userId);
@@ -150,7 +151,24 @@ class JackpotWheel extends EventEmitter {
         const snap = await ref.get();
         const bal = snap.exists ? snap.data().balance : null;
         this.emitToUser(userId, 'current_user_update', { balance: bal });
-      } catch {}
+      } catch (e) {
+        console.error('balance update error', userId, e);
+        failed.push({ userId, amount });
+      }
+    }
+    if (failed.length) {
+      for (const f of failed) {
+        try {
+          const ref = this.db.collection('users').doc(f.userId);
+          await ref.update({ balance: admin.firestore.FieldValue.increment(f.amount) });
+          const snap = await ref.get();
+          const bal = snap.exists ? snap.data().balance : null;
+          this.emitToUser(f.userId, 'current_user_update', { balance: bal });
+        } catch (e) {
+          console.error('balance retry failed', f.userId, e);
+          this.emitToUser(f.userId, 'balance_update_error', { amount: f.amount });
+        }
+      }
     }
     this.saveRoundState({ winnerColor, payouts, serverSeed: this.serverSeed });
     this.io.emit('round:result', {
