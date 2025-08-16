@@ -78,6 +78,18 @@ test('clientBetId reused next round', () => {
   global.setTimeout = originalSetTimeout;
 });
 
+test('countdown starts only after bets on both colors', () => {
+  global.setTimeout = () => 0;
+  const io = { emit() {} };
+  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
+  assert.strictEqual(jw.openTimer, null);
+  jw.placeBet('u1', 'User', 'red', 10);
+  assert.strictEqual(jw.openTimer, null);
+  jw.placeBet('u2', 'User', 'orange', 10);
+  assert.ok(jw.openTimer !== null);
+  global.setTimeout = originalSetTimeout;
+});
+
 test('payouts sum to payoutPool', () => {
   global.setTimeout = () => 0;
   let result = null;
@@ -100,6 +112,28 @@ test('payouts sum to payoutPool', () => {
   jw.resultRound();
   const sum = result.payouts.reduce((s, p) => s + p.amount, 0);
   assert.strictEqual(+sum.toFixed(2), 10);
+  global.setTimeout = originalSetTimeout;
+});
+
+test('payouts sum to payoutPool when rounding up', () => {
+  global.setTimeout = () => 0;
+  let result = null;
+  const io = {
+    emit(event, data) {
+      if (event === 'round:result') result = data;
+    },
+  };
+  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
+  jw.startRound = () => {};
+  jw.serverSeed = '0';
+  jw.bets = {
+    red: Array.from({ length: 10 }, (_, i) => ({ userId: String(i), amount: 1 })),
+    orange: [{ userId: 'x', amount: 0.05 }],
+  };
+  jw.resultRound();
+  const sum = result.payouts.reduce((s, p) => s + p.amount, 0);
+  const total = 10 + 0.05;
+  assert.strictEqual(+sum.toFixed(2), +total.toFixed(2));
   global.setTimeout = originalSetTimeout;
 });
 
@@ -128,8 +162,11 @@ test('startRound clears timers', () => {
   jw.resultRound = () => {
     result++;
   };
+  jw.placeBet('u1', 'User', 'red', 1);
+  jw.placeBet('u2', 'User', 'orange', 1);
   jw.startRound();
-  jw.startRound();
+  jw.placeBet('u3', 'User', 'red', 1);
+  jw.placeBet('u4', 'User', 'orange', 1);
   timeouts.forEach((fn) => fn && fn());
   assert.strictEqual(lock, 1);
   assert.strictEqual(spin, 1);
