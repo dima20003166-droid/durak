@@ -14,39 +14,48 @@ class SocketService {
   handlers = new Map();
 
   connect() {
-    if (!this.socket || !this.socket.connected) {
-      this.socket = io(this.serverUrl);
-      if (IS_DEV) {
-        console.log('Connecting to server...');
-      }
+    if (this.socket?.connected || this.socket?.connecting) return;
 
-      // re-register stored handlers
+    if (this.socket) {
       for (const [event, callbacks] of this.handlers) {
         for (const cb of callbacks) {
-          this.socket.on(event, cb);
+          this.socket.off(event, cb);
         }
       }
+      this.socket.disconnect();
+    }
 
-      // flush queued events once connected
-      this.socket.on('connect', () => {
-        const now = Date.now();
-        for (const { event, args, ts } of this.eventQueue) {
-          if (now - ts <= this.maxEventAge) {
-            this.socket.emit(event, ...args);
-          }
+    this.socket = io(this.serverUrl);
+    if (IS_DEV) {
+      console.log('Connecting to server...');
+    }
+
+    // re-register stored handlers
+    for (const [event, callbacks] of this.handlers) {
+      for (const cb of callbacks) {
+        this.socket.on(event, cb);
+      }
+    }
+
+    // flush queued events once connected
+    this.socket.on('connect', () => {
+      const now = Date.now();
+      for (const { event, args, ts } of this.eventQueue) {
+        if (now - ts <= this.maxEventAge) {
+          this.socket.emit(event, ...args);
         }
-        this.eventQueue = [];
-        this.socket.emit('request_init_state');
-      });
+      }
+      this.eventQueue = [];
+      this.socket.emit('request_init_state');
+    });
 
-      const onConnError = () => {
-        this.eventQueue = [];
-        alert('Проблемы с подключением к серверу. Очередь событий очищена.');
-      };
-      this.socket.on('connect_error', onConnError);
-      this.socket.io.on('reconnect_failed', onConnError);
+    const onConnError = () => {
+      this.eventQueue = [];
+      alert('Проблемы с подключением к серверу. Очередь событий очищена.');
+    };
+    this.socket.on('connect_error', onConnError);
+    this.socket.io.on('reconnect_failed', onConnError);
   }
-}
 
   getServerUrl() {
     return this.serverUrl;

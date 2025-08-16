@@ -88,7 +88,7 @@ app.use('/uploads', express.static(uploadsDir));
 
 // --- Debug stats endpoint ---
 function adminOnly(req, res, next) {
-  const token = req.headers['x-admin-token'] || req.query.token;
+  const token = req.headers['x-admin-token'];
   const expected = process.env.ADMIN_TOKEN || siteSettings.adminToken;
   if (token && token === expected) return next();
   return res.status(403).json({ ok: false, error: 'forbidden' });
@@ -520,7 +520,8 @@ const RATE_LIMITS = {
   'create_room':      { tokens: 2, refill: 1, intervalMs: 5000 },
   'room:create':      { tokens: 2, refill: 1, intervalMs: 5000 },
   'login':            { tokens: 5, refill: 5, intervalMs: 60000 },
-  'register':         { tokens: 5, refill: 5, intervalMs: 60000 }
+  'register':         { tokens: 5, refill: 5, intervalMs: 60000 },
+  'bet:place':        { tokens: 5, refill: 5, intervalMs: 60000 },
 };
 
 const socketBuckets = new Map();
@@ -582,7 +583,7 @@ setInterval(() => {
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
 io.on('connection', (socket) => {
-  socket.on('bet:place', async (payload, cb) => {
+  socket.on('bet:place', withRateLimit('bet:place', async (payload, cb) => {
     try {
       const user = socket.data.user;
       if (!user) throw new Error('unauthorized');
@@ -630,7 +631,7 @@ io.on('connection', (socket) => {
     } catch (e) {
       cb && cb({ ok: false, error: e.message });
     }
-  });
+  }));
   socket.on('force_recompute_stats', async (range) => { if (socket.data.user?.role!=='admin') return; await computeAndBroadcastStats(range||'1d'); });
   // Статистика: сумма заработка за периоды и кол-во игр
   socket.on('admin_get_stats', async (data) => {

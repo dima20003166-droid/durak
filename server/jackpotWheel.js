@@ -16,6 +16,10 @@ class JackpotWheel extends EventEmitter {
       MAX_BET: 1000,
       SPIN_MS: 3000,
     }, config);
+    if (this.config.LOCK_MS >= this.config.ROUND_DURATION_MS) {
+      throw new Error('LOCK_MS must be less than ROUND_DURATION_MS');
+    }
+    this.openDuration = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
     this.roundId = 0;
     this.state = 'OPEN';
     this.bets = { red: [], orange: [] };
@@ -33,7 +37,7 @@ class JackpotWheel extends EventEmitter {
       const bank = this.getBank();
       const hasRed = this.bets.red.length > 0;
       const hasOrange = this.bets.orange.length > 0;
-      const openTime = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
+      const openTime = this.openDuration;
       this.io.emit('round:state', {
         roundId: this.roundId,
         state: this.state,
@@ -206,7 +210,7 @@ class JackpotWheel extends EventEmitter {
       const hasRed = this.bets.red.length > 0;
       const hasOrange = this.bets.orange.length > 0;
       if (hasRed && hasOrange) {
-        const openTime = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
+        const openTime = this.openDuration;
         this.io.emit('round:state', {
           roundId: this.roundId,
           state: this.state,
