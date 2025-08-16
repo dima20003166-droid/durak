@@ -10,8 +10,8 @@ test('idempotent clientBetId', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
   const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
-  jw.placeBet('u1', 'red', 10, 'bet1');
-  jw.placeBet('u1', 'red', 10, 'bet1');
+  jw.placeBet('u1', 'User', 'red', 10, 'bet1');
+  jw.placeBet('u1', 'User', 'red', 10, 'bet1');
   const bank = jw.getBank();
   assert.strictEqual(bank.red, 10);
   global.setTimeout = originalSetTimeout;
@@ -21,8 +21,8 @@ test('negative or zero bet invalid_amount', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
   const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
-  assert.throws(() => jw.placeBet('u1', 'red', -5), /invalid_amount/);
-  assert.throws(() => jw.placeBet('u1', 'red', 0), /invalid_amount/);
+  assert.throws(() => jw.placeBet('u1', 'User', 'red', -5), /invalid_amount/);
+  assert.throws(() => jw.placeBet('u1', 'User', 'red', 0), /invalid_amount/);
   global.setTimeout = originalSetTimeout;
 });
 
@@ -30,8 +30,8 @@ test('bet outside MIN/MAX invalid_amount', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
   const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, MIN_BET: 5, MAX_BET: 10 });
-  assert.throws(() => jw.placeBet('u1', 'red', 4), /invalid_amount/);
-  assert.throws(() => jw.placeBet('u1', 'red', 11), /invalid_amount/);
+  assert.throws(() => jw.placeBet('u1', 'User', 'red', 4), /invalid_amount/);
+  assert.throws(() => jw.placeBet('u1', 'User', 'red', 11), /invalid_amount/);
   global.setTimeout = originalSetTimeout;
 });
 
@@ -40,7 +40,7 @@ test('bet when not open throws', () => {
   const io = { emit() {} };
   const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
   jw.state = 'LOCK';
-  assert.throws(() => jw.placeBet('u1', 'red', 10), /bets_closed/);
+  assert.throws(() => jw.placeBet('u1', 'User', 'red', 10), /bets_closed/);
   global.setTimeout = originalSetTimeout;
 });
 
@@ -70,10 +70,10 @@ test('clientBetId reused next round', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
   const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
-  jw.placeBet('u1', 'red', 10, 'bet1');
+  jw.placeBet('u1', 'User', 'red', 10, 'bet1');
   jw.resultRound();
   jw.startRound();
-  jw.placeBet('u1', 'red', 10, 'bet1');
+  jw.placeBet('u1', 'User', 'red', 10, 'bet1');
   assert.strictEqual(jw.getBank().red, 10);
   global.setTimeout = originalSetTimeout;
 });
