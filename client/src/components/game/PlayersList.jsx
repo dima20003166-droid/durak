@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
@@ -31,10 +32,15 @@ const PlayersList = ({
     const idx = room.players.findIndex((x) => x.socketId === p.socketId);
     const isCurrentAttacker = idx === gameState.attackerIndex;
     const isCurrentDefender = idx === gameState.defenderIndex;
+    const ringClass = isCurrentAttacker
+      ? 'ring-4 ring-primary animate-pulse'
+      : isCurrentDefender
+      ? 'ring-4 ring-accent'
+      : '';
     return (
       <div
         key={p.socketId}
-        className="flex flex-col items-center bg-surface rounded p-2 mb-2 basis-1/4 md:basis-1/6"
+        className={`flex flex-col items-center bg-surface rounded p-2 mb-2 basis-1/4 md:basis-1/6 ${ringClass}`}
       >
         <div
           className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
@@ -60,27 +66,53 @@ const PlayersList = ({
         </p>
         <div className="flex justify-center items-center h-28 w-full mt-2">
           {isMine ? (
-            <div className="flex">
-              {myPlayer.hand.map((card, i) => (
-                <div key={card.id} className={i ? '-ml-card-overlap-md' : ''}>
-                  <Card
-                    {...card}
-                    isSelected={selectedCard?.id === card.id}
-                    onClick={() => setSelectedCard(card)}
-                  />
+            (() => {
+              const hand = myPlayer.hand;
+              const mid = (hand.length - 1) / 2;
+              const width = 60 + hand.length * 24;
+              return (
+                <div className="relative" style={{ width }}>
+                  {hand.map((card, i) => {
+                    const offset = i * 24;
+                    const rotate = (i - mid) * 8;
+                    const translateY = Math.abs(i - mid) * -6;
+                    return (
+                      <motion.div
+                        layout
+                        key={card.id}
+                        className="absolute" 
+                        style={{ left: offset, transform: `translateY(${translateY}px) rotate(${rotate}deg)` }}
+                      >
+                        <Card
+                          {...card}
+                          isSelected={selectedCard?.id === card.id}
+                          onClick={() => setSelectedCard(card)}
+                        />
+                      </motion.div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              );
+            })()
           ) : (
-            <div className="flex">
-              {Array(p.hand.length)
-                .fill(0)
-                .map((_, i) => (
-                  <div key={i} className={i ? '-ml-card-overlap-sm' : ''}>
-                    <Card isFaceUp={false} />
-                  </div>
-                ))}
-            </div>
+            (() => {
+              const width = 40 + p.hand.length * 6;
+              return (
+                <div className="relative" style={{ width }}>
+                  {Array(p.hand.length)
+                    .fill(0)
+                    .map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute"
+                        style={{ left: i * 6, transform: `rotate(${i % 2 ? 3 : -3}deg)` }}
+                      >
+                        <Card isFaceUp={false} />
+                      </div>
+                    ))}
+                </div>
+              );
+            })()
           )}
         </div>
       </div>
@@ -105,9 +137,12 @@ const PlayersList = ({
             <div className="flex items-center justify-center gap-4 min-w-[300px] flex-wrap">
               {gameState.table.map((pair, i) => (
                 <div key={i} className="relative w-20 h-28">
-                  <Card {...pair.attack} />
+                  <Card {...pair.attack} className="relative z-0" />
                   {pair.defense && (
-                    <Card {...pair.defense} className="translate-x-2 translate-y-2" />
+                    <Card
+                      {...pair.defense}
+                      className="absolute inset-0 rotate-12 translate-x-2 translate-y-2 z-10"
+                    />
                   )}
                 </div>
               ))}
@@ -121,8 +156,12 @@ const PlayersList = ({
       <div className="flex justify-center gap-4 flex-wrap mt-4">
         {renderPlayer(myPlayer, true)}
       </div>
-      <div className="flex md:hidden justify-center gap-4 flex-wrap mt-2">
-        {leftPlayers.concat(rightPlayers).map((p) => renderPlayer(p))}
+      <div className="md:hidden flex overflow-x-auto gap-4 mt-2 px-2">
+        {leftPlayers.concat(rightPlayers).map((p) => (
+          <div key={p.socketId} className="flex-shrink-0">
+            {renderPlayer(p)}
+          </div>
+        ))}
       </div>
     </div>
   );
