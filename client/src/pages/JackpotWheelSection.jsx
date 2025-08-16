@@ -3,7 +3,7 @@ import socketService from '../services/socketService';
 import JackpotWheel from '../components/JackpotWheel';
 import BetPanel from '../components/BetPanel';
 
-export default function JackpotWheelPage({ setPage }) {
+export default function JackpotWheelSection() {
   const [state, setState] = useState('OPEN');
   const [bank, setBank] = useState({ red: 0, orange: 0 });
   const [winner, setWinner] = useState(null);
@@ -47,12 +47,6 @@ export default function JackpotWheelPage({ setPage }) {
           {serverSeed && <div>Server seed: {serverSeed}</div>}
         </div>
       )}
-      <button
-        className="px-4 py-2 rounded bg-primary text-text"
-        onClick={() => setPage('lobby')}
-      >
-        Назад
-      </button>
     </div>
   );
 }
