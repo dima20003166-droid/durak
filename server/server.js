@@ -84,7 +84,14 @@ fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
 
 // --- Debug stats endpoint ---
-app.get('/debug/stats', async (req, res) => {
+function adminOnly(req, res, next) {
+  const token = req.headers['x-admin-token'] || req.query.token;
+  const expected = process.env.ADMIN_TOKEN || siteSettings.adminToken;
+  if (token && token === expected) return next();
+  return res.status(403).json({ ok: false, error: 'forbidden' });
+}
+
+app.get('/debug/stats', adminOnly, async (req, res) => {
   try {
     const range = (req.query && req.query.range) ? String(req.query.range) : '1d';
     const data = await computeAndBroadcastStats(range);
@@ -123,10 +130,10 @@ function getOnlineCount() {
       if (sock?.data?.user?.id) count++;
     }
     return count;
-  } catch { return 0; }
+  } catch (e) { console.error('getOnlineCount', e); return 0; }
 }
 function broadcastOnlineCount() {
-  try { io.emit('online_count', { count: getOnlineCount(), ts: Date.now() }); } catch {}
+  try { io.emit('online_count', { count: getOnlineCount(), ts: Date.now() }); } catch (e) { console.error('broadcastOnlineCount', e); }
 }
 
 function emitToUser(userId, event, payload) {
@@ -136,10 +143,10 @@ function emitToUser(userId, event, payload) {
         if (payload && typeof payload.balance !== 'undefined') {
           sock.data.user = { ...(sock.data.user || {}), balance: payload.balance };
         }
-        try { sock.emit(event, payload); } catch {}
+        try { sock.emit(event, payload); } catch (e) { console.error('emitToUser socket emit', e); }
       }
     }
-  } catch {}
+  } catch (e) { console.error('emitToUser outer', e); }
 }
 
 async function initJackpotWheel() {
@@ -227,7 +234,7 @@ async function computeAndBroadcastStats(range = '1d') {
           sock.emit('admin_stats', payload);
         }
       }
-    } catch {}
+    } catch (e) { console.error('broadcast admin stats', e); }
 
     return payload;
   } catch (e) {
@@ -253,7 +260,7 @@ function fillWithBots(room) {
   // Перед запуском проверяем баланс всех людей
   const lacking = room.players.filter(p => !p.isBot && Number(p.balance || 0) < Number(room.bet || 0));
   if (lacking.length > 0) {
-    lacking.forEach(p => { try { io.to(p.socketId).emit('join_error', `Недостаточно средств. Нужно ≥ ${room.bet}.`); } catch {} });
+    lacking.forEach(p => { try { io.to(p.socketId).emit('join_error', `Недостаточно средств. Нужно ≥ ${room.bet}.`); } catch (e) { console.error('notify join_error', e); } });
     return;
   }
   room.status = 'playing';
@@ -289,20 +296,28 @@ let message;
   const batch = db.batch();
   if (loser && !loser.isBot && loser.id) {
     let snap = null;
-    try { snap = await db.collection('users').doc(loser.id).get(); } catch {}
-    batch.update(db.collection('users').doc(loser.id), {
+    try { snap = await db.collection('users').doc(loser.id).get(); } catch (e) { console.error('fetch loser data', e); }
+    const ref = db.collection('users').doc(loser.id);
+    const data = {
       'stats.losses': admin.firestore.FieldValue.increment(1),
       'stats.games': admin.firestore.FieldValue.increment(1),
       balance: admin.firestore.FieldValue.increment(-Math.min(Number((snap && snap.data && snap.data().balance) ? snap.data().balance : 0), Number(room.bet || 0)))
-    });
+    };
+    if (snap && snap.exists) batch.update(ref, data); else batch.set(ref, data, { merge: true });
   }
-  winnersHumans.forEach((w) => {
-    if (w.id) batch.update(db.collection('users').doc(w.id), {
-      'stats.wins': admin.firestore.FieldValue.increment(1),
-      'stats.games': admin.firestore.FieldValue.increment(1),
-      balance: admin.firestore.FieldValue.increment(prizeEach)
-    })
-  });
+  for (const w of winnersHumans) {
+    if (w.id) {
+      let snap = null;
+      try { snap = await db.collection('users').doc(w.id).get(); } catch (e) { console.error('fetch winner data', e); }
+      const ref = db.collection('users').doc(w.id);
+      const data = {
+        'stats.wins': admin.firestore.FieldValue.increment(1),
+        'stats.games': admin.firestore.FieldValue.increment(1),
+        balance: admin.firestore.FieldValue.increment(prizeEach)
+      };
+      if (snap && snap.exists) batch.update(ref, data); else batch.set(ref, data, { merge: true });
+    }
+  }
   try { await batch.commit(); } catch (e) { console.error('Ошибка начисления наград:', e); }
 
   for (const p of room.players) {
@@ -310,7 +325,7 @@ let message;
       try {
         const snap = await db.collection('users').doc(p.id).get();
         if (snap.exists) io.to(p.socketId).emit('user_data_updated', safeUser({ id: p.id, ...snap.data() }));
-      } catch {}
+      } catch (e) { console.error('notify user update', e); }
     }
   }
 
@@ -374,21 +389,21 @@ let message;
       humanCount,
       createdAt: finishedAt
     });
-    try { io.emit('admin_stats_dirty'); } catch {}
-    try { setTimeout(() => computeAndBroadcastStats('1d'), 800); } catch {}
+    try { io.emit('admin_stats_dirty'); } catch (e) { console.error('emit admin_stats_dirty', e); }
+    try { setTimeout(() => computeAndBroadcastStats('1d'), 800); } catch (e) { console.error('schedule recompute stats', e); }
   } catch (e) { console.warn('save earnings/match', e?.message || e); }
-io.to(roomId).emit('game_over', payload);
+  io.to(roomId).emit('game_over', payload);
   try {
     for (const p of room.players) {
       if (p?.socketId) io.to(p.socketId).emit('game_over', { ...payload, roomId });
     }
-  } catch {}
+  } catch (e) { console.error('broadcast game_over', e); }
 
-  try { room.status = 'finished'; io.to(roomId).emit('room_update', room); } catch {}
+  try { room.status = 'finished'; io.to(roomId).emit('room_update', room); } catch (e) { console.error('emit room_update', e); }
 
 setTimeout(async () => {
   try { await db.collection('room_chats').doc(roomId).delete(); } catch (e) { console.warn('room chat cleanup', e?.message||e); }
-  try { io.socketsLeave(roomId); } catch {}
+  try { io.socketsLeave(roomId); } catch (e) { console.error('socketsLeave', e); }
   delete gameRooms[roomId];
   io.emit('update_rooms', Object.values(gameRooms));
 }, 15000);
@@ -409,7 +424,7 @@ setInterval(async () => {
           state.turnEndsAt = Date.now() + 30000;
         }
       }
-    } catch {}
+    } catch (e) { console.error('ensure turnEndsAt', e); }
 
     // HARD_FINISH_DETECTION: при пустой колоде и одном игроке с картами — конец игры
     try {
@@ -422,7 +437,7 @@ setInterval(async () => {
           continue;
         }
       }
-    } catch {}
+    } catch (e) { console.error('hard finish detection', e); }
 
     // SECONDARY_TIMEOUT_CHECK: если время вышло — завершаем раунд безопасно
     try {
@@ -432,7 +447,7 @@ setInterval(async () => {
         else { io.to(room.id).emit('game_state_update', room); }
         continue;
       }
-    } catch {}
+    } catch (e) { console.error('secondary timeout check', e); }
 
     // ----- оригинальная логика ниже -----
 // AUTO FINISH CHECK: если колода пуста и 0-1 игроков с картами — завершаем автоматически
@@ -629,7 +644,7 @@ io.on('connection', (socket) => {
 
   console.log(`[+] Игрок подключился: ${socket.id} (${ip})`);
   setTimeout(broadcastOnlineCount, 0);
-  try { socket.emit('update_rooms', Object.values(gameRooms)); } catch {}
+  try { socket.emit('update_rooms', Object.values(gameRooms)); } catch (e) { console.error('emit update_rooms on connect', e); }
   (async () => {
     try {
       if (!globalChatCache.length) {
@@ -652,12 +667,12 @@ io.on('connection', (socket) => {
       serverSeedHash: jackpotWheel.serverSeedHash,
       timeLeftMs: jackpotWheel.getTimeLeft(),
     });
-  } catch {}
+  } catch (e) { console.error('emit round state', e); }
 
   socket.on('request_init_state', () => {
     const user = safeUser(socket.data.user);
     if (user) socket.emit('current_user_update', user);
-    try { socket.emit('update_rooms', Object.values(gameRooms)); } catch {}
+    try { socket.emit('update_rooms', Object.values(gameRooms)); } catch (e) { console.error('init_state update_rooms', e); }
     try {
       const bank = jackpotWheel.getBank();
       socket.emit('round:state', {
@@ -667,13 +682,13 @@ io.on('connection', (socket) => {
         serverSeedHash: jackpotWheel.serverSeedHash,
         timeLeftMs: jackpotWheel.getTimeLeft(),
       });
-    } catch {}
+    } catch (e) { console.error('init_state round state', e); }
   });
 
   socket.on('guest_login', ({ name }) => {
     const username = String(name || '').trim() || `Гость_${Math.floor(Math.random()*1000)}`;
     socket.data.user = { username, role: 'guest', balance: 0, socketId: socket.id, id: null };
-    try { broadcastOnlineCount(); } catch {}
+    try { broadcastOnlineCount(); } catch (e) { console.error('guest_login broadcastOnlineCount', e); }
     socket.emit('login_success', safeUser(socket.data.user));
     socket.emit('update_rooms', Object.values(gameRooms));
     socket.emit('global_chat_history', globalChatCache);
@@ -689,12 +704,12 @@ io.on('connection', (socket) => {
       if (snap.empty) return socket.emit('login_error', 'Пользователь не найден');
       let userDoc; snap.forEach(doc => userDoc = { id: doc.id, ...doc.data() });
       let valid = false;
-      try { valid = await bcrypt.compare(password, userDoc.password); } catch {}
+      try { valid = await bcrypt.compare(password, userDoc.password); } catch (e) { console.error('bcrypt compare', e); }
       if (!valid) return socket.emit('login_error', 'Неверный пароль');
       if (userDoc.isBanned) return socket.emit('login_error', 'Аккаунт заблокирован');
 
       socket.data.user = { ...userDoc, socketId: socket.id };
-      try { broadcastOnlineCount(); } catch {}
+      try { broadcastOnlineCount(); } catch (e) { console.error('login broadcastOnlineCount', e); }
       socket.emit('login_success', safeUser(socket.data.user));
       socket.emit('update_rooms', Object.values(gameRooms));
 
@@ -836,7 +851,7 @@ io.on('connection', (socket) => {
     if (humanPlayers === room.maxPlayers && room.status === 'waiting') {
       const lacking = room.players.filter(p => !p.isBot && Number(p.balance || 0) < Number(room.bet || 0));
       if (lacking.length > 0) {
-        lacking.forEach(p => { try { io.to(p.socketId).emit('join_error', `Недостаточно средств. Нужно ≥ ${room.bet}.`); } catch {} });
+        lacking.forEach(p => { try { io.to(p.socketId).emit('join_error', `Недостаточно средств. Нужно ≥ ${room.bet}.`); } catch (e) { console.error('notify join_error', e); } });
       } else {
         room.status = 'playing';
         room.gameState = createInitialGameState(room.players, room.mode);
@@ -1059,7 +1074,7 @@ socket.on('admin_get_all_users', async () => {
       try {
         const snap = await db.collection('users').orderBy('username').get();
         io.emit('admin_user_list', snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      } catch {}
+      } catch (e) { console.error('admin_update_user list', e); }
       // Мгновенно отправляем обновление самому пользователю на всех его соединениях
       emitToUser(userId, 'current_user_update', safeUser(updatedUser));
       // Также подменим socket.data.user для этих соединений
@@ -1069,7 +1084,7 @@ socket.on('admin_get_all_users', async () => {
             sock.data.user = { ...(sock.data.user||{}), ...updatedUser };
           }
         }
-      } catch {}
+      } catch (e) { console.error('admin_update_user sockets', e); }
     } catch (e) { console.error('admin_update_user', e); }
   });
 
@@ -1113,7 +1128,11 @@ socket.on('admin_get_all_users', async () => {
       socket.emit('user_data_updated', { ...safeUser(socket.data.user) });
       io.emit('update_rooms', Object.values(gameRooms));
     } catch (e) {
-      const msg = e.message === 'FILE_TOO_LARGE' ? 'Файл слишком большой (макс 2MB).' : 'Ошибка загрузки аватара';
+      const msg = e.message === 'FILE_TOO_LARGE'
+        ? 'Файл слишком большой (макс 2MB).'
+        : e.message === 'INVALID_FORMAT'
+          ? 'Некорректный формат изображения.'
+          : 'Ошибка загрузки аватара';
       socket.emit('avatar_error', msg);
       console.error('update_avatar_file', e);
     }
@@ -1122,7 +1141,11 @@ socket.on('admin_get_all_users', async () => {
 
 // ---------------------- Запуск ----------------------
 const PORT = 4000;
-server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+if (require.main === module) {
+  server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+}
+
+module.exports = { performSettlementAndCleanup };
 
 // --- Auto cleanup of stale waiting rooms ---
 function cleanupStaleRooms() {

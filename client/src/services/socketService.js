@@ -54,6 +54,10 @@ class SocketService {
       this.socket.emit(event, ...args);
     } else {
       this.eventQueue.push({ event, args });
+      if (this.eventQueue.length > 100) {
+        this.eventQueue.shift();
+        console.warn('Event queue overflow, oldest event dropped');
+      }
       this.connect();
     }
   }
@@ -89,6 +93,10 @@ class SocketService {
       this.socket.emit('bet:place', payload, cb);
     } else {
       this.eventQueue.push({ event: 'bet:place', args: [payload, cb] });
+      if (this.eventQueue.length > 100) {
+        this.eventQueue.shift();
+        console.warn('Event queue overflow, oldest event dropped');
+      }
       this.connect();
     }
   }

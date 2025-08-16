@@ -10,7 +10,15 @@ async function saveAvatarFromDataUrl(userId, dataUrl) {
   const base64 = match[3];
   const size = Math.floor(base64.length * 3 / 4);
   if (size > MAX_AVATAR_SIZE) throw new Error('FILE_TOO_LARGE');
-  const buffer = Buffer.from(base64, 'base64');
+  let buffer;
+  try {
+    buffer = Buffer.from(base64, 'base64');
+    if (buffer.toString('base64').replace(/=+$/, '') !== base64.replace(/=+$/, '')) {
+      throw new Error('INVALID_FORMAT');
+    }
+  } catch {
+    throw new Error('INVALID_FORMAT');
+  }
   const uploadsDir = path.join(__dirname, 'uploads', 'avatars');
   await fs.promises.mkdir(uploadsDir, { recursive: true });
   const filename = `${userId}_${Date.now()}.${ext}`;
