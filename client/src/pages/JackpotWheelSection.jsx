@@ -13,7 +13,6 @@ export default function JackpotWheelSection() {
   const [serverSeed, setServerSeed] = useState('');
   const [bets, setBets] = useState({ red: [], orange: [] });
   const [timeLeft, setTimeLeft] = useState(0);
-  const [volume, setVolume] = useState(1);
 
   useEffect(() => {
     socketService.on('round:state', (d) => {
@@ -74,16 +73,7 @@ export default function JackpotWheelSection() {
   return (
     <div className="max-w-4xl mx-auto px-4 flex flex-col items-center gap-6 py-10">
       <h1 className="text-3xl font-bold">Джекпот-колесо</h1>
-      <input
-        type="range"
-        min="0"
-        max="1"
-        step="0.1"
-        value={volume}
-        onChange={(e) => setVolume(parseFloat(e.target.value))}
-        className="w-32"
-      />
-      <JackpotWheel state={state} winner={winner} bank={bank} timeLeft={timeLeft} volume={volume} />
+      <JackpotWheel state={state} winner={winner} bank={bank} timeLeft={timeLeft} />
       <div className="w-full bg-surface rounded shadow">
         <BetPanel state={state} />
         <div className="flex flex-col">
