@@ -48,8 +48,11 @@ export default function BetPanel({ state }) {
     const clientBetId = Date.now().toString(36) + Math.random().toString(36).slice(2);
     socketService.placeWheelBet(color, amount, clientBetId);
   };
-  const increment = () => setAmount((a) => Number(a) + 1);
-  const decrement = () => setAmount((a) => Math.max(1, Number(a) - 1));
+  const multiply = () => setAmount((a) => Number(a) * 2);
+  const divide = () => setAmount((a) => Math.max(1, Math.floor(Number(a) / 2)));
+  const add10 = () => setAmount((a) => Number(a) + 10);
+  const add50 = () => setAmount((a) => Number(a) + 50);
+  const add150 = () => setAmount((a) => Number(a) + 150);
   const inputClasses = [
     'w-full md:w-32 text-center bg-bg border border-border rounded',
     'transition-all duration-300 focus:outline-none',
@@ -61,28 +64,49 @@ export default function BetPanel({ state }) {
       transition={{ duration: 0.4, ease: 'easeOut' }}
       className="flex flex-wrap md:flex-nowrap items-center gap-2 justify-center p-2 border-b border-divider"
     >
-      <div className="flex items-center gap-2 w-full md:w-auto">
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={decrement}
-          className="px-3 py-2 rounded bg-gradient-to-r from-gray-600 to-gray-700 text-white transition-all duration-300"
-        >
-          -
-        </motion.button>
+      <div className="flex items-center gap-2 w-full md:w-auto flex-wrap md:flex-nowrap">
         <motion.input
           type="number"
           min="1"
           value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
+          onChange={(e) => setAmount(Math.max(1, Number(e.target.value)))}
           className={inputClasses}
           whileFocus={{ scale: 1.02, boxShadow: '0 0 8px var(--jackpot-red)' }}
         />
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={increment}
+          onClick={multiply}
           className="px-3 py-2 rounded bg-gradient-to-r from-gray-600 to-gray-700 text-white transition-all duration-300"
         >
-          +
+          ×2
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={divide}
+          className="px-3 py-2 rounded bg-gradient-to-r from-gray-600 to-gray-700 text-white transition-all duration-300"
+        >
+          /2
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={add10}
+          className="px-3 py-2 rounded bg-gradient-to-r from-gray-600 to-gray-700 text-white transition-all duration-300"
+        >
+          +10
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={add50}
+          className="px-3 py-2 rounded bg-gradient-to-r from-gray-600 to-gray-700 text-white transition-all duration-300"
+        >
+          +50
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={add150}
+          className="px-3 py-2 rounded bg-gradient-to-r from-gray-600 to-gray-700 text-white transition-all duration-300"
+        >
+          +150
         </motion.button>
       </div>
       <NeonButton
