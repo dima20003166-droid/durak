@@ -38,7 +38,16 @@ const db = admin.firestore();
 console.log('Успешное подключение к Firebase Firestore!');
 
 // ---------------------- Настройки сайта ----------------------
-let siteSettings = { commission: 5, botsEnabled: true, maxPlayersLimit: 6 };
+let siteSettings = {
+  commission: 5,
+  botsEnabled: true,
+  maxPlayersLimit: 6,
+  rake: 0.05,
+  roundDurationMs: 30000,
+  lockMs: 2500,
+  minBet: 1,
+  maxBet: 1000,
+};
 
 async function loadSiteSettings() {
   try {
@@ -69,9 +78,11 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: 'http://localhost:5173', methods: ['GET', 'POST'] } });
 
 const jackpotWheel = new JackpotWheel(io, {
-  ROUND_DURATION_MS: 30000,
-  LOCK_MS: 2500,
-  RAKE: 0.05,
+  ROUND_DURATION_MS: siteSettings.roundDurationMs,
+  LOCK_MS: siteSettings.lockMs,
+  RAKE: siteSettings.rake,
+  MIN_BET: siteSettings.minBet,
+  MAX_BET: siteSettings.maxBet,
 });
 
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -502,11 +513,25 @@ setInterval(() => {
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
 io.on('connection', (socket) => {
-  socket.on('bet:place', (payload, cb) => {
+  socket.on('bet:place', async (payload, cb) => {
     try {
-      const userId = socket.data.user?.id || socket.id;
-      jackpotWheel.placeBet(userId, payload?.color, payload?.amount);
-      cb && cb({ ok: true });
+      const user = socket.data.user;
+      if (!user) throw new Error('unauthorized');
+      const { color, amount, clientBetId } = payload || {};
+      const amt = Number(amount);
+      if (!Number.isFinite(amt) || amt <= 0) throw new Error('invalid_amount');
+      if (amt > Number(user.balance || 0)) throw new Error('insufficient_funds');
+      jackpotWheel.placeBet(user.id || socket.id, color, amt, clientBetId);
+      user.balance = Number(user.balance || 0) - amt;
+      if (user.id) {
+        try {
+          await db
+            .collection('users')
+            .doc(user.id)
+            .update({ balance: admin.firestore.FieldValue.increment(-amt) });
+        } catch {}
+      }
+      cb && cb({ ok: true, balance: user.balance });
     } catch (e) {
       cb && cb({ ok: false, error: e.message });
     }
@@ -905,6 +930,14 @@ io.on('connection', (socket) => {
     if (socket.data.user?.role !== 'admin') return;
     siteSettings = { ...siteSettings, ...newSettings };
     await saveSiteSettings(siteSettings);
+    jackpotWheel.config = {
+      ...jackpotWheel.config,
+      ROUND_DURATION_MS: siteSettings.roundDurationMs,
+      LOCK_MS: siteSettings.lockMs,
+      RAKE: siteSettings.rake,
+      MIN_BET: siteSettings.minBet,
+      MAX_BET: siteSettings.maxBet,
+    };
     io.emit('admin_settings_data', siteSettings);
   });
 socket.on('admin_get_all_users', async () => {

@@ -79,6 +79,11 @@ class SocketService {
   updateAvatarFile(dataUrl) { this.emit('update_avatar_file', dataUrl); }
   cancelRoom(roomId) { this.emit('cancel_room', { roomId }); }
 
+  // Jackpot wheel
+  placeWheelBet(color, amount, clientBetId) {
+    this.emit('bet:place', { color, amount, clientBetId });
+  }
+
   // Moderation
   deleteChatMessage(messageId) { this.emit('chat:delete_message', { messageId }); }
   muteUser(userId, durationMinutes) { this.emit('chat:mute_user', { userId, durationMinutes }); }

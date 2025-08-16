@@ -12,7 +12,18 @@ export default function AdminPanel({ user: _user, setPage, siteSettings }) {
   void _user;
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
-  const [settings, setSettings] = useState(siteSettings || { commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
+  const [settings, setSettings] = useState(
+    siteSettings || {
+      commission: 5,
+      botsEnabled: true,
+      maxPlayersLimit: 6,
+      rake: 0.05,
+      roundDurationMs: 30000,
+      lockMs: 2500,
+      minBet: 1,
+      maxBet: 1000,
+    }
+  );
   const [savingSettings, setSavingSettings] = useState(false);
   const [range, setRange] = useState('1d');
   const [stats, setStats] = useState({ totalRevenue: 0, matchesCount: 0, earningsByDay: {}, onlineCount: 0, botNet: 0 });
@@ -72,7 +83,12 @@ export default function AdminPanel({ user: _user, setPage, siteSettings }) {
       socketService.adminUpdateSettings({
         commission: numberOr(settings.commission, 0),
         botsEnabled: !!settings.botsEnabled,
-        maxPlayersLimit: Math.min(6, Math.max(2, Number(settings.maxPlayersLimit||6)))
+        maxPlayersLimit: Math.min(6, Math.max(2, Number(settings.maxPlayersLimit || 6))),
+        rake: numberOr(settings.rake, 0),
+        roundDurationMs: numberOr(settings.roundDurationMs, 0),
+        lockMs: numberOr(settings.lockMs, 0),
+        minBet: numberOr(settings.minBet, 0),
+        maxBet: numberOr(settings.maxBet, 0),
       });
       // server will broadcast admin_settings_data
     } finally {
@@ -104,6 +120,62 @@ export default function AdminPanel({ user: _user, setPage, siteSettings }) {
                 onChange={e => setSettings({ ...settings, commission: e.target.value })}
                 min="0"
                 max="50"
+                step="1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Rake</label>
+              <input
+                type="number"
+                className="w-full bg-bg border border-border rounded-xl px-3 py-2"
+                value={settings.rake ?? 0.05}
+                onChange={e => setSettings({ ...settings, rake: e.target.value })}
+                min="0"
+                max="1"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Длительность раунда, мс</label>
+              <input
+                type="number"
+                className="w-full bg-bg border border-border rounded-xl px-3 py-2"
+                value={settings.roundDurationMs ?? 30000}
+                onChange={e => setSettings({ ...settings, roundDurationMs: e.target.value })}
+                min="1000"
+                step="1000"
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Lock, мс</label>
+              <input
+                type="number"
+                className="w-full bg-bg border border-border rounded-xl px-3 py-2"
+                value={settings.lockMs ?? 2500}
+                onChange={e => setSettings({ ...settings, lockMs: e.target.value })}
+                min="0"
+                step="100"
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Минимальная ставка</label>
+              <input
+                type="number"
+                className="w-full bg-bg border border-border rounded-xl px-3 py-2"
+                value={settings.minBet ?? 1}
+                onChange={e => setSettings({ ...settings, minBet: e.target.value })}
+                min="0"
+                step="1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Максимальная ставка</label>
+              <input
+                type="number"
+                className="w-full bg-bg border border-border rounded-xl px-3 py-2"
+                value={settings.maxBet ?? 1000}
+                onChange={e => setSettings({ ...settings, maxBet: e.target.value })}
+                min="0"
                 step="1"
               />
             </div>

@@ -1,4 +1,5 @@
 const { EventEmitter } = require('events');
+const crypto = require('crypto');
 
 class JackpotWheel extends EventEmitter {
   constructor(io, config = {}) {
@@ -8,10 +9,15 @@ class JackpotWheel extends EventEmitter {
       ROUND_DURATION_MS: 30000,
       LOCK_MS: 2500,
       RAKE: 0.05,
+      MIN_BET: 1,
+      MAX_BET: 1000,
     }, config);
     this.roundId = 0;
     this.state = 'OPEN';
     this.bets = { red: [], orange: [] };
+    this.betIds = new Map(); // clientBetId -> true
+    this.serverSeed = '';
+    this.serverSeedHash = '';
     this.startRound();
   }
 
@@ -19,7 +25,18 @@ class JackpotWheel extends EventEmitter {
     this.roundId += 1;
     this.state = 'OPEN';
     this.bets = { red: [], orange: [] };
-    this.io.emit('round:state', { roundId: this.roundId, state: this.state, bank: this.getBank() });
+    this.betIds.clear();
+    this.serverSeed = crypto.randomBytes(32).toString('hex');
+    this.serverSeedHash = crypto
+      .createHash('sha256')
+      .update(this.serverSeed)
+      .digest('hex');
+    this.io.emit('round:state', {
+      roundId: this.roundId,
+      state: this.state,
+      bank: this.getBank(),
+      serverSeedHash: this.serverSeedHash,
+    });
     const openTime = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
     this.openTimer = setTimeout(() => this.lockRound(), openTime);
   }
@@ -42,7 +59,12 @@ class JackpotWheel extends EventEmitter {
     const bank = this.getBank();
     const total = bank.red + bank.orange;
     if (total === 0) {
-      this.io.emit('round:result', { roundId: this.roundId, winnerColor: null, payouts: [] });
+      this.io.emit('round:result', {
+        roundId: this.roundId,
+        winnerColor: null,
+        payouts: [],
+        serverSeed: this.serverSeed,
+      });
       return this.startRound();
     }
     const pick = Math.random() * total;
@@ -55,7 +77,12 @@ class JackpotWheel extends EventEmitter {
       userId: b.userId,
       amount: +(b.amount * mult).toFixed(2),
     }));
-    this.io.emit('round:result', { roundId: this.roundId, winnerColor, payouts });
+    this.io.emit('round:result', {
+      roundId: this.roundId,
+      winnerColor,
+      payouts,
+      serverSeed: this.serverSeed,
+    });
     setTimeout(() => this.startRound(), 2000);
   }
 
@@ -66,13 +93,26 @@ class JackpotWheel extends EventEmitter {
     };
   }
 
-  placeBet(userId, color, amount) {
+  placeBet(userId, color, amount, clientBetId) {
     if (this.state !== 'OPEN') throw new Error('bets_closed');
     if (!['red', 'orange'].includes(color)) throw new Error('invalid_color');
+    const id = String(clientBetId || '');
+    if (id && this.betIds.has(id)) {
+      return; // идемпотентность
+    }
     const amt = Number(amount);
     if (!Number.isFinite(amt) || amt <= 0) throw new Error('invalid_amount');
-    this.bets[color].push({ userId, amount: amt });
-    this.io.emit('bet:placed', { userId, color, amount: amt, roundId: this.roundId, bank: this.getBank() });
+    if (amt < this.config.MIN_BET || amt > this.config.MAX_BET) throw new Error('invalid_amount');
+    this.bets[color].push({ userId, amount: amt, clientBetId: id });
+    if (id) this.betIds.set(id, true);
+    this.io.emit('bet:placed', {
+      userId,
+      color,
+      amount: amt,
+      roundId: this.roundId,
+      bank: this.getBank(),
+      clientBetId: id,
+    });
   }
 }
 

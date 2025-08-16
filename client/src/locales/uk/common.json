@@ -5,6 +5,13 @@
   "gameTables": "Ігрові столи",
   "send": "Надіслати",
   "messagePlaceholder": "Повідомлення...",
-  "authOnly": "Лише для авторизованих"
-  , "openProfile": "Відкрити профіль"
+  "authOnly": "Лише для авторизованих",
+  "openProfile": "Відкрити профіль",
+  "jackpotWheel": "Джекпот-колесо",
+  "back": "Назад",
+  "red": "Червоний",
+  "orange": "Помаранчевий",
+  "amount": "Сума",
+  "serverHash": "Хеш сервера",
+  "serverSeed": "Серверний seed"
 }

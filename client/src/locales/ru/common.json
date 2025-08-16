@@ -5,6 +5,13 @@
   "gameTables": "Игровые столы",
   "send": "Отправить",
   "messagePlaceholder": "Сообщение...",
-  "authOnly": "Только для авторизованных"
-  , "openProfile": "Открыть профиль"
+  "authOnly": "Только для авторизованных",
+  "openProfile": "Открыть профиль",
+  "jackpotWheel": "Джекпот-колесо",
+  "back": "Назад",
+  "red": "Красный",
+  "orange": "Оранжевый",
+  "amount": "Сумма",
+  "serverHash": "Хэш сервера",
+  "serverSeed": "Серверный seed"
 }
