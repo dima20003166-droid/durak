@@ -1092,14 +1092,13 @@ io.on('connection', async (socket) => {
     if (socket.data.user?.role !== 'admin') return;
     try {
       siteSettings = await saveSiteSettings(newSettings);
-      jackpotWheel.config = {
-        ...jackpotWheel.config,
+      jackpotWheel.updateConfig({
         ROUND_DURATION_MS: siteSettings.roundDurationMs,
         LOCK_MS: siteSettings.lockMs,
         RAKE: siteSettings.rake,
         MIN_BET: siteSettings.minBet,
         MAX_BET: siteSettings.maxBet,
-      };
+      });
       io.emit('admin_settings_data', siteSettings);
     } catch (err) {
       console.error('admin_update_settings', err);

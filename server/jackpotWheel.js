@@ -53,6 +53,62 @@ class JackpotWheel extends EventEmitter {
     }
   }
 
+  updateConfig(newConfig = {}) {
+    const oldConfig = { ...this.config };
+    const oldOpenDuration = this.openDuration;
+    this.config = { ...this.config, ...newConfig };
+    if (this.config.LOCK_MS >= this.config.ROUND_DURATION_MS) {
+      throw new Error('LOCK_MS must be less than ROUND_DURATION_MS');
+    }
+    this.openDuration = this.config.ROUND_DURATION_MS - this.config.LOCK_MS;
+    const now = Date.now();
+
+    if (this.state === 'OPEN' && this.openTimer !== null) {
+      const start = this.openUntil - oldOpenDuration;
+      const newEnd = start + this.openDuration;
+      clearTimeout(this.openTimer);
+      const timeLeft = newEnd - now;
+      if (timeLeft > 0) {
+        this.openUntil = newEnd;
+        this.openTimer = setTimeout(() => this.lockRound(), timeLeft);
+      } else {
+        this.openTimer = null;
+        this.openUntil = null;
+        this.lockRound();
+      }
+    }
+
+    if (this.state === 'LOCK' && this.lockTimer !== null) {
+      const start = this.lockUntil - oldConfig.LOCK_MS;
+      const newEnd = start + this.config.LOCK_MS;
+      clearTimeout(this.lockTimer);
+      const timeLeft = newEnd - now;
+      if (timeLeft > 0) {
+        this.lockUntil = newEnd;
+        this.lockTimer = setTimeout(() => this.spinRound(), timeLeft);
+      } else {
+        this.lockTimer = null;
+        this.lockUntil = null;
+        this.spinRound();
+      }
+    }
+
+    if (this.state === 'SPIN' && this.spinTimer !== null) {
+      const start = this.spinUntil - oldConfig.SPIN_MS;
+      const newEnd = start + this.config.SPIN_MS;
+      clearTimeout(this.spinTimer);
+      const timeLeft = newEnd - now;
+      if (timeLeft > 0) {
+        this.spinUntil = newEnd;
+        this.spinTimer = setTimeout(() => this.resultRound(), timeLeft);
+      } else {
+        this.spinTimer = null;
+        this.spinUntil = null;
+        this.resultRound();
+      }
+    }
+  }
+
   startRound() {
     clearTimeout(this.openTimer);
     clearTimeout(this.lockTimer);
