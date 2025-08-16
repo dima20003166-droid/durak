@@ -3,7 +3,6 @@ import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import AdminBadge from '../components/AdminBadge';
-import resolveAvatarUrl from '../utils/resolveAvatarUrl';
 
 
 const ProfileScreen = ({ user, setPage }) => {
@@ -56,14 +55,7 @@ const ProfileScreen = ({ user, setPage }) => {
             <input type="file" accept="image/png,image/jpeg" ref={fileRef} onChange={onFileChange} className="hidden" />
           </div>
           <div className="flex-grow w-full">
-              <h2 className="text-4xl font-bold flex items-center gap-2">{user?.username}{user?.role === 'admin' && <AdminBadge />}</h2>
-              <p className="text-lg text-muted">Рейтинг: {user?.rating}</p>
-              <div className="mt-6 grid grid-cols-2 lg:grid-cols-3 gap-4 text-center">
-                <div className="bg-surface p-4 rounded-lg transition-transform hover:scale-[1.02]"><p className="text-muted text-sm">Всего игр</p><p className="text-2xl font-bold">{total || 0}</p></div>
-                <div className="bg-surface p-4 rounded-lg transition-transform hover:scale-[1.02]"><p className="text-muted text-sm">Победы</p><p className="text-2xl font-bold text-primary">{stats.wins || 0}</p></div>
-                <div className="bg-surface p-4 rounded-lg transition-transform hover:scale-[1.02]"><p className="text-muted text-sm">Поражения</p><p className="text-2xl font-bold text-danger">{stats.losses || 0}</p></div>
-                <div className="bg-surface p-4 rounded-lg col-span-2 lg:col-span-1 transition-transform hover:scale-[1.02]"><p className="text-muted text-sm">Процент побед</p><p className="text-2xl font-bold text-primary">{winRate}%</p></div>
-              </div>
+
             </div>
           </div>
         </div>

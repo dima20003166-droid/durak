@@ -6,20 +6,7 @@ import AdminBadge from '../components/AdminBadge';
 const LeaderboardScreen = ({ setPage, leaderboard = [] }) => {
   useEffect(() => { socketService.requestLeaderboard(); }, []);
   const list = Array.isArray(leaderboard) ? leaderboard : [];
-    return (
-      <div className="min-h-screen p-8 bg-bg text-text">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-display font-bold text-primary">Таблица лидеров</h1>
-          <button onClick={() => setPage('lobby')} className="bg-primary text-text font-bold py-2 px-4 rounded-lg hover:bg-primary/80">Вернуться в лобби</button>
-        </header>
-        <div className="max-w-4xl mx-auto bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-8">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b-2 border-border">
-                <th className="p-4 text-lg">#</th>
-                <th className="p-4 text-lg">Игрок</th>
-                <th className="p-4 text-lg">Рейтинг</th>
-                <th className="p-4 text-lg">Побед</th>
+
               </tr>
             </thead>
             <tbody>

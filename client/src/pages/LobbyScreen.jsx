@@ -3,9 +3,7 @@ import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminBadge from '../components/AdminBadge';
-import { RoomCardSkeleton, ChatMessageSkeleton } from '../components/Skeletons';
-import resolveAvatarUrl from '../utils/resolveAvatarUrl';
-import AuthModal from '../components/AuthModal';
+
 
 // Вспомогательный компонент для меню модерации (теперь он внешний)
 const ModerationMenu = ({ menuData, onAction, onClose }) => {
@@ -303,25 +301,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-primary">DURAK.IO</h1>
         <div className="flex items-center space-x-4">
-          <button onClick={() => setPage('leaderboard')} className="hidden md:flex items-center gap-2 hover:text-primary"><TrophyIcon /> Рейтинги</button>
-          {user ? (
-            <>
-              <button onClick={() => setPage('wallet')} className="hidden md:flex items-center gap-2 hover:text-primary"><WalletIcon /> {user?.balance ?? 0} ₽</button>
-              <button onClick={() => setPage('profile')} className="hidden md:flex items-center gap-2 hover:text-primary"><UserIcon /> Профиль</button>
-              <div className="flex items-center gap-1">
-                <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" src={resolveAvatarUrl(user?.avatarUrl, `https://placehold.co/48x48/1f2937/ffffff?text=${(user?.username || 'U')[0]}`)} alt="avatar" />
-                <span className="font-semibold">{user?.username || 'Гость'}</span>
-                {user?.role === 'admin' && <AdminBadge />}
-              </div>
-              {user?.role === 'admin' && <button onClick={() => setPage('admin')} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><SettingsIcon /></button>}
-              <button onClick={onLogout} className="p-2 bg-surface rounded-lg hover:bg-surface/80"><LogoutIcon /></button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => { setAuthMode('login'); setAuthOpen(true); }} className="px-4 py-2 rounded-lg bg-primary hover:bg-primary/80">Войти</button>
-              <button onClick={() => { setAuthMode('register'); setAuthOpen(true); }} className="px-4 py-2 rounded-lg bg-primary hover:bg-primary/80">Регистрация</button>
-            </>
-          )}
+
         </div>
       </header>
 
@@ -420,8 +400,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings }) => {
                                   {msg.user?.username || 'Игрок'}
                                   {msg.user?.role === 'admin' && <AdminBadge />}
                               </span>
-                              <p className="text-sm font-normal text-text" style={{ wordBreak: 'break-word' }}>{msg.text}</p>
-                            <div className="text-[10px] text-muted mt-0.5 self-end">
+
                                 {formatTime(msg.createdAt || msg.timestamp)}
                             </div>
                         </div>
