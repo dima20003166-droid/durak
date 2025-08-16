@@ -1,7 +1,9 @@
+/* eslint-disable react/prop-types */
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
+import TableCenter from './TableCenter';
 
 const PlayersList = ({
   room,
@@ -176,29 +178,7 @@ const PlayersList = ({
             </div>
             <p className="mt-2">{gameState.deck.length} карт</p>
           </div>
-          <div className="flex items-center justify-center gap-4 min-w-[300px] flex-wrap">
-            <AnimatePresence>
-              {gameState.table.map((pair) => (
-                <motion.div
-                  key={pair.attack.id}
-                  className="relative w-20 h-28"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  layout
-                >
-                  <Card {...pair.attack} layoutId={pair.attack.id} className="relative z-0" />
-                  {pair.defense && (
-                    <Card
-                      {...pair.defense}
-                      layoutId={pair.defense.id}
-                      className="absolute left-10 top-4 rotate-12 z-10"
-                    />
-                  )}
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
+          <TableCenter table={gameState.table} />
         </div>
       </div>
       <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 hidden md:flex flex-col justify-center items-end gap-4 flex-wrap">
