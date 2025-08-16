@@ -78,16 +78,22 @@ export default function JackpotWheelSection() {
       <JackpotWheel state={state} winner={winner} bank={bank} timeLeft={timeLeft} />
       <BetPanel bank={bank} state={state} />
       <div className="w-full flex flex-col md:flex-row gap-4">
-        <ul className="flex-1 bg-surface/30 rounded p-3 overflow-y-auto h-56 text-red-400 space-y-1">
-          {bets.red.map(b => (
-            <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
-          ))}
-        </ul>
-        <ul className="flex-1 bg-surface/30 rounded p-3 overflow-y-auto h-56 text-orange-400 space-y-1">
-          {bets.orange.map(b => (
-            <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
-          ))}
-        </ul>
+        <div className="flex-1 bg-surface rounded shadow flex flex-col">
+          <div className="p-3 font-bold border-b text-red-400">Красный — {bank.red}</div>
+          <ul className="p-3 overflow-y-auto h-56 text-red-400 space-y-1">
+            {bets.red.map(b => (
+              <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex-1 bg-surface rounded shadow flex flex-col">
+          <div className="p-3 font-bold border-b text-orange-400">Оранжевый — {bank.orange}</div>
+          <ul className="p-3 overflow-y-auto h-56 text-orange-400 space-y-1">
+            {bets.orange.map(b => (
+              <li key={b.id} className="flex justify-between"><span>{b.userId}</span><span>{b.amount}</span></li>
+            ))}
+          </ul>
+        </div>
       </div>
       <div className="w-full flex flex-col md:flex-row justify-between text-center gap-6">
         <div className="flex-1 text-red-400">

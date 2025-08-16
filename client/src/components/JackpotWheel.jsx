@@ -34,7 +34,7 @@ export default function JackpotWheel({ state, winner, bank, timeLeft }) {
   };
 
   return (
-    <div className="relative w-72 sm:w-80 md:w-[360px] aspect-square mx-auto">
+    <div className="relative w-60 sm:w-72 md:w-[300px] aspect-square mx-auto">
       <div className="absolute inset-0 rounded-full p-1 bg-[var(--neon-primary)]/30 shadow-[0_0_15px_var(--neon-primary)]">
         <div className="w-full h-full rounded-full" style={{ background: gradient }} />
         <div className="absolute inset-0 rounded-full pointer-events-none bg-white/10" />
