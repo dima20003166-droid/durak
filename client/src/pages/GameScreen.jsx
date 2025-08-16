@@ -221,7 +221,11 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
             <h2 className="text-3xl font-bold text-primary mb-4">Игра окончена!</h2>
             <p className="text-lg mb-6">{gameOverMessage}</p>
             <button
-              onClick={() => { socketService.leaveRoom(room.id); setPage('lobby'); }}
+              onClick={() => {
+                socketService.leaveRoom(room.id);
+                setGameOverMessage(null);
+                setPage('lobby');
+              }}
               className="px-8 py-3 bg-primary rounded-lg font-semibold hover:bg-primary/80 transition-colors"
             >
               Вернуться в лобби

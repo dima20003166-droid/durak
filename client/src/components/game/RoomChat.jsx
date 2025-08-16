@@ -80,7 +80,7 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
         })}
         <div ref={chatEndRef} />
         </div>
-        <div className="flex mt-2">
+        <div className="flex mt-2 w-full">
           <input
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
@@ -88,7 +88,7 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
             className="flex-1 bg-surface rounded-l px-2 py-1"
             placeholder="Сообщение..."
           />
-          <Button className="rounded-l-none" onClick={send} variant="primary">
+          <Button className="rounded-l-none rounded-r" onClick={send} variant="primary">
             Отправить
           </Button>
         </div>
