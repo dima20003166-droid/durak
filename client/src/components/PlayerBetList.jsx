@@ -1,6 +1,3 @@
-import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-
 import React, { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
