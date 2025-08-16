@@ -5,14 +5,14 @@ import BetPanel from '../components/BetPanel';
 import AnimatedCounter from '../components/AnimatedCounter';
 import PlayerBetList from '../components/PlayerBetList';
 
-export default function JackpotWheelSection() {
-  const [state, setState] = useState('OPEN');
-  const [bank, setBank] = useState({ red: 0, orange: 0 });
+export default function JackpotWheelSection({ initialRound }) {
+  const [state, setState] = useState(initialRound?.state || 'OPEN');
+  const [bank, setBank] = useState(initialRound?.bank || { red: 0, orange: 0 });
   const [winner, setWinner] = useState(null);
-  const [serverSeedHash, setServerSeedHash] = useState('');
+  const [serverSeedHash, setServerSeedHash] = useState(initialRound?.serverSeedHash || '');
   const [serverSeed, setServerSeed] = useState('');
   const [bets, setBets] = useState({ red: [], orange: [] });
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(initialRound?.timeLeftMs ? Math.round(initialRound.timeLeftMs / 1000) : 0);
 
   useEffect(() => {
     socketService.on('round:state', (d) => {
@@ -21,8 +21,9 @@ export default function JackpotWheelSection() {
       if (d.serverSeedHash) setServerSeedHash(d.serverSeedHash);
       setWinner(null);
       setServerSeed('');
-      if (d.state === 'OPEN' && !d.openMs) setBets({ red: [], orange: [] });
-      if (d.state === 'OPEN') setTimeLeft(Math.round((d.openMs || 0) / 1000));
+      if (d.state === 'OPEN' && !(d.openMs || d.timeLeftMs)) setBets({ red: [], orange: [] });
+      const ms = d.timeLeftMs != null ? d.timeLeftMs : d.openMs;
+      if (d.state === 'OPEN' || d.state === 'LOCK' || d.state === 'SPIN') setTimeLeft(Math.round((ms || 0) / 1000));
       else setTimeLeft(0);
     });
     socketService.on('bet:placed', (d) => {

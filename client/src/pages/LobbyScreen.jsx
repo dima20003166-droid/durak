@@ -111,6 +111,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
   const [cancelPrompt, setCancelPrompt] = useState(null);
   const chatEndRef = useRef(null);
   const [moderationMenu, setModerationMenu] = useState({ isOpen: false, msg: null, position: null });
+  const [initialRound, setInitialRound] = useState(null);
 
 
   useEffect(() => {
@@ -132,6 +133,12 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
       socketService.off('deleted_global_message', deletedMessageHandler);
       socketService.off('deleted_all_user_messages', deletedAllUserMessagesHandler);
     };
+  }, []);
+
+  useEffect(() => {
+    const handler = (d) => setInitialRound(d);
+    socketService.on('round:state', handler);
+    return () => socketService.off('round:state', handler);
   }, []);
 
   useEffect(() => {
@@ -324,7 +331,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
           )}
 
           {activeGameTab === 'jackpot' && (
-            <JackpotWheelSection />
+            <JackpotWheelSection initialRound={initialRound} />
           )}
         </div>
 

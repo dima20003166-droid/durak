@@ -133,6 +133,9 @@ function emitToUser(userId, event, payload) {
   try {
     for (const [id, sock] of io.sockets.sockets) {
       if (sock?.data?.user?.id === userId) {
+        if (payload && typeof payload.balance !== 'undefined') {
+          sock.data.user = { ...(sock.data.user || {}), balance: payload.balance };
+        }
         try { sock.emit(event, payload); } catch {}
       }
     }
@@ -492,7 +495,7 @@ const RATE_LIMITS = {
   'register':         { tokens: 5, refill: 5, intervalMs: 60000 }
 };
 
-const socketBuckets = new WeakMap();
+const socketBuckets = new Map();
 const ipBuckets = new Map();
 
 function takeToken(key, event, store) {
@@ -517,12 +520,32 @@ function takeToken(key, event, store) {
   return true;
 }
 
+
+const MAX_CHAT_CACHE = 200;
+const MAX_BUCKET_ENTRIES = 1000;
+
 setInterval(() => {
   const now = Date.now();
+  if (globalChatCache.length > MAX_CHAT_CACHE) {
+    globalChatCache.splice(0, globalChatCache.length - MAX_CHAT_CACHE);
+  }
   for (const [ip, bucket] of ipBuckets.entries()) {
     if (now - bucket.ts > 60 * 60 * 1000) ipBuckets.delete(ip);
   }
-}, 60 * 60 * 1000);
+  if (ipBuckets.size > MAX_BUCKET_ENTRIES) {
+    const excess = ipBuckets.size - MAX_BUCKET_ENTRIES;
+    const keys = Array.from(ipBuckets.keys()).slice(0, excess);
+    keys.forEach(k => ipBuckets.delete(k));
+  }
+  for (const [sock, bucket] of socketBuckets.entries()) {
+    if (!sock.connected || now - bucket.ts > 60 * 60 * 1000) socketBuckets.delete(sock);
+  }
+  if (socketBuckets.size > MAX_BUCKET_ENTRIES) {
+    const excess = socketBuckets.size - MAX_BUCKET_ENTRIES;
+    const keys = Array.from(socketBuckets.keys()).slice(0, excess);
+    keys.forEach(k => socketBuckets.delete(k));
+  }
+}, 60 * 1000);
 
 // Допустимый логин: 3–20 символов, буквы/цифры/подчёркивания
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
@@ -535,21 +558,18 @@ io.on('connection', (socket) => {
       const { color, amount, clientBetId } = payload || {};
       const amt = Number(amount);
       if (!Number.isFinite(amt) || amt <= 0) throw new Error('invalid_amount');
-      if (amt > Number(user.balance || 0)) throw new Error('insufficient_funds');
-      jackpotWheel.placeBet(
-        user.id || socket.id,
-        user.username || user.name || `Гость`,
-        color,
-        amt,
-        clientBetId,
-      );
-      user.balance = Number(user.balance || 0) - amt;
+
+      let newBalance = Number(user.balance || 0);
       if (user.id) {
         try {
-          await db
-            .collection('users')
-            .doc(user.id)
-            .update({ balance: admin.firestore.FieldValue.increment(-amt) });
+          newBalance = await db.runTransaction(async (t) => {
+            const ref = db.collection('users').doc(user.id);
+            const snap = await t.get(ref);
+            const current = Number(snap.data()?.balance || 0);
+            if (current < amt) throw new Error('insufficient_funds');
+            t.update(ref, { balance: admin.firestore.FieldValue.increment(-amt) });
+            return current - amt;
+          });
           await db.collection('jackpotLosses').add({
             userId: user.id,
             amount: amt,
@@ -557,8 +577,23 @@ io.on('connection', (socket) => {
             roundId: jackpotWheel.roundId,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
           });
-        } catch {}
+        } catch (e) {
+          cb && cb({ ok: false, error: e.message });
+          return;
+        }
+      } else {
+        if (amt > newBalance) throw new Error('insufficient_funds');
+        newBalance -= amt;
       }
+
+      jackpotWheel.placeBet(
+        user.id || socket.id,
+        user.username || user.name || `Гость`,
+        color,
+        amt,
+        clientBetId,
+      );
+      user.balance = newBalance;
       emitToUser(user.id, 'current_user_update', { balance: user.balance });
       cb && cb({ ok: true, balance: user.balance });
     } catch (e) {
@@ -607,6 +642,33 @@ io.on('connection', (socket) => {
       socket.emit('global_chat_history', []);
     }
   })();
+
+  try {
+    const bank = jackpotWheel.getBank();
+    socket.emit('round:state', {
+      roundId: jackpotWheel.roundId,
+      state: jackpotWheel.state,
+      bank,
+      serverSeedHash: jackpotWheel.serverSeedHash,
+      timeLeftMs: jackpotWheel.getTimeLeft(),
+    });
+  } catch {}
+
+  socket.on('request_init_state', () => {
+    const user = safeUser(socket.data.user);
+    if (user) socket.emit('current_user_update', user);
+    try { socket.emit('update_rooms', Object.values(gameRooms)); } catch {}
+    try {
+      const bank = jackpotWheel.getBank();
+      socket.emit('round:state', {
+        roundId: jackpotWheel.roundId,
+        state: jackpotWheel.state,
+        bank,
+        serverSeedHash: jackpotWheel.serverSeedHash,
+        timeLeftMs: jackpotWheel.getTimeLeft(),
+      });
+    } catch {}
+  });
 
   socket.on('guest_login', ({ name }) => {
     const username = String(name || '').trim() || `Гость_${Math.floor(Math.random()*1000)}`;

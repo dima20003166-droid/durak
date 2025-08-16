@@ -28,13 +28,14 @@ class SocketService {
 
       // flush queued events once connected
       this.socket.on('connect', () => {
-        for (const { event, args } of this.eventQueue) {
-          this.socket.emit(event, ...args);
-        }
-        this.eventQueue = [];
-      });
-    }
+      for (const { event, args } of this.eventQueue) {
+        this.socket.emit(event, ...args);
+      }
+      this.eventQueue = [];
+      this.socket.emit('request_init_state');
+    });
   }
+}
 
   getServerUrl() {
     return this.serverUrl;
@@ -78,6 +79,8 @@ class SocketService {
   updateAvatar(url) { this.emit('update_avatar', url); }
   updateAvatarFile(dataUrl) { this.emit('update_avatar_file', dataUrl); }
   cancelRoom(roomId) { this.emit('cancel_room', { roomId }); }
+
+  requestInitState() { this.emit('request_init_state'); }
 
   // Jackpot wheel
   placeWheelBet(color, amount, clientBetId, cb) {

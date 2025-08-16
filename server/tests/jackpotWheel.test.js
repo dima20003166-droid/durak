@@ -9,7 +9,7 @@ const originalClearTimeout = global.clearTimeout;
 test('idempotent clientBetId', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
   jw.placeBet('u1', 'User', 'red', 10, 'bet1');
   jw.placeBet('u1', 'User', 'red', 10, 'bet1');
   const bank = jw.getBank();
@@ -20,7 +20,7 @@ test('idempotent clientBetId', () => {
 test('negative or zero bet invalid_amount', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
   assert.throws(() => jw.placeBet('u1', 'User', 'red', -5), /invalid_amount/);
   assert.throws(() => jw.placeBet('u1', 'User', 'red', 0), /invalid_amount/);
   global.setTimeout = originalSetTimeout;
@@ -29,7 +29,7 @@ test('negative or zero bet invalid_amount', () => {
 test('bet outside MIN/MAX invalid_amount', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, MIN_BET: 5, MAX_BET: 10 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, MIN_BET: 5, MAX_BET: 10 });
   assert.throws(() => jw.placeBet('u1', 'User', 'red', 4), /invalid_amount/);
   assert.throws(() => jw.placeBet('u1', 'User', 'red', 11), /invalid_amount/);
   global.setTimeout = originalSetTimeout;
@@ -38,7 +38,7 @@ test('bet outside MIN/MAX invalid_amount', () => {
 test('bet when not open throws', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
   jw.state = 'LOCK';
   assert.throws(() => jw.placeBet('u1', 'User', 'red', 10), /bets_closed/);
   global.setTimeout = originalSetTimeout;
@@ -52,7 +52,7 @@ test('deterministic winner by serverSeed', () => {
       if (event === 'round:result') winner = data.winnerColor;
     },
   };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
   jw.startRound = () => {};
   const seed = 'fixedseed';
   jw.serverSeed = seed;
@@ -69,7 +69,7 @@ test('deterministic winner by serverSeed', () => {
 test('clientBetId reused next round', () => {
   global.setTimeout = () => 0;
   const io = { emit() {} };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000 });
   jw.placeBet('u1', 'User', 'red', 10, 'bet1');
   jw.resultRound();
   jw.startRound();
@@ -98,7 +98,7 @@ test('payouts sum to payoutPool', () => {
       if (event === 'round:result') result = data;
     },
   };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
   jw.startRound = () => {};
   jw.serverSeed = '4';
   jw.bets = {
@@ -123,7 +123,7 @@ test('payouts sum to payoutPool when rounding up', () => {
       if (event === 'round:result') result = data;
     },
   };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000000, LOCK_MS: 1000, RAKE: 0 });
   jw.startRound = () => {};
   jw.serverSeed = '0';
   jw.bets = {
@@ -147,7 +147,7 @@ test('startRound clears timers', () => {
     timeouts[id] = null;
   };
   const io = { emit() {} };
-  const jw = new JackpotWheel(io, { ROUND_DURATION_MS: 1000, LOCK_MS: 100 });
+  const jw = new JackpotWheel(io, null, () => {}, { ROUND_DURATION_MS: 1000, LOCK_MS: 100 });
   let lock = 0,
     spin = 0,
     result = 0;
