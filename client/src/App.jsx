@@ -88,6 +88,10 @@ export default function App() {
     return () => { socketService.disconnect(); };
   }, []);
 
+  useEffect(() => {
+    socketService.requestInitState();
+  }, [page]);
+
   const handleLogout = () => {
     setCurrentUser(null);
     setPage('lobby');

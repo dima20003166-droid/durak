@@ -21,6 +21,8 @@ class JackpotWheel extends EventEmitter {
     this.betIds = new Map(); // clientBetId -> true
     this.serverSeed = '';
     this.serverSeedHash = '';
+    this.openTimer = this.lockTimer = this.spinTimer = null;
+    this.openUntil = this.lockUntil = this.spinUntil = null;
     if (initialData) {
       this.roundId = initialData.roundId || 0;
       this.bets = initialData.bets || { red: [], orange: [] };
@@ -37,9 +39,11 @@ class JackpotWheel extends EventEmitter {
         bank,
         serverSeedHash: this.serverSeedHash,
         openMs: hasRed && hasOrange ? openTime : null,
+        timeLeftMs: hasRed && hasOrange ? openTime : null,
       });
       if (hasRed && hasOrange) {
         this.openTimer = setTimeout(() => this.lockRound(), openTime);
+        this.openUntil = Date.now() + openTime;
       }
     } else {
       this.startRound();
@@ -51,6 +55,7 @@ class JackpotWheel extends EventEmitter {
     clearTimeout(this.lockTimer);
     clearTimeout(this.spinTimer);
     this.openTimer = this.lockTimer = this.spinTimer = null;
+    this.openUntil = this.lockUntil = this.spinUntil = null;
     this.roundId += 1;
     this.state = 'OPEN';
     this.bets = { red: [], orange: [] };
@@ -66,6 +71,7 @@ class JackpotWheel extends EventEmitter {
       bank: this.getBank(),
       serverSeedHash: this.serverSeedHash,
       openMs: null,
+      timeLeftMs: this.getTimeLeft(),
     });
   }
 
@@ -74,11 +80,13 @@ class JackpotWheel extends EventEmitter {
     const bank = this.getBank();
     this.io.emit('round:locked', { roundId: this.roundId, bankSnapshot: bank });
     this.lockTimer = setTimeout(() => this.spinRound(), this.config.LOCK_MS);
+    this.lockUntil = Date.now() + this.config.LOCK_MS;
   }
 
   spinRound() {
     this.state = 'SPIN';
-    this.io.emit('round:state', { roundId: this.roundId, state: this.state });
+    this.spinUntil = Date.now() + 2000;
+    this.io.emit('round:state', { roundId: this.roundId, state: this.state, timeLeftMs: this.getTimeLeft() });
     this.spinTimer = setTimeout(() => this.resultRound(), 2000);
   }
 
@@ -152,6 +160,14 @@ class JackpotWheel extends EventEmitter {
     };
   }
 
+  getTimeLeft() {
+    const now = Date.now();
+    if (this.state === 'OPEN' && this.openTimer) return Math.max(0, this.openUntil - now);
+    if (this.state === 'LOCK' && this.lockTimer) return Math.max(0, this.lockUntil - now);
+    if (this.state === 'SPIN' && this.spinTimer) return Math.max(0, this.spinUntil - now);
+    return 0;
+  }
+
   placeBet(userId, username, color, amount, clientBetId) {
     if (this.state !== 'OPEN') throw new Error('bets_closed');
     if (!['red', 'orange'].includes(color)) throw new Error('invalid_color');
@@ -191,8 +207,10 @@ class JackpotWheel extends EventEmitter {
           bank: this.getBank(),
           serverSeedHash: this.serverSeedHash,
           openMs: openTime,
+          timeLeftMs: openTime,
         });
         this.openTimer = setTimeout(() => this.lockRound(), openTime);
+        this.openUntil = Date.now() + openTime;
       }
     }
   }
