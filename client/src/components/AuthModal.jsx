@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReCAPTCHA from 'react-google-recaptcha';
 import socketService from '../services/socketService';
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
 export default function AuthModal({ onClose }) {
   const [mode, setMode] = useState('login');
@@ -10,6 +13,7 @@ export default function AuthModal({ onClose }) {
   const [password2, setPassword2] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
   const backdropRef = useRef(null);
   const contentRef = useRef(null);
 
@@ -39,7 +43,6 @@ export default function AuthModal({ onClose }) {
     };
   }, [onClose]);
 
-  const USERNAME_REGEX = /^[a-z0-9_]{6,20}$/;
 
   const handleLogin = () => {
     setError('');
@@ -54,11 +57,11 @@ export default function AuthModal({ onClose }) {
     const uname = username.trim();
     const unameNorm = uname.toLowerCase();
     if (!uname || !password || !password2) return setError('Заполните все поля');
-    if (!USERNAME_REGEX.test(unameNorm)) return setError('Имя может содержать только латиницу, цифры и подчёркивания (минимум 6 символов)');
-    if (password.length < 6) return setError('Пароль должен быть не короче 6 символов');
+
     if (password !== password2) return setError('Пароли не совпадают');
+
     setLoading(true);
-    socketService.register({ username: uname, password });
+
   };
 
   const handleGuest = () => {
@@ -93,11 +96,7 @@ export default function AuthModal({ onClose }) {
           </div>
           {error && <div className="text-danger text-sm">{error}</div>}
           <div className="space-y-4">
-            <input type="text" placeholder="Имя пользователя" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-white placeholder-gray-400" />
-            <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-white placeholder-gray-400" />
-            {mode === 'register' && (
-              <>
-                <input type="password" placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} className="w-full px-4 py-3 bg-surface/60 rounded-lg text-white placeholder-gray-400" />
+
               </>
             )}
             {mode === 'login' ? (

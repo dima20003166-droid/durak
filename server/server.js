@@ -101,7 +101,7 @@ const isPlayerInAnyRoom = (userId) => {
   );
 };
 
-const USERNAME_REGEX = /^[a-z0-9_]{6,20}$/;
+
 
 // ---------------------- Онлайн-пользователи ----------------------
 function getOnlineCount() {
@@ -570,15 +570,12 @@ io.on('connection', (socket) => {
     } catch (e) { console.error('Ошибка логина:', e); socket.emit('login_error', 'Ошибка сервера'); }
   }, true));
 
-  socket.on('register', withRateLimit('register', async ({ username, password }) => {
+  socket.on('register', withRateLimit('register', async ({ username, password, captcha }) => {
     try {
       const rawName = String(username || '').trim();
       const usernameNorm = rawName.toLowerCase();
       if (!USERNAME_REGEX.test(usernameNorm)) {
-        return socket.emit('register_error', 'Имя пользователя должно содержать минимум 6 латинских букв, цифр или подчёркиваний.');
-      }
-      if (String(password || '').length < 6) {
-        return socket.emit('register_error', 'Пароль должен быть не короче 6 символов.');
+
       }
       const snap = await db.collection('users').where('usernameNorm', '==', usernameNorm).limit(1).get();
       if (!snap.empty) {
