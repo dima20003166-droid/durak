@@ -277,7 +277,7 @@ class JackpotWheel extends EventEmitter {
     }
     this.saveRoundState({ winnerColor, payouts, serverSeed: this.serverSeed });
     this.round.phase = 'settled';
-    this.io.emit('round:result', { winnerColor, payouts });
+    this.io.emit('jackpot:roundResult', { winnerColor, payouts });
     this.io.emit('jackpot:settled', {
       roundId: this.roundId,
       result: this.round.result,

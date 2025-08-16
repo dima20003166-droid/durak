@@ -118,7 +118,7 @@ export default function JackpotGame({ initialRound, user }) {
     socketService.on('jackpot:start', onStart);
     socketService.on('jackpot:result', onResult);
     socketService.on('jackpot:settled', onSettled);
-    socketService.on('round:result', onRoundResult);
+    socketService.on('jackpot:roundResult', onRoundResult);
     socketService.connect();
     return () => {
       socketService.off('jackpot:state', onState);
@@ -126,7 +126,7 @@ export default function JackpotGame({ initialRound, user }) {
       socketService.off('jackpot:start', onStart);
       socketService.off('jackpot:result', onResult);
       socketService.off('jackpot:settled', onSettled);
-      socketService.off('round:result', onRoundResult);
+      socketService.off('jackpot:roundResult', onRoundResult);
     };
   }, [user]);
 
