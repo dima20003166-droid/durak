@@ -26,6 +26,7 @@ export default function App() {
   const [siteSettings, setSiteSettings] = useState({ commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
   const [theme, setThemeState] = useState(getInitialTheme());
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     setTheme(theme);
@@ -51,7 +52,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    socketService.connect();
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('authToken') : null;
+
+    const handleAuthSuccess = () => {
+      setAuthChecked(true);
+      socketService.off('login_success', handleAuthSuccess);
+      socketService.off('login_error', handleAuthError);
+    };
+    const handleAuthError = () => {
+      setAuthChecked(true);
+      socketService.off('login_success', handleAuthSuccess);
+      socketService.off('login_error', handleAuthError);
+    };
 
     const onLoginSuccess = ({ user, token }) => {
       setCurrentUser(user);
@@ -66,6 +78,8 @@ export default function App() {
     const onLeaderboard = (users) => setLeaderboard(Array.isArray(users) ? users : []);
     const onSettings = (settings) => setSiteSettings(settings || { commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
 
+    socketService.on('login_success', handleAuthSuccess);
+    socketService.on('login_error', handleAuthError);
     socketService.on('login_success', onLoginSuccess);
     socketService.on('created_room', ({ roomId }) => { socketService.joinRoom(roomId); });
     socketService.on('user_data_updated', onUserUpdated);
@@ -102,7 +116,18 @@ export default function App() {
     // Не редиректим здесь — модалка в GameScreen сама покажется
     socketService.on('game_over', () => {});
 
-    return () => { socketService.disconnect(); };
+    if (!token) {
+      setAuthChecked(true);
+    }
+
+    socketService.connect();
+
+    return () => {
+      socketService.off('login_success', handleAuthSuccess);
+      socketService.off('login_error', handleAuthError);
+      socketService.off('login_success', onLoginSuccess);
+      socketService.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -151,6 +176,10 @@ export default function App() {
     socketService.on('current_user_update', handler);
     return () => socketService.off('current_user_update', handler);
   }, []);
+
+  if (!authChecked) {
+    return null;
+  }
 
   return (
     <ErrorBoundary>
