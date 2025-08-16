@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import socketService from '../services/socketService';
 import AdminBadge from '../components/AdminBadge';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 const LeaderboardScreen = ({ setPage, leaderboard = [] }) => {
   useEffect(() => { socketService.requestLeaderboard(); }, []);
@@ -33,8 +34,8 @@ const LeaderboardScreen = ({ setPage, leaderboard = [] }) => {
                       {user.role === 'admin' && <AdminBadge />}
                     </span>
                   </td>
-                  <td className="p-4 font-bold text-xl">{user.rating ?? 0}</td>
-                  <td className="p-4 font-semibold text-xl text-primary">{user.stats?.wins ?? 0}</td>
+                  <td className="p-4 font-bold text-xl"><AnimatedCounter value={user.rating ?? 0} /></td>
+                  <td className="p-4 font-semibold text-xl text-primary"><AnimatedCounter value={user.stats?.wins ?? 0} /></td>
                 </tr>
               ))}
               {list.length === 0 && <tr><td colSpan="4" className="p-6 text-center text-muted">Пока пусто</td></tr>}

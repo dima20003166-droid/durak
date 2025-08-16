@@ -1,5 +1,5 @@
 // client/src/components/Card.jsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 
@@ -27,7 +27,18 @@ SuitSvg.propTypes = {
   size: PropTypes.number,
 };
 
-export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=false, onClick, size='md', className='', style }) {
+export default function Card({
+  suit = '♠',
+  rank = 'A',
+  isFaceUp = true,
+  isSelected = false,
+  onClick,
+  size = 'md',
+  className = '',
+  style,
+  dealFrom,
+  isWinning = false,
+}) {
   const sizes = {
     sm: { w: 64, h: 90, rank: 14, corner: 16, pip: 24 },
     md: { w: 86, h: 120, rank: 16, corner: 18, pip: 28 },
@@ -35,12 +46,38 @@ export default function Card({ suit='♠', rank='A', isFaceUp=true, isSelected=f
   };
   const S = sizes[size] || sizes.md;
   const borderSel = isSelected ? 'ring-2 ring-primary shadow-primary/40 -translate-y-2' : 'ring-1 ring-border';
+  useEffect(() => {
+    if (isWinning && typeof window !== 'undefined') {
+      window.navigator?.vibrate?.(100);
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain).connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+    } catch {
+      // ignore
+    }
+    }
+  }, [isWinning]);
+
+  const handleClick = (e) => {
+    window.navigator?.vibrate?.(30);
+    onClick?.(e);
+  };
+
   return (
     <motion.div
       role="button"
       tabIndex={0}
-      onClick={onClick}
-      className={`relative rounded-xl cursor-pointer select-none ${borderSel} ${className}`}
+      onClick={handleClick}
+      initial={dealFrom ? { x: dealFrom.x, y: dealFrom.y, rotate: -20 } : undefined}
+      animate={{ x: 0, y: 0, rotate: 0 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      className={`relative rounded-xl cursor-pointer select-none ${borderSel} ${isWinning ? 'win-effect' : ''} ${className}`}
       style={{ width: S.w, height: S.h, perspective: 600, ...style }}
       whileHover={{ y: -4 }}
     >
@@ -86,4 +123,6 @@ Card.propTypes = {
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
   className: PropTypes.string,
   style: PropTypes.object,
+  dealFrom: PropTypes.shape({ x: PropTypes.number, y: PropTypes.number }),
+  isWinning: PropTypes.bool,
 };
