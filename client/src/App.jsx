@@ -53,7 +53,14 @@ export default function App() {
   useEffect(() => {
     socketService.connect();
 
-    const onLoginSuccess = (user) => { setCurrentUser(user); setShowAuthModal(false); setPage('lobby'); };
+    const onLoginSuccess = ({ user, token }) => {
+      setCurrentUser(user);
+      if (token && typeof localStorage !== 'undefined') {
+        localStorage.setItem('authToken', token);
+      }
+      setShowAuthModal(false);
+      setPage('lobby');
+    };
     const onUserUpdated = (user) => setCurrentUser((prev) => ({ ...prev, ...user }));
     const onRooms = (serverRooms) => setRooms(serverRooms || []);
     const onLeaderboard = (users) => setLeaderboard(Array.isArray(users) ? users : []);
@@ -106,6 +113,9 @@ export default function App() {
     setCurrentUser(null);
     setPage('lobby');
     socketService.disconnect();
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('authToken');
+    }
     socketService.connect();
   };
 
