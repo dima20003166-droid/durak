@@ -504,6 +504,28 @@ function withRateLimit(event, handler) {
 
   console.log(`[+] Игрок подключился: ${socket.id}`);
   setTimeout(broadcastOnlineCount, 0);
+  try { socket.emit('update_rooms', Object.values(gameRooms)); } catch {}
+  (async () => {
+    try {
+      if (!globalChatCache.length) {
+        const chatSnap = await db.collection('chat').orderBy('timestamp', 'desc').limit(100).get();
+        globalChatCache = chatSnap.docs.map(doc => ({ ...doc.data(), id: doc.id })).reverse();
+      }
+      socket.emit('global_chat_history', globalChatCache);
+    } catch (e) {
+      console.error('init chat', e);
+      socket.emit('global_chat_history', []);
+    }
+  })();
+
+  socket.on('guest_login', ({ name }) => {
+    const username = String(name || '').trim() || `Гость_${Math.floor(Math.random()*1000)}`;
+    socket.data.user = { username, role: 'guest', balance: 0, socketId: socket.id, id: null };
+    try { broadcastOnlineCount(); } catch {}
+    socket.emit('login_success', safeUser(socket.data.user));
+    socket.emit('update_rooms', Object.values(gameRooms));
+    socket.emit('global_chat_history', globalChatCache);
+  });
 
   socket.on('login', withRateLimit('login', async ({ username, password }) => {
     try {
@@ -558,7 +580,7 @@ function withRateLimit(event, handler) {
 
   socket.on('create_room', withRateLimit('create_room', (options) => {
   const user = socket.data.user;
-  if (!user) return;
+  if (!user?.id) { socket.emit('join_error', 'Требуется авторизация'); return; }
   const userBalance = Number(user.balance || 0);
   if (userBalance <= 0) {
     return socket.emit('join_error', 'Недостаточно средств для создания стола.');
@@ -615,11 +637,12 @@ function withRateLimit(event, handler) {
   io.emit('update_rooms', Object.values(gameRooms));
 }));
 
-  socket.on('join_room', async (payload) => {
-    const roomId = getRoomId(payload);
-    const room = gameRooms[roomId];
-    const user = socket.data.user;
-    if (!room || !user) return socket.emit('join_error', 'Комната не найдена');
+    socket.on('join_room', async (payload) => {
+      const roomId = getRoomId(payload);
+      const room = gameRooms[roomId];
+      const user = socket.data.user;
+      if (!room) return socket.emit('join_error', 'Комната не найдена');
+      if (!user?.id) return socket.emit('join_error', 'Требуется авторизация');
 
     const isAlreadyInAnotherRoom = Object.values(gameRooms).some(r => r.id !== roomId && r.players.some(p => p.id === user.id));
     if (isAlreadyInAnotherRoom) return socket.emit('join_error', 'Вы уже в другой игре.');
@@ -701,9 +724,9 @@ function withRateLimit(event, handler) {
     }
   });
 
-  socket.on('send_global_message', async (message) => {
-    const user = socket.data.user;
-    if (!user) return;
+    socket.on('send_global_message', async (message) => {
+      const user = socket.data.user;
+      if (!user?.id) { socket.emit('chat_error', 'Требуется авторизация'); return; }
     if (mutedUsers.has(user.id) && mutedUsers.get(user.id) > Date.now()) {
       return socket.emit('chat_error', 'Вы временно не можете отправлять сообщения.');
     }
@@ -751,9 +774,9 @@ function withRateLimit(event, handler) {
     } catch (e) { console.error('chat:delete_all_messages', e); }
   });
 
-  socket.on('send_room_message', async ({ roomId, text }) => {
-    const user = socket.data.user;
-    if (!user || !gameRooms[roomId]) return;
+    socket.on('send_room_message', async ({ roomId, text }) => {
+      const user = socket.data.user;
+      if (!user?.id || !gameRooms[roomId]) return;
     const msg = { user: safeUser(user), text: String(text || '').slice(0, 200), timestamp: new Date().toISOString(), createdAt: Date.now() };
     if (!msg.text.trim()) return;
     const roomChatRef = db.collection('room_chats').doc(roomId);

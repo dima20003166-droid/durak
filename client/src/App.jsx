@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import socketService from './services/socketService';
-import AuthScreen from './pages/AuthScreen';
 import LobbyScreen from './pages/LobbyScreen';
 import GameScreen from './pages/GameScreen';
 import ProfileScreen from './pages/ProfileScreen';
@@ -10,11 +9,12 @@ import WalletScreen from './pages/WalletScreen';
 import LeaderboardScreen from './pages/LeaderboardScreen';
 import AdminPanel from './pages/AdminPanel';
 import ErrorBoundary from './components/ErrorBoundary';
+import AuthModal from './components/AuthModal';
 import './index.css';
 import { setTheme } from './theme';
 
 export default function App() {
-  const [page, setPage] = useState('auth');
+  const [page, setPage] = useState('lobby');
   const [suppressAutoJoinUntil, setSuppressAutoJoinUntil] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
   const [rooms, setRooms] = useState([]);
@@ -22,6 +22,7 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [siteSettings, setSiteSettings] = useState({ commission: 5, botsEnabled: true, maxPlayersLimit: 6 });
   const [theme, setThemeState] = useState('dark');
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => { setTheme(theme); }, [theme]);
   const toggleTheme = () => setThemeState(t => t === 'dark' ? 'light' : 'dark');
@@ -40,7 +41,7 @@ export default function App() {
   useEffect(() => {
     socketService.connect();
 
-    const onLoginSuccess = (user) => { setCurrentUser(user); setPage('lobby'); };
+    const onLoginSuccess = (user) => { setCurrentUser(user); setShowAuthModal(false); setPage('lobby'); };
     const onUserUpdated = (user) => setCurrentUser((prev) => ({ ...prev, ...user }));
     const onRooms = (serverRooms) => setRooms(serverRooms || []);
     const onLeaderboard = (users) => setLeaderboard(Array.isArray(users) ? users : []);
@@ -84,7 +85,7 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setPage('auth');
+    setPage('lobby');
     socketService.disconnect();
     socketService.connect();
   };
@@ -92,7 +93,7 @@ export default function App() {
   const renderPage = () => {
     switch (page) {
       case 'lobby':
-        return <LobbyScreen user={currentUser} onLogout={handleLogout} setPage={setPage} rooms={rooms} siteSettings={siteSettings} />;
+        return <LobbyScreen user={currentUser} onLogout={handleLogout} setPage={setPage} rooms={rooms} siteSettings={siteSettings} openAuthModal={() => setShowAuthModal(true)} />;
       case 'game':
         return <GameScreen setSuppressAutoJoinUntil={setSuppressAutoJoinUntil} room={currentRoom} setPage={setPage} />;
       case 'profile':
@@ -104,7 +105,7 @@ export default function App() {
       case 'admin':
         return <AdminPanel user={currentUser} setPage={setPage} siteSettings={siteSettings} />;
       default:
-        return <AuthScreen setPage={setPage} setCurrentUser={setCurrentUser} />;
+        return <LobbyScreen user={currentUser} onLogout={handleLogout} setPage={setPage} rooms={rooms} siteSettings={siteSettings} openAuthModal={() => setShowAuthModal(true)} />;
     }
   };
 
@@ -140,6 +141,7 @@ export default function App() {
             {renderPage()}
           </motion.div>
         </AnimatePresence>
+        {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
         <button
           className="fixed bottom-4 right-4 px-3 py-2 rounded bg-primary text-text shadow-md"
           onClick={toggleTheme}
