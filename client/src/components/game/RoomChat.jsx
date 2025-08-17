@@ -80,7 +80,7 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
         })}
         <div ref={chatEndRef} />
         </div>
-        <div className="flex mt-2 w-full items-stretch gap-2 sticky bottom-0 bg-bg/70 backdrop-blur-sm p-2">
+        <div className="flex mt-auto w-full items-stretch gap-2 p-2 bg-bg/70 backdrop-blur-sm">
           <input
             value={msg}
             onChange={(e) => setMsg(e.target.value)}

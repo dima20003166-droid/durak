@@ -41,14 +41,14 @@ const PlayersList = ({
         {isMine ? (
           <>
             <div
-              className={`mb-0 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+              className={`-mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
                 isCurrentAttacker ? 'bg-danger' : ''
               } ${isCurrentDefender ? 'bg-accent' : ''}`}
             >
               {statusText}
             </div>
             <p
-              className="font-semibold -mt-1 truncate w-full text-center cursor-pointer"
+              className="font-semibold -mt-2 truncate w-full text-center cursor-pointer"
               onClick={() => openProfile(p)}
             >
               {p.username}
@@ -80,7 +80,7 @@ const PlayersList = ({
             </p>
           </>
         )}
-        <div className={`flex justify-center items-center h-28 w-full ${isMine ? '-mt-2' : '-mt-8'}`}>
+        <div className={`flex justify-center items-center h-28 w-full ${isMine ? '-mt-3' : '-mt-8'}`}>
           {isMine ? (
             (() => {
               const hand = myPlayer.hand;
@@ -116,7 +116,7 @@ const PlayersList = ({
               return (
                 <div className="relative" style={{ width }}>
                   {/* мини-веер рубашек наполовину под аватаркой */}
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none">
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 -z-10 pointer-events-none">
                     {Array(Math.min(3, p.hand.length)).fill(null).map((_,n)=> (
                       <div key={`back-${n}`} className="inline-block w-6 h-8 rounded bg-primary/40 border border-white/20 shadow-md -mx-1 rotate-[{-10 + n*10}]"></div>
                     ))}
@@ -155,10 +155,10 @@ const PlayersList = ({
             <div className="relative">
               {gameState.deck.length > 1 && (
                 <>
-                  <Card isFaceUp={false} className="absolute top-1 left-1 -rotate-6 shadow-md" />
-                  <Card isFaceUp={false} className="absolute top-2 left-2 rotate-3 shadow-md" />
+                  <Card isFaceUp={false} className="absolute top-2 left-2 -rotate-12 shadow-lg" />
+                  <Card isFaceUp={false} className="absolute top-4 left-4 rotate-6 shadow-lg" />
                   {gameState.deck.length > 2 && (
-                    <Card isFaceUp={false} className="absolute top-3 left-3 rotate-[9deg] shadow-lg" />
+                    <Card isFaceUp={false} className="absolute top-6 left-6 rotate-[15deg] shadow-xl" />
                   )}
                 </>
               )}
@@ -182,7 +182,7 @@ const PlayersList = ({
                     <Card
                       {...pair.defense}
                       layoutId={pair.defense.id}
-                      className="absolute left-12 top-9 rotate-[22deg] z-10 card-on-top"
+                      className="absolute left-8 top-4 rotate-[25deg] z-10 shadow-md card-on-top"
                     />
                   )}
                 </motion.div>
