@@ -1,0 +1,3 @@
+MODIFIED: client/src/index.css
+MODIFIED: client/src/pages/GameScreen.jsx
+NEW: client/src/components/game/DurakTable.jsx
