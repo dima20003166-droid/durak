@@ -7,17 +7,17 @@
 
 @layer base {
   :root {
-  --color-bg: #0b0810;            /* deep plum */
-  --color-surface: #130b14;       /* dark burgundy surface */
-  --color-border: #3d1a27;        /* wine-tinted border */
-  --color-text: #f5eaf3;          /* soft warm white */
-  --color-muted: #b79bb0;         /* dusty mauve */
-  --color-primary: #8a1435;       /* BURGUNDY */
-  --color-accent: #f5c864;        /* champagne gold */
+  --color-bg: #050510;
+  --color-surface: #0d0d25;
+  --color-border: #352f5b;
+  --color-text: #f3f4ff;
+  --color-muted: #6b6b8d;
+  --color-primary: #3b82f6;
+  --color-accent: #ff00e5;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
-  --color-ring: rgba(245, 200, 100, 0.55);
+  --color-ring: rgba(59, 130, 246, 0.45);
 }
 
   .light {
@@ -151,10 +151,8 @@
 
 /* Animated game background */
 .game-bg {
-  background: radial-gradient(1200px 800px at 60% -10%, rgba(138,20,53,0.25), transparent 60%),
-              radial-gradient(900px 600px at 10% 110%, rgba(245,200,100,0.12), transparent 60%),
-              linear-gradient(120deg, var(--color-bg), #160914, var(--color-bg));
-  background-size: cover;
+  background: linear-gradient(120deg, var(--color-bg), #1a082c, var(--color-bg));
+  background-size: 400% 400%;
   animation: gameGradient 20s ease infinite;
 }
 
@@ -165,7 +163,7 @@
   min-height: 100vh;
   padding: clamp(0.5rem, 2vw, 1rem);
   gap: 1rem;
-  max-width: 1440px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 .game-header { flex: 0 0 auto; }
