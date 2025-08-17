@@ -31,7 +31,7 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
         {open ? 'Скрыть чат' : 'Показать чат'}
       </Button>
       <div
-        className={`${open ? 'flex' : 'hidden'} md:flex bg-surface rounded-xl border border-border p-4 flex-col h-full chatPanel`}
+        className={`${open ? "flex" : "hidden"} md:flex panel chatPanel border border-white/10 p-4 flex-col h-full`}
       >
         <div className="font-semibold mb-2">Чат стола</div>
         <div className="flex-1 overflow-y-auto custom-scroll space-y-2 chatMessages">
