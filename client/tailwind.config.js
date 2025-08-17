@@ -1,5 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+
+  safelist: [
+    'rotate-[-6deg]','rotate-[6deg]','rotate-[9deg]','rotate-[12deg]',
+    'translate-x-4','-translate-y-2','-translate-x-1/2','-top-4',
+    'w-8','h-12','w-20','h-28','w-28','h-40'
+  ],
+
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
