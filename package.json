@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "durak-monorepo",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint || true",
+    "typecheck": "pnpm -r typecheck || true"
+  }
+}
