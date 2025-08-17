@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { motion } from 'framer-motion';
@@ -6,6 +7,12 @@ import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 import TableCenter from './TableCenter';
 import Deck from './Deck';
 
+=======
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Card from '../Card';
+import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
+>>>>>>> 4771e66 (Initial commit)
 
 const PlayersList = ({
   room,
@@ -37,6 +44,7 @@ const PlayersList = ({
     const isCurrentAttacker = idx === gameState.attackerIndex;
     const isCurrentDefender = idx === gameState.defenderIndex;
     const statusText = isCurrentAttacker ? 'Атака' : isCurrentDefender ? 'Защита' : '';
+<<<<<<< HEAD
 
     if (isMine) {
       return (
@@ -71,11 +79,14 @@ const PlayersList = ({
       );
     }
 
+=======
+>>>>>>> 4771e66 (Initial commit)
     return (
       <div
         key={p.socketId}
         className="flex flex-col items-center p-2 mb-2 basis-1/4 md:basis-1/6"
       >
+<<<<<<< HEAD
         <div
           className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
             isCurrentAttacker ? 'bg-danger' : ''
@@ -112,6 +123,101 @@ const PlayersList = ({
         >
           {p.username}
         </p>
+=======
+        {isMine ? (
+          <>
+            <div
+              className={`mb-0.5 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+                isCurrentAttacker ? 'bg-danger' : ''
+              } ${isCurrentDefender ? 'bg-accent' : ''}`}
+            >
+              {statusText}
+            </div>
+            <p
+              className="font-semibold mb-0.5 truncate w-full text-center cursor-pointer"
+              onClick={() => openProfile(p)}
+            >
+              {p.username}
+            </p>
+          </>
+        ) : (
+          <>
+            <div
+              className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
+                isCurrentAttacker ? 'bg-danger' : ''
+              } ${isCurrentDefender ? 'bg-accent' : ''}`}
+            >
+              {statusText}
+            </div>
+            <img
+              className="w-16 h-16 rounded-full object-cover cursor-pointer relative z-10"
+              src={resolveAvatarUrl(
+                p.avatarUrl,
+                `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`
+              )}
+              onClick={() => openProfile(p)}
+              alt=""
+            />
+            <p
+              className="font-semibold mt-1 truncate cursor-pointer w-full text-center"
+              onClick={() => openProfile(p)}
+            >
+              {p.username}
+            </p>
+          </>
+        )}
+        <div className={`flex justify-center items-center h-28 w-full ${isMine ? 'mt-0' : '-mt-20'}`}>
+          {isMine ? (
+            (() => {
+              const hand = myPlayer.hand;
+              const mid = (hand.length - 1) / 2;
+              const width = 60 + hand.length * 24;
+              return (
+                <div className="relative" style={{ width }}>
+                  {hand.map((card, i) => {
+                    const offset = i * 24;
+                    const rotate = (i - mid) * 8;
+                    const translateY = Math.abs(i - mid) * -6;
+                    return (
+                      <motion.div
+                        key={card.id}
+                        className="absolute"
+                        style={{ left: offset, transform: `translateY(${translateY}px) rotate(${rotate}deg)` }}
+                      >
+                        <Card
+                          {...card}
+                          layoutId={card.id}
+                          isSelected={selectedCard?.id === card.id}
+                          onClick={() => setSelectedCard(card)}
+                        />
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              );
+            })()
+          ) : (
+            (() => {
+              const width = 40 + p.hand.length * 6;
+              return (
+                <div className="relative" style={{ width }}>
+                  {Array(p.hand.length)
+                    .fill(0)
+                    .map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute"
+                        style={{ left: i * 6, transform: `rotate(${i % 2 ? 3 : -3}deg)` }}
+                      >
+                        <Card isFaceUp={false} layoutId={`${p.socketId}-card-${i}`} />
+                      </div>
+                    ))}
+                </div>
+              );
+            })()
+          )}
+        </div>
+>>>>>>> 4771e66 (Initial commit)
       </div>
     );
   };
@@ -126,8 +232,46 @@ const PlayersList = ({
       </div>
       <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 flex items-center justify-center">
         <div className="flex items-center justify-center gap-4 flex-wrap">
+<<<<<<< HEAD
           <Deck remaining={gameState.deck.length} trumpCard={gameState.trumpCard} />
           <TableCenter table={gameState.table} />
+=======
+          <div className="flex flex-col items-center w-24 relative">
+            <div className="relative">
+              {gameState.deck.length > 1 && (
+                <>
+                  <Card isFaceUp={false} className="absolute top-1 left-1 -rotate-6" />
+                  <Card isFaceUp={false} className="absolute top-2 left-2 rotate-3" />
+                </>
+              )}
+              <Card {...gameState.trumpCard} layoutId="trump" className="relative z-10" />
+            </div>
+            <p className="mt-2">{gameState.deck.length} карт</p>
+          </div>
+          <div className="flex items-center justify-center gap-4 min-w-[300px] flex-wrap">
+            <AnimatePresence>
+              {gameState.table.map((pair) => (
+                <motion.div
+                  key={pair.attack.id}
+                  className="relative w-20 h-28"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  layout
+                >
+                  <Card {...pair.attack} layoutId={pair.attack.id} className="relative z-0" />
+                  {pair.defense && (
+                    <Card
+                      {...pair.defense}
+                      layoutId={pair.defense.id}
+                      className="absolute left-10 top-3 rotate-12 z-10"
+                    />
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+>>>>>>> 4771e66 (Initial commit)
         </div>
       </div>
       <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 hidden md:flex flex-col justify-center items-end gap-4 flex-wrap">

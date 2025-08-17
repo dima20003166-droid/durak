@@ -1,8 +1,12 @@
 // client/src/components/Card.jsx
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
+<<<<<<< HEAD
 import { motion } from 'framer-motion';
 import useCardSize from '../utils/useCardSize';
+=======
+import { motion, AnimatePresence } from 'framer-motion';
+>>>>>>> 4771e66 (Initial commit)
 
 const suitColor = (suit) => (suit === '♥' || suit === '♦' ? 'text-danger' : 'text-bg');
 const suitFill  = (suit) => (suit === '♥' || suit === '♦' ? 'var(--color-danger)' : 'var(--color-bg)');
@@ -34,14 +38,27 @@ export default function Card({
   isFaceUp = true,
   isSelected = false,
   onClick,
+<<<<<<< HEAD
+=======
+  size = 'md',
+>>>>>>> 4771e66 (Initial commit)
   className = '',
   style,
   from,
   layoutId,
   isWinning = false,
 }) {
+<<<<<<< HEAD
   const { width, height, rank: rankSize, corner, pip } = useCardSize();
   const S = { rank: rankSize, corner, pip };
+=======
+  const sizes = {
+    sm: { rank: 14, corner: 16, pip: 24, class: 'w-card-sm h-card-sm' },
+    md: { rank: 16, corner: 18, pip: 28, class: 'w-card-md h-card-md' },
+    lg: { rank: 18, corner: 20, pip: 32, class: 'w-card-lg h-card-lg' },
+  };
+  const S = sizes[size] || sizes.md;
+>>>>>>> 4771e66 (Initial commit)
   const borderSel = isSelected
     ? 'ring-2 ring-primary shadow-primary scale-105 -translate-y-2'
     : 'ring-1 ring-border';
@@ -82,10 +99,17 @@ export default function Card({
           ? { duration: 0 }
           : { type: 'spring', stiffness: 500, damping: 30 }
       }
+<<<<<<< HEAD
         className={`relative rounded-xl cursor-pointer select-none transition-transform transition-shadow ${borderSel} ${
           isWinning ? 'win-effect' : ''
         } ${className}`}
         style={{ width, height, ...style }}
+=======
+      className={`relative rounded-xl cursor-pointer select-none transition-transform transition-shadow ${S.class} ${borderSel} ${
+        isWinning ? 'win-effect' : ''
+      } ${className}`}
+      style={style}
+>>>>>>> 4771e66 (Initial commit)
       whileHover={prefersReducedMotion ? {} : { y: -4 }}
     >
       {isFaceUp ? (
@@ -127,6 +151,10 @@ Card.propTypes = {
   isFaceUp: PropTypes.bool,
   isSelected: PropTypes.bool,
   onClick: PropTypes.func,
+<<<<<<< HEAD
+=======
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+>>>>>>> 4771e66 (Initial commit)
   className: PropTypes.string,
   style: PropTypes.object,
   from: PropTypes.shape({ x: PropTypes.number, y: PropTypes.number }),

@@ -31,9 +31,12 @@
     --neon-primary-700: #2b3a55;
     --jackpot-red: #ff3b3b;
     --jackpot-orange: #ff9a1a;
+<<<<<<< HEAD
     --card-radius: 12px;
     --card-shadow: 0 10px 28px rgba(0,0,0,.45);
     --card-back-gradient: linear-gradient(180deg,#6a00ff,#ff2ea6);
+=======
+>>>>>>> 4771e66 (Initial commit)
   }
 
   .light {
@@ -52,7 +55,11 @@
 
   html, body, #root { height: 100%; }
   body {
+<<<<<<< HEAD
     @apply bg-bg text-text font-sans transition-colors duration-300 overflow-x-hidden;
+=======
+    @apply bg-bg text-text font-sans transition-colors duration-300;
+>>>>>>> 4771e66 (Initial commit)
     background: radial-gradient(circle at 20% 20%, #1f0036 0%, #000 80%);
     background-attachment: fixed;
   }
@@ -77,6 +84,7 @@
   }
 }
 
+<<<<<<< HEAD
 @layer components {
   .chatPanel { @apply grid grid-rows-[1fr_auto] h-full; }
   .chatMessages { @apply overflow-auto; }
@@ -84,6 +92,8 @@
   .chatInputRow input { @apply flex-1 min-w-0; }
 }
 
+=======
+>>>>>>> 4771e66 (Initial commit)
 @layer utilities {
   .border-divider {
     border-color: var(--color-border);
@@ -186,9 +196,14 @@
   min-height: 100vh;
   padding: 1rem;
   gap: 1rem;
+<<<<<<< HEAD
   width: 100%;
   margin: 0;
   overflow-x: hidden;
+=======
+  max-width: 1280px;
+  margin: 0 auto;
+>>>>>>> 4771e66 (Initial commit)
 }
 .game-header { flex: 0 0 auto; }
 .game-footer { flex: 0 0 auto; }
@@ -205,6 +220,7 @@
   justify-content: center;
   gap: 1rem;
 }
+<<<<<<< HEAD
 
 .game-table {
   width: 100%;
@@ -213,10 +229,16 @@
 .game-left,
 .game-right {
   width: 350px;
+=======
+.game-left,
+.game-right {
+  width: 260px;
+>>>>>>> 4771e66 (Initial commit)
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
+<<<<<<< HEAD
 @media (max-width: 1279px) {
   .game-left,
   .game-right {
@@ -224,6 +246,15 @@
   }
 }
 @media (max-width: 767px) {
+=======
+@media (max-width: 1024px) {
+  .game-left,
+  .game-right {
+    width: 200px;
+  }
+}
+@media (max-width: 768px) {
+>>>>>>> 4771e66 (Initial commit)
   .game-main {
     flex-direction: column;
   }
@@ -239,6 +270,7 @@
   }
 }
 
+<<<<<<< HEAD
 @media (max-width: 767px) {
   .game-table {
     min-height: 56vh;
@@ -246,6 +278,8 @@
   }
 }
 
+=======
+>>>>>>> 4771e66 (Initial commit)
 @keyframes gameGradient {
   0% {
     background-position: 0% 50%;
@@ -264,3 +298,41 @@
     transition: none !important;
   }
 }
+<<<<<<< HEAD
+=======
+
+
+
+/* === PATCH: Game layout centering & chat width (2025-08-17) === */
+:root{
+  --chat-w-desktop: 360px;
+  --chat-w-tablet: 300px;
+}
+/* Switch main container to grid for better centering */
+.game-main{
+  display: grid;
+  grid-template-columns: minmax(0,1fr) var(--chat-w-desktop);
+  align-items: stretch;
+}
+.game-right{ width: var(--chat-w-desktop); }
+.game-center{ display:flex; justify-content:center; }
+
+/* Chat panel layout: messages + input row */
+.game-right .chatPanel{ display:grid; grid-template-rows: 1fr auto; height: 100%; }
+.game-right .chatMessages{ overflow: auto; }
+
+/* Tablet */
+@media (max-width: 1279px){
+  .game-main{
+    grid-template-columns: minmax(0,1fr) var(--chat-w-tablet);
+  }
+  .game-right{ width: var(--chat-w-tablet); }
+}
+/* Mobile: stack, chat can be hidden by component toggle */
+@media (max-width: 767px){
+  .game-main{
+    grid-template-columns: 1fr;
+  }
+  .game-right{ width: 100%; }
+}
+>>>>>>> 4771e66 (Initial commit)
