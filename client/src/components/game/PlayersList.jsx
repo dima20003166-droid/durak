@@ -116,11 +116,15 @@ const PlayersList = ({
               return (
                 <div className="relative" style={{ width }}>
                   {/* мини-веер рубашек наполовину под аватаркой */}
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none">
-                    {Array(Math.min(3, p.hand.length)).fill(null).map((_,n)=> (
-                      <div key={`back-${n}`} className="inline-block w-6 h-8 rounded bg-primary/40 border border-white/20 shadow-md -mx-1 rotate-[{-10 + n*10}]"></div>
-                    ))}
-                  </div>
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 pointer-events-none z-10">
+  {Array(Math.min(3, p.hand.length)).fill(null).map((_, n) => (
+    <div
+      key={`back-${n}`}
+      className="inline-block w-8 h-12 rounded-md bg-gradient-to-br from-surface to-bg border border-white/20 shadow-md -mx-0.5"
+      style={{ transform: `rotate(${ -10 + n * 10 }deg)` }}
+    />
+  ))}
+</div>
                   {Array(p.hand.length)
                     .fill(0)
                     .map((_, i) => (

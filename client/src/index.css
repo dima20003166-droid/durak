@@ -250,7 +250,7 @@
   --chat-w-tablet: 300px;
 }
 /* Switch main container to grid for better centering */
-.game-main{
+.game-main{ place-items: center;
   display: grid;
   grid-template-columns: minmax(0,1fr) var(--chat-w-desktop);
   align-items: stretch;
@@ -264,14 +264,14 @@
 
 /* Tablet */
 @media (max-width: 1279px){
-  .game-main{
+  .game-main{ place-items: center;
     grid-template-columns: minmax(0,1fr) var(--chat-w-tablet);
   }
   .game-right{ width: var(--chat-w-tablet); }
 }
 /* Mobile: stack, chat can be hidden by component toggle */
 @media (max-width: 767px){
-  .game-main{
+  .game-main{ place-items: center;
     grid-template-columns: 1fr;
   }
   .game-right{ width: 100%; }
