@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 import TableCenter from './TableCenter';
+import Deck from './Deck';
 
 
 const PlayersList = ({
