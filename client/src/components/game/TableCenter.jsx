@@ -7,13 +7,11 @@ import useCardSize from '../../utils/useCardSize';
 
 export default function TableCenter({ table = [] }) {
   const { width: cardW, height: cardH } = useCardSize();
-  const width = cardW + (table.length - 1) * 22 + 10;
-  const height = cardH + (table.length - 1) * 10 + 12;
 
   return (
-    <div className="table-center min-w-[300px]" style={{ width, height }}>
+    <div className="table-center flex flex-wrap justify-center items-center gap-4 min-w-[300px]">
       <AnimatePresence>
-        {table.map((pair, idx) => (
+        {table.map((pair) => (
           <motion.div
             key={pair.attack.id}
             className="pair-container"
@@ -21,7 +19,7 @@ export default function TableCenter({ table = [] }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             layout
-            style={{ transform: `translate(${idx * 22}px, ${idx * 10}px)`, width: cardW, height: cardH }}
+            style={{ width: cardW, height: cardH }}
           >
             <Card
               {...pair.attack}
