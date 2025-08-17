@@ -302,23 +302,3 @@
 /* ensure chat send row sits inside panel */
 .chatPanel{ display:grid; grid-template-rows: 1fr auto; }
 .chatMessages{ overflow-y:auto; }
-
-
-/* === Durak UI fixes (2025-08-17) === */
-:root { --dvh: 100dvh; }
-.min-h-dvh { min-height: var(--dvh); }
-
-/* Накладання/перекрытие карт у «біті» */
-.pair-overlap-50 .attack { transform: rotate(-6deg); }
-.pair-overlap-50 .defend { transform: translate(-45%, -55%) rotate(10deg); }
-
-/* Центрування main (на випадок асиметричних сайдбарів) */
-.game-main { justify-content: center; }
-
-/* Запобігання виходу кнопки чату за межі панелі */
-.game-right form, .chat-input-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.5rem;
-  align-items: center;
-}

@@ -80,7 +80,7 @@ const PlayersList = ({
             </p>
           </>
         )}
-        <div className={`flex justify-center items-center h-28 w-full ${isMine ? '-mt-2' : '-mt-12'}`}>
+        <div className={`flex justify-center items-center h-28 w-full ${isMine ? '-mt-2' : '-mt-8'}`}>
           {isMine ? (
             (() => {
               const hand = myPlayer.hand;
@@ -116,7 +116,7 @@ const PlayersList = ({
               return (
                 <div className="relative" style={{ width }}>
                   {/* мини-веер рубашек наполовину под аватаркой */}
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 pointer-events-none z-0">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none">
                     {Array(Math.min(3, p.hand.length)).fill(null).map((_,n)=> (
                       <div key={`back-${n}`} className="inline-block w-6 h-8 rounded bg-primary/40 border border-white/20 shadow-md -mx-1 rotate-[{-10 + n*10}]"></div>
                     ))}
