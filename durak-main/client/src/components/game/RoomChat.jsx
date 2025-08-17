@@ -1,9 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-<<<<<<< HEAD
-import PropTypes from 'prop-types';
-=======
->>>>>>> 4771e66 (Initial commit)
 import Button from '../Button';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
@@ -28,25 +24,6 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
   return (
     <motion.div className="h-full flex flex-col" initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }}>
       <Button
-<<<<<<< HEAD
-        className="md:hidden mb-2 w-10 h-10 p-0"
-        variant="primary"
-        onClick={() => setOpen(true)}
-      >
-        💬
-      </Button>
-      <div
-        className={`chatPanel grid bg-surface rounded-xl border border-border md:static md:translate-x-0 md:w-full md:h-full fixed top-0 right-0 h-full w-64 z-50 transition-transform ${open ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}`}
-      >
-        <button
-          className="md:hidden absolute top-2 left-2 text-text"
-          onClick={() => setOpen(false)}
-        >
-          ✕
-        </button>
-        <div className="chatMessages p-4 space-y-2 custom-scroll">
-          <div className="font-semibold mb-2">Чат стола</div>
-=======
         className="md:hidden mb-2"
         variant="primary"
         onClick={() => setOpen((o) => !o)}
@@ -58,7 +35,6 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
       >
         <div className="font-semibold mb-2">Чат стола</div>
         <div className="flex-1 overflow-y-auto custom-scroll space-y-2">
->>>>>>> 4771e66 (Initial commit)
         {chat.map((m, i) => {
           const isMine =
             (m.user?.id && myPlayer?.id && m.user.id === myPlayer.id) ||
@@ -102,27 +78,6 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
             </div>
           );
         })}
-<<<<<<< HEAD
-          <div ref={chatEndRef} />
-        </div>
-        <form
-          className="chatInputRow"
-          onSubmit={(e) => {
-            e.preventDefault();
-            send();
-          }}
-        >
-          <input
-            value={msg}
-            onChange={(e) => setMsg(e.target.value)}
-            className="bg-surface rounded px-2 py-1"
-            placeholder="Сообщение..."
-          />
-          <button type="submit" className="bg-primary text-text px-3 py-1 rounded">
-            Отправить
-          </button>
-        </form>
-=======
         <div ref={chatEndRef} />
         </div>
         <div className="flex mt-2 w-full">
@@ -137,20 +92,9 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
             Отправить
           </Button>
         </div>
->>>>>>> 4771e66 (Initial commit)
       </div>
     </motion.div>
   );
 };
 
 export default RoomChat;
-<<<<<<< HEAD
-
-RoomChat.propTypes = {
-  chat: PropTypes.array,
-  myPlayer: PropTypes.object,
-  onSend: PropTypes.func,
-  openProfile: PropTypes.func,
-};
-=======
->>>>>>> 4771e66 (Initial commit)

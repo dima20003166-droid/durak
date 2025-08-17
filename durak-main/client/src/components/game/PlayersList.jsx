@@ -1,18 +1,7 @@
-<<<<<<< HEAD
-/* eslint-disable react/prop-types */
-import React from 'react';
-import { motion } from 'framer-motion';
-import Card from '../Card';
-import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
-import TableCenter from './TableCenter';
-import Deck from './Deck';
-
-=======
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
->>>>>>> 4771e66 (Initial commit)
 
 const PlayersList = ({
   room,
@@ -44,86 +33,11 @@ const PlayersList = ({
     const isCurrentAttacker = idx === gameState.attackerIndex;
     const isCurrentDefender = idx === gameState.defenderIndex;
     const statusText = isCurrentAttacker ? 'Атака' : isCurrentDefender ? 'Защита' : '';
-<<<<<<< HEAD
-
-    if (isMine) {
-      return (
-        <div
-          key={p.socketId}
-          className="flex flex-col items-center p-2 mb-2 basis-1/4 md:basis-1/6"
-        >
-          <div className="flex flex-col items-center gap-1 text-sm md:text-base font-semibold mb-2">
-            <p className="truncate cursor-pointer" onClick={() => openProfile(p)}>
-              {p.username}
-            </p>
-            <div
-              className={`rounded-[10px] px-[10px] py-[6px] whitespace-nowrap ${
-                isCurrentAttacker ? 'bg-danger' : ''
-              } ${isCurrentDefender ? 'bg-accent' : ''}`}
-            >
-              {statusText}
-            </div>
-          </div>
-          <div className="myHand flex justify-center flex-wrap gap-2">
-            {myPlayer.hand.map((card) => (
-              <motion.div key={card.id} layoutId={card.id}>
-                <Card
-                  {...card}
-                  isSelected={selectedCard?.id === card.id}
-                  onClick={() => setSelectedCard(card)}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-=======
->>>>>>> 4771e66 (Initial commit)
     return (
       <div
         key={p.socketId}
         className="flex flex-col items-center p-2 mb-2 basis-1/4 md:basis-1/6"
       >
-<<<<<<< HEAD
-        <div
-          className={`mb-1 text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
-            isCurrentAttacker ? 'bg-danger' : ''
-          } ${isCurrentDefender ? 'bg-accent' : ''}`}
-        >
-          {statusText}
-        </div>
-        <div className="opponentZone flex flex-col items-center">
-          <img
-            className="opAvatar w-16 h-16 rounded-full object-cover cursor-pointer"
-            src={resolveAvatarUrl(
-              p.avatarUrl,
-              `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`
-            )}
-            onClick={() => openProfile(p)}
-            alt=""
-          />
-          <div className="opHand flex gap-1 mt-2">
-            {Array(p.hand.length)
-              .fill(0)
-              .map((_, i) => (
-                <Card
-                  key={i}
-                  isFaceUp={false}
-                  layoutId={`${p.socketId}-card-${i}`}
-                  style={{ boxShadow: '0 8px 24px rgba(0,0,0,.35)' }}
-                />
-              ))}
-          </div>
-        </div>
-        <p
-          className="font-semibold mt-1 truncate cursor-pointer w-full text-center"
-          onClick={() => openProfile(p)}
-        >
-          {p.username}
-        </p>
-=======
         {isMine ? (
           <>
             <div
@@ -217,7 +131,6 @@ const PlayersList = ({
             })()
           )}
         </div>
->>>>>>> 4771e66 (Initial commit)
       </div>
     );
   };
@@ -232,10 +145,6 @@ const PlayersList = ({
       </div>
       <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 flex items-center justify-center">
         <div className="flex items-center justify-center gap-4 flex-wrap">
-<<<<<<< HEAD
-          <Deck remaining={gameState.deck.length} trumpCard={gameState.trumpCard} />
-          <TableCenter table={gameState.table} />
-=======
           <div className="flex flex-col items-center w-24 relative">
             <div className="relative">
               {gameState.deck.length > 1 && (
@@ -271,7 +180,6 @@ const PlayersList = ({
               ))}
             </AnimatePresence>
           </div>
->>>>>>> 4771e66 (Initial commit)
         </div>
       </div>
       <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 hidden md:flex flex-col justify-center items-end gap-4 flex-wrap">
