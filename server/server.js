@@ -81,10 +81,6 @@ async function saveSiteSettings(settings) {
 
 // ---------------------- HTTP + Socket.IO ----------------------
 const app = express();
-app.get('/api/me/active-table', (req, res) => {
-  res.json({ tableId: null, status: 'none' });
-});
-
 // Разрешённые источники: читаем из ORIGIN (через запятую) или ставим дефолт:
 // пример: ORIGIN="http://185.233.47.116,http://localhost:5173"
 const allowedOrigins = (process.env.ORIGIN || 'http://185.233.47.116,http://localhost:5173')
