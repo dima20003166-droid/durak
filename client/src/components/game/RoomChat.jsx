@@ -85,10 +85,10 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
             onKeyDown={(e) => (e.key === 'Enter' ? send() : null)}
-            className="min-w-0 flex-1 bg-surface rounded-l px-2 py-2 text-sm md:text-base"
+            className="min-w-0 flex-1 bg-surface rounded-l px-2 py-1"
             placeholder="Сообщение..."
           />
-          <Button className="rounded-l-none rounded-r shrink-0 px-3 md:px-4 h-10 md:h-11" onClick={send} variant="primary">
+          <Button className="rounded-l-none rounded-r shrink-0" onClick={send} variant="primary">
             Отправить
           </Button>
         </div>

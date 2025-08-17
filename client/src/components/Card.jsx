@@ -73,7 +73,8 @@ export default function Card({
     onClick?.(e);
   };
 
-  return (<motion.div
+  return (
+    <motion.div
       role="button"
       tabIndex={0}
       onClick={handleClick}
@@ -90,7 +91,8 @@ export default function Card({
       } ${className}`}
       style={style}
       whileHover={prefersReducedMotion ? {} : { y: -4 }}
-    >{isFaceUp ? (
+    >
+      {isFaceUp ? (
         <div className="relative w-full h-full">
           <div className="absolute inset-0 card-face">
             <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
