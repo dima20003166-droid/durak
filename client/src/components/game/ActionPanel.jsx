@@ -14,7 +14,7 @@ const ActionPanel = ({
   onSurrender,
   canSurrender,
 }) => {
-  return (
+  return (/* layout updated */
     <motion.div
       className="flex flex-col md:flex-row items-center w-full gap-y-2 md:gap-x-4 p-4"
       initial={{ opacity: 0, y: 40 }}
