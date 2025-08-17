@@ -1,0 +1,304 @@
+/* client/src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Press+Start+2P&family=Orbitron:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: #050510;
+    --color-surface: #0d0d25;
+    --color-border: #352f5b;
+    --color-text: #f3f4ff;
+    --color-muted: #6b6b8d;
+    --color-primary: #3b82f6;
+    --color-accent: #ff00e5;
+    --color-danger: #ff3e3e;
+    --neon-primary: #00f6ff;
+    --neon-accent: #ff00e5;
+    --neon-danger: #ff4d4d;
+    --parallax-x: 0px;
+    --parallax-y: 0px;
+
+    /* jackpot wheel theme */
+    --surface-900: #0b0f15;
+    --surface-800: #121826;
+    --text-100: #eef2ff;
+    --text-300: #c7d2fe;
+    --neon-primary-400: #5b8dff;
+    --neon-primary-500: #3f6cff;
+    --neon-primary-700: #2b3a55;
+    --jackpot-red: #ff3b3b;
+    --jackpot-orange: #ff9a1a;
+  }
+
+  .light {
+    --color-bg: #f8fafc; /* slate-50 */
+    --color-surface: #f1f5f9; /* slate-100 */
+    --color-border: #cbd5e1; /* slate-300 */
+    --color-text: #0f172a; /* slate-900 */
+    --color-muted: #64748b; /* slate-500 */
+    --color-primary: #3b82f6; /* blue-500 */
+    --color-accent: #9333ea; /* purple-600 */
+    --color-danger: #dc2626; /* red-600 */
+    --neon-primary: #06b6d4;
+    --neon-accent: #e000d0;
+    --neon-danger: #ff6b6b;
+  }
+
+  html, body, #root { height: 100%; }
+  body {
+    @apply bg-bg text-text font-sans transition-colors duration-300;
+    background: radial-gradient(circle at 20% 20%, #1f0036 0%, #000 80%);
+    background-attachment: fixed;
+  }
+  .parallax-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(255,0,229,0.1), rgba(0,255,159,0.05));
+    transform: translate3d(var(--parallax-x), var(--parallax-y), 0);
+    transition: transform 0.2s ease-out;
+    z-index: -1;
+  }
+  .wheel-glow {
+    filter: drop-shadow(0 0 6px var(--neon-primary)) drop-shadow(0 0 12px var(--neon-accent));
+  }
+  button, [role="button"] {
+    @apply transition-colors transition-transform duration-200 hover:scale-105 active:scale-95;
+    box-shadow: 0 0 0px var(--color-primary);
+  }
+  button:hover, [role="button"]:hover {
+    box-shadow: 0 0 8px var(--color-primary);
+  }
+}
+
+@layer utilities {
+  .border-divider {
+    border-color: var(--color-border);
+  }
+}
+
+
+/* Minimal modern scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 transparent; /* thumb, track */
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(107,114,128,.6); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(107,114,128,.9); }
+
+/* Admin badge cube animation */
+.admin-badge {
+  width: 12px;
+  height: 12px;
+  perspective: 400px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.admin-badge .cube {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: rotateCube 4s linear infinite;
+}
+
+.admin-badge .face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #ec4899;
+  opacity: 0.9;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.admin-badge .face.front { transform: translateZ(6px); }
+.admin-badge .face.back { transform: rotateY(180deg) translateZ(6px); }
+.admin-badge .face.right { transform: rotateY(90deg) translateZ(6px); }
+.admin-badge .face.left { transform: rotateY(-90deg) translateZ(6px); }
+.admin-badge .face.top { transform: rotateX(90deg) translateZ(6px); }
+.admin-badge .face.bottom { transform: rotateX(-90deg) translateZ(6px); }
+
+@keyframes rotateCube {
+  from {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateX(360deg) rotateY(360deg);
+  }
+}
+
+/* Winning flash effect */
+@keyframes winFlash {
+  0%, 100% {
+    box-shadow: 0 0 0px var(--color-accent), 0 0 0px var(--color-accent);
+  }
+  50% {
+    box-shadow: 0 0 15px var(--color-accent), 0 0 30px var(--color-accent);
+  }
+}
+.win-effect {
+  animation: winFlash 0.8s ease-out forwards;
+}
+
+/* Odometer numeric style */
+.odometer {
+  font-variant-numeric: tabular-nums;
+}
+
+/* End admin badge styles */
+
+/* Card flip styles (2D) */
+.card-flip-inner {
+  transition: transform 0.6s;
+  will-change: transform;
+}
+.card-face {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Animated game background */
+.game-bg {
+  background: linear-gradient(120deg, var(--color-bg), #1a082c, var(--color-bg));
+  background-size: 400% 400%;
+  animation: gameGradient 20s ease infinite;
+}
+
+/* Game layout */
+.game-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: clamp(0.5rem, 2vw, 1rem);
+  gap: 1rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.game-header { flex: 0 0 auto; }
+.game-footer { flex: 0 0 auto; }
+.game-main {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 1rem;
+}
+.game-center {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.game-left,
+.game-right {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+@media (max-width: 1024px) {
+  .game-left,
+  .game-right {
+    width: 200px;
+  }
+}
+@media (max-width: 768px) {
+  .game-main {
+    flex-direction: column;
+  }
+  .game-left,
+  .game-right {
+    width: 100%;
+    order: 3;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .game-center {
+    order: 1;
+  }
+}
+
+@keyframes gameGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+
+/* === PATCH: Game layout centering & chat width (2025-08-17) === */
+:root{
+  --chat-w-desktop: 360px;
+  --chat-w-tablet: 300px;
+}
+/* Switch main container to grid for better centering */
+.game-main{
+  display: grid;
+  grid-template-columns: minmax(0,1fr) var(--chat-w-desktop);
+  align-items: stretch;
+}
+.game-right{ width: var(--chat-w-desktop); }
+.game-center{ display:flex; justify-content:center; }
+
+/* Chat panel layout: messages + input row */
+.game-right .chatPanel{ display:grid; grid-template-rows: 1fr auto; height: 100%; }
+.game-right .chatMessages{ overflow: auto; }
+
+/* Tablet */
+@media (max-width: 1279px){
+  .game-main{
+    grid-template-columns: minmax(0,1fr) var(--chat-w-tablet);
+  }
+  .game-right{ width: var(--chat-w-tablet); }
+}
+/* Mobile: stack, chat can be hidden by component toggle */
+@media (max-width: 767px){
+  .game-main{
+    grid-template-columns: 1fr;
+  }
+  .game-right{ width: 100%; }
+}
+
+
+/* custom additions */
+.card-on-top { filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+
+
+/* === Neon/Glow & motion pack for Durak table (2025-08-17) === */
+@keyframes neonPulse { 0%{ box-shadow:0 0 4px var(--neon-primary),0 0 10px var(--neon-accent) } 50%{ box-shadow:0 0 12px var(--neon-primary),0 0 22px var(--neon-accent) } 100%{ box-shadow:0 0 4px var(--neon-primary),0 0 10px var(--neon-accent) } }
+@keyframes floatSlow { 0%{ transform: translateY(0) } 50%{ transform: translateY(-4px) } 100%{ transform: translateY(0) } }
+@keyframes flipIn { from { transform: rotateX(90deg); opacity:0 } to { transform: rotateX(0); opacity:1 } }
+
+.table-glass { backdrop-filter: blur(14px); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,.12); border-radius: 24px; }
+.glow-ring { filter: drop-shadow(0 0 8px var(--neon-primary)) drop-shadow(0 0 14px var(--neon-accent)); }
+
+.durak-battlefield .card { animation: floatSlow 4s ease-in-out infinite; }
+.durak-battlefield .card-on-top { transform-origin: 20% 20%; }
+
+.player-badge.attacker { background: #e23c50; color:#fff; animation: neonPulse 2.2s ease-in-out infinite; }
+.player-badge.defender { background: #7c3aed; color:#fff; }
+
+/* opponent mini-fan card backs */
+.mini-back { width: 24px; height: 32px; border-radius: 6px; background: linear-gradient(180deg,#3b82f6,#6366f1); border:1px solid rgba(255,255,255,.25); box-shadow:0 2px 10px rgba(0,0,0,.35); }
+
+/* ensure chat send row sits inside panel */
+.chatPanel{ display:grid; grid-template-rows: 1fr auto; }
+.chatMessages{ overflow-y:auto; }
