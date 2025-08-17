@@ -95,7 +95,7 @@ const PlayersList = ({
                     return (
                       <motion.div
                         key={card.id}
-                        className="absolute will-change-transform"
+                        className="absolute"
                         style={{ left: offset, transform: `translateY(${translateY}px) rotate(${rotate}deg)` }}
                       >
                         <Card
@@ -116,7 +116,7 @@ const PlayersList = ({
               return (
                 <div className="relative" style={{ width }}>
                   {/* мини-веер рубашек наполовину под аватаркой */}
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 pointer-events-none">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none">
                     {Array(Math.min(3, p.hand.length)).fill(null).map((_,n)=> (
                       <div key={`back-${n}`} className="inline-block w-6 h-8 rounded bg-primary/40 border border-white/20 shadow-md -mx-1 rotate-[{-10 + n*10}]"></div>
                     ))}
@@ -126,7 +126,7 @@ const PlayersList = ({
                     .map((_, i) => (
                       <div
                         key={i}
-                        className="absolute will-change-transform"
+                        className="absolute"
                         style={{ left: i * 6, transform: `rotate(${i % 2 ? 3 : -3}deg)` }}
                       >
                         <Card isFaceUp={false} layoutId={`${p.socketId}-card-${i}`} />
