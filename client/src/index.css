@@ -174,8 +174,10 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 1rem;
+  padding: clamp(0.5rem, 2vw, 1rem);
   gap: 1rem;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 .game-header { flex: 0 0 auto; }
 .game-footer { flex: 0 0 auto; }
@@ -239,3 +241,64 @@
     transition: none !important;
   }
 }
+
+
+
+/* === PATCH: Game layout centering & chat width (2025-08-17) === */
+:root{
+  --chat-w-desktop: 360px;
+  --chat-w-tablet: 300px;
+}
+/* Switch main container to grid for better centering */
+.game-main{
+  display: grid;
+  grid-template-columns: minmax(0,1fr) var(--chat-w-desktop);
+  align-items: stretch;
+}
+.game-right{ width: var(--chat-w-desktop); }
+.game-center{ display:flex; justify-content:center; }
+
+/* Chat panel layout: messages + input row */
+.game-right .chatPanel{ display:grid; grid-template-rows: 1fr auto; height: 100%; }
+.game-right .chatMessages{ overflow: auto; }
+
+/* Tablet */
+@media (max-width: 1279px){
+  .game-main{
+    grid-template-columns: minmax(0,1fr) var(--chat-w-tablet);
+  }
+  .game-right{ width: var(--chat-w-tablet); }
+}
+/* Mobile: stack, chat can be hidden by component toggle */
+@media (max-width: 767px){
+  .game-main{
+    grid-template-columns: 1fr;
+  }
+  .game-right{ width: 100%; }
+}
+
+
+/* custom additions */
+.card-on-top { filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+
+
+/* === Neon/Glow & motion pack for Durak table (2025-08-17) === */
+@keyframes neonPulse { 0%{ box-shadow:0 0 4px var(--neon-primary),0 0 10px var(--neon-accent) } 50%{ box-shadow:0 0 12px var(--neon-primary),0 0 22px var(--neon-accent) } 100%{ box-shadow:0 0 4px var(--neon-primary),0 0 10px var(--neon-accent) } }
+@keyframes floatSlow { 0%{ transform: translateY(0) } 50%{ transform: translateY(-4px) } 100%{ transform: translateY(0) } }
+@keyframes flipIn { from { transform: rotateX(90deg); opacity:0 } to { transform: rotateX(0); opacity:1 } }
+
+.table-glass { backdrop-filter: blur(14px); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,.12); border-radius: 24px; }
+.glow-ring { filter: drop-shadow(0 0 8px var(--neon-primary)) drop-shadow(0 0 14px var(--neon-accent)); }
+
+.durak-battlefield .card { animation: floatSlow 4s ease-in-out infinite; }
+.durak-battlefield .card-on-top { transform-origin: 20% 20%; }
+
+.player-badge.attacker { background: #e23c50; color:#fff; animation: neonPulse 2.2s ease-in-out infinite; }
+.player-badge.defender { background: #7c3aed; color:#fff; }
+
+/* opponent mini-fan card backs */
+.mini-back { width: 24px; height: 32px; border-radius: 6px; background: linear-gradient(180deg,#3b82f6,#6366f1); border:1px solid rgba(255,255,255,.25); box-shadow:0 2px 10px rgba(0,0,0,.35); }
+
+/* ensure chat send row sits inside panel */
+.chatPanel{ display:grid; grid-template-rows: 1fr auto; }
+.chatMessages{ overflow-y:auto; }

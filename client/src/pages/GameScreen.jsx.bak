@@ -13,8 +13,7 @@ import GameLayout from './GameLayout';
 import confetti from 'canvas-confetti';
 
 function playWinDing() {
-  try {import Board from "../components/game/Board.jsx";
-
+  try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     const ctx = new Ctx();
     const osc = ctx.createOscillator();
@@ -299,15 +298,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
       />
 
       {profileOpen && <ProfileModal user={profileOpen} onClose={() => setProfileOpen(null)} />}
-    
-      {/* === DURAK BOARD (inserted) === */}
-      <Board
-        tableCards={room?.table || []}
-        trump={room?.trump}
-        deckCount={room?.deckCount ?? 24}
-        discardCount={room?.discardCount ?? 0}
-      />
-</>
+    </>
   );
 };
 

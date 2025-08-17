@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  safelist: ["chatPanel", "rotate-[22deg]", "from-red-400/10", "to-orange-400/10"],
   theme: {
     extend: {
       screens: {

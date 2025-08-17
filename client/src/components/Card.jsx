@@ -92,42 +92,35 @@ export default function Card({
       style={style}
       whileHover={prefersReducedMotion ? {} : { y: -4 }}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={isFaceUp ? 'face' : 'back'}
-          className="relative w-full h-full"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
-        >
-          {isFaceUp ? (
-            <div className="absolute inset-0 card-face">
-              <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
-                <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
-                  <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
-                  <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
-                </div>
-                <div className="absolute bottom-1 right-1 flex flex-col items-center rotate-180 leading-none">
-                  <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
-                  <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
-                </div>
-                <div className="w-full h-full flex items-center justify-center">
-                  <SuitSvg suit={suit} size={S.pip} />
-                </div>
+      {isFaceUp ? (
+        <div className="relative w-full h-full">
+          <div className="absolute inset-0 card-face">
+            <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">
+              <div className="absolute top-1 left-1 flex flex-col items-center leading-none">
+                <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
+                <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+              </div>
+              <div className="absolute bottom-1 right-1 flex flex-col items-center rotate-180 leading-none">
+                <span className={`font-bold ${suitColor(suit)}`} style={{ fontSize: S.rank }}>{rank}</span>
+                <span className={`${suitColor(suit)}`} style={{ fontSize: S.corner }}>{suit}</span>
+              </div>
+              <div className="w-full h-full flex items-center justify-center">
+                <SuitSvg suit={suit} size={S.pip} />
               </div>
             </div>
-          ) : (
-            <div className="absolute inset-0 card-face">
-              <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
-                <div className="w-full h-full grid place-items-center">
-                  <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
-                </div>
+          </div>
+        </div>
+      ) : (
+        <motion.div className="relative w-full h-full" transition={{ duration: 0 }}>
+          <div className="absolute inset-0 card-face">
+            <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
+              <div className="w-full h-full grid place-items-center">
+                <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
               </div>
             </div>
-          )}
+          </div>
         </motion.div>
-      </AnimatePresence>
+      )}
     </motion.div>
   );
 }
