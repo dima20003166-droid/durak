@@ -176,7 +176,6 @@
   min-height: 100vh;
   padding: clamp(0.5rem, 2vw, 1rem);
   gap: 1rem;
-  max-width: 1280px;
   margin: 0 auto;
 }
 .game-header { flex: 0 0 auto; }
@@ -185,6 +184,8 @@
   flex: 1 1 auto;
   display: flex;
   gap: 1rem;
+  justify-content: center;
+  margin: 0 auto;
 }
 .game-center {
   flex: 1 1 auto;
@@ -196,7 +197,7 @@
 }
 .game-left,
 .game-right {
-  width: 260px;
+  width: clamp(180px, 20%, 260px);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -204,7 +205,7 @@
 @media (max-width: 1024px) {
   .game-left,
   .game-right {
-    width: 200px;
+    width: clamp(160px, 25%, 200px);
   }
 }
 @media (max-width: 768px) {
@@ -246,14 +247,16 @@
 
 /* === PATCH: Game layout centering & chat width (2025-08-17) === */
 :root{
-  --chat-w-desktop: 360px;
-  --chat-w-tablet: 300px;
+  --chat-w-desktop: clamp(240px, 25vw, 360px);
+  --chat-w-tablet: clamp(200px, 35vw, 300px);
 }
 /* Switch main container to grid for better centering */
 .game-main{
   display: grid;
   grid-template-columns: minmax(0,1fr) var(--chat-w-desktop);
   align-items: stretch;
+  justify-content: center;
+  margin: 0 auto;
 }
 .game-right{ width: var(--chat-w-desktop); }
 .game-center{ display:flex; justify-content:center; }
