@@ -87,7 +87,7 @@ const PlayersList = ({
               const mid = (hand.length - 1) / 2;
               const width = 60 + hand.length * 24;
               return (
-                <div className="opponent" style={{ width }}>
+                <div className="relative" style={{ width }}>
                   {hand.map((card, i) => {
                     const offset = i * 24;
                     const rotate = (i - mid) * 8;
@@ -114,9 +114,9 @@ const PlayersList = ({
             (() => {
               const width = 40 + p.hand.length * 6;
               return (
-                <div className="opponent" style={{ width }}>
+                <div className="relative" style={{ width }}>
                   {/* мини-веер рубашек наполовину под аватаркой */}
-                  <div className="mini-fan">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none">
                     {Array(Math.min(3, p.hand.length)).fill(null).map((_,n)=> (
                       <div key={`back-${n}`} className="inline-block w-6 h-8 rounded bg-primary/40 border border-white/20 shadow-md -mx-1 rotate-[{-10 + n*10}]"></div>
                     ))}
@@ -152,13 +152,13 @@ const PlayersList = ({
       <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 flex items-center justify-center">
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <div className="flex flex-col items-center w-24 relative">
-            <div className="opponent">
+            <div className="relative">
               {gameState.deck.length > 1 && (
                 <>
                   <Card isFaceUp={false} className="absolute top-1 left-1 -rotate-6 shadow-md" />
                   <Card isFaceUp={false} className="absolute top-2 left-2 rotate-3 shadow-md" />
                   {gameState.deck.length > 2 && (
-                    <Card isFaceUp={false} className="deck-card" />
+                    <Card isFaceUp={false} className="absolute top-3 left-3 rotate-[9deg] shadow-lg" />
                   )}
                 </>
               )}
@@ -171,7 +171,7 @@ const PlayersList = ({
               {gameState.table.map((pair) => (
                 <motion.div
                   key={pair.attack.id}
-                  className="pile"
+                  className="relative w-20 h-28"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
