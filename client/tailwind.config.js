@@ -3,12 +3,6 @@ export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
-      colors: {
-        burgundy: {50:'#f8e7ec',100:'#f0cfd9',200:'#e19fb3',300:'#d36f8e',400:'#c6406a',500:'#b81046',600:'#980e3a',700:'#7a0b2f',800:'#5c0823',900:'#3e0517',950:'#2f0411'},
-        amber: {500:'#f59e0b',600:'#d97706'}
-      },
-      boxShadow: { glow: '0 0 24px rgba(248,113,113,0.35)', glowBurgundy: '0 0 28px rgba(186,16,70,0.45)' },
-      backdropBlur: { xs: '2px' },
       screens: {
         xs: '480px',
       },
