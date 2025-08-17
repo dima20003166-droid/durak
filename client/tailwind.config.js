@@ -21,6 +21,7 @@ export default {
         primary: 'var(--color-primary)',
         accent: 'var(--color-accent)',
         danger: 'var(--color-danger)',
+        'card-back': 'var(--color-card-back)',
         'wheel-red': 'var(--jackpot-red)',
         'wheel-orange': 'var(--jackpot-orange)',
         'neon-primary': 'var(--neon-primary)',
@@ -44,6 +45,9 @@ export default {
         'card-overlap-sm': '1.5rem',
         'card-overlap-md': '2rem',
         'card-overlap-lg': '2.5rem',
+      },
+      boxShadow: {
+        card: '0 2px 4px rgba(0,0,0,0.2)',
       },
     },
   },
