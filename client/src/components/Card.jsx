@@ -113,7 +113,7 @@ export default function Card({
       ) : (
         <motion.div className="relative w-full h-full" transition={{ duration: 0 }}>
           <div className="absolute inset-0 card-face">
-            <div className="w-full h-full rounded-xl bg-card-back ring-1 ring-border shadow-card">
+            <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent ring-1 ring-primary shadow-md">
               <div className="w-full h-full grid place-items-center">
                 <div className="w-4/5 h-4/5 rounded-lg border-2 border-text/60" />
               </div>

@@ -15,7 +15,6 @@
     --color-primary: #3b82f6;
     --color-accent: #ff00e5;
     --color-danger: #ff3e3e;
-    --color-card-back: #2e2a39;
     --neon-primary: #00f6ff;
     --neon-accent: #ff00e5;
     --neon-danger: #ff4d4d;
@@ -43,35 +42,15 @@
     --color-primary: #3b82f6; /* blue-500 */
     --color-accent: #9333ea; /* purple-600 */
     --color-danger: #dc2626; /* red-600 */
-    --color-card-back: #e5e7eb; /* slate-200 */
     --neon-primary: #06b6d4;
     --neon-accent: #e000d0;
     --neon-danger: #ff6b6b;
-  }
-
-  .classic {
-    --color-bg: #0b6623;
-    --color-surface: #f0ead6;
-    --color-border: #c4b998;
-    --color-text: #1a1a1a;
-    --color-muted: #6b6b6b;
-    --color-primary: #2e7d32;
-    --color-accent: #d4af37;
-    --color-danger: #b71c1c;
-    --color-card-back: #16543e;
-    --neon-primary: #2e7d32;
-    --neon-accent: #d4af37;
-    --neon-danger: #ff4d4d;
   }
 
   html, body, #root { height: 100%; }
   body {
     @apply bg-bg text-text font-sans transition-colors duration-300;
     background: radial-gradient(circle at 20% 20%, #1f0036 0%, #000 80%);
-    background-attachment: fixed;
-  }
-  .classic body {
-    background: radial-gradient(circle at 50% 50%, #16543e 0%, #0b3d1f 80%);
     background-attachment: fixed;
   }
   .parallax-bg {
