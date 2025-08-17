@@ -620,27 +620,7 @@ io.on('connection', async (socket) => {
       const amt = Number(amount);
       if (!Number.isFinite(amt) || amt <= 0) throw new Error('invalid_amount');
 
-      const minBet = Number(siteSettings.minBet || 1);
-const maxBet = Number(siteSettings.maxBet || 1000);
-if (amt < minBet) {
-  const msg = `Минимальная ставка: ${minBet}.`;
-  if (cb) return cb({ ok: false, code: 'ERR_BET_TOO_SMALL', msg });
-  socket.emit('bet_error', msg);
-  return;
-}
-if (amt > maxBet) {
-  const msg = `Максимальная ставка: ${maxBet}.`;
-  if (cb) return cb({ ok: false, code: 'ERR_BET_TOO_BIG', msg });
-  socket.emit('bet_error', msg);
-  return;
-}
-if (color !== 'red' && color !== 'orange') {
-  const msg = 'Неверный цвет ставки.';
-  if (cb) return cb({ ok: false, code: 'ERR_BET_BAD_COLOR', msg });
-  socket.emit('bet_error', msg);
-  return;
-}
-let newBalance = Number(user.balance || 0);
+      let newBalance = Number(user.balance || 0);
       if (user.id) {
         try {
           newBalance = await db.runTransaction(async (t) => {
@@ -1039,7 +1019,7 @@ let newBalance = Number(user.balance || 0);
     } catch (e) { console.error('chat:delete_all_messages', e); }
   });
 
-    socket.on('send_room_message', withRateLimit('send_room_message', async ({ roomId, text }) => {
+    socket.on('send_room_message', async ({ roomId, text }) => {
       const user = socket.data.user;
       if (!user?.id || !gameRooms[roomId]) return;
       const msg = { user: safeUser(user), text: String(text || '').slice(0, 200), timestamp: new Date().toISOString(), createdAt: Date.now() };
@@ -1052,7 +1032,7 @@ let newBalance = Number(user.balance || 0);
         console.error('send_room_message', e);
         socket.emit('chat_error', 'Ошибка сохранения сообщения.');
       }
-    }));
+    });
 
   socket.on('cancel_room', (payload) => {
     const roomId = getRoomId(payload);

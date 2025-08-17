@@ -47,7 +47,7 @@ export default function Card({
   };
   const S = sizes[size] || sizes.md;
   const borderSel = isSelected
-    ? 'ring-2 ring-primary shadow-primary scale-105 -translate-y-2'
+    ? 'ring-2 ring-primary shadow-[0_0_0_2px_var(--color-ring)] scale-105 -translate-y-2'
     : 'ring-1 ring-border';
   const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   useEffect(() => {
@@ -73,8 +73,7 @@ export default function Card({
     onClick?.(e);
   };
 
-  return (
-    <motion.div
+  return (<motion.div
       role="button"
       tabIndex={0}
       onClick={handleClick}
@@ -91,8 +90,7 @@ export default function Card({
       } ${className}`}
       style={style}
       whileHover={prefersReducedMotion ? {} : { y: -4 }}
-    >
-      {isFaceUp ? (
+    >{isFaceUp ? (
         <div className="relative w-full h-full">
           <div className="absolute inset-0 card-face">
             <div className="w-full h-full bg-text rounded-xl shadow-sm overflow-hidden">

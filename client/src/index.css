@@ -7,31 +7,18 @@
 
 @layer base {
   :root {
-    --color-bg: #050510;
-    --color-surface: #0d0d25;
-    --color-border: #352f5b;
-    --color-text: #f3f4ff;
-    --color-muted: #6b6b8d;
-    --color-primary: #3b82f6;
-    --color-accent: #ff00e5;
-    --color-danger: #ff3e3e;
-    --neon-primary: #00f6ff;
-    --neon-accent: #ff00e5;
-    --neon-danger: #ff4d4d;
-    --parallax-x: 0px;
-    --parallax-y: 0px;
-
-    /* jackpot wheel theme */
-    --surface-900: #0b0f15;
-    --surface-800: #121826;
-    --text-100: #eef2ff;
-    --text-300: #c7d2fe;
-    --neon-primary-400: #5b8dff;
-    --neon-primary-500: #3f6cff;
-    --neon-primary-700: #2b3a55;
-    --jackpot-red: #ff3b3b;
-    --jackpot-orange: #ff9a1a;
-  }
+  --color-bg: #0b0810;            /* deep plum */
+  --color-surface: #130b14;       /* dark burgundy surface */
+  --color-border: #3d1a27;        /* wine-tinted border */
+  --color-text: #f5eaf3;          /* soft warm white */
+  --color-muted: #b79bb0;         /* dusty mauve */
+  --color-primary: #8a1435;       /* BURGUNDY */
+  --color-accent: #f5c864;        /* champagne gold */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-ring: rgba(245, 200, 100, 0.55);
+}
 
   .light {
     --color-bg: #f8fafc; /* slate-50 */
@@ -164,8 +151,10 @@
 
 /* Animated game background */
 .game-bg {
-  background: linear-gradient(120deg, var(--color-bg), #1a082c, var(--color-bg));
-  background-size: 400% 400%;
+  background: radial-gradient(1200px 800px at 60% -10%, rgba(138,20,53,0.25), transparent 60%),
+              radial-gradient(900px 600px at 10% 110%, rgba(245,200,100,0.12), transparent 60%),
+              linear-gradient(120deg, var(--color-bg), #160914, var(--color-bg));
+  background-size: cover;
   animation: gameGradient 20s ease infinite;
 }
 
@@ -176,7 +165,7 @@
   min-height: 100vh;
   padding: clamp(0.5rem, 2vw, 1rem);
   gap: 1rem;
-  max-width: 1280px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 .game-header { flex: 0 0 auto; }
@@ -250,7 +239,7 @@
   --chat-w-tablet: 300px;
 }
 /* Switch main container to grid for better centering */
-.game-main{ place-items: center;
+.game-main{
   display: grid;
   grid-template-columns: minmax(0,1fr) var(--chat-w-desktop);
   align-items: stretch;
@@ -264,14 +253,14 @@
 
 /* Tablet */
 @media (max-width: 1279px){
-  .game-main{ place-items: center;
+  .game-main{
     grid-template-columns: minmax(0,1fr) var(--chat-w-tablet);
   }
   .game-right{ width: var(--chat-w-tablet); }
 }
 /* Mobile: stack, chat can be hidden by component toggle */
 @media (max-width: 767px){
-  .game-main{ place-items: center;
+  .game-main{
     grid-template-columns: 1fr;
   }
   .game-right{ width: 100%; }
@@ -302,3 +291,48 @@
 /* ensure chat send row sits inside panel */
 .chatPanel{ display:grid; grid-template-rows: 1fr auto; }
 .chatMessages{ overflow-y:auto; }
+
+
+/* Felt-like game table */
+.game-table {
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(245,200,100,0.08), transparent 40%),
+    radial-gradient(1000px 400px at 50% 120%, rgba(138,20,53,0.12), transparent 60%),
+    linear-gradient(180deg, rgba(19,11,20,0.9), rgba(19,11,20,0.95));
+  box-shadow:
+    0 0 0 1px rgba(61,26,39,0.7) inset,
+    0 10px 30px rgba(0,0,0,0.35),
+    0 0 0 2px rgba(245,200,100,0.2);
+  padding: clamp(8px, 1.5vw, 16px);
+  position: relative;
+  overflow: hidden;
+}
+.game-table::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+
+/* Card back style (burgundy diamonds + gold trim) */
+.card-back {
+  background:
+    repeating-linear-gradient(45deg, rgba(245,200,100,0.08) 0 6px, transparent 6px 12px),
+    radial-gradient(circle at 30% 20%, rgba(245,200,100,0.12), transparent 45%),
+    linear-gradient(180deg, #531228, #6e1531 60%, #531228);
+  border: 1px solid rgba(245,200,100,0.35);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.25), 0 6px 18px rgba(0,0,0,0.35);
+}
+
+
+button:focus-visible, .btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--color-ring);
+}

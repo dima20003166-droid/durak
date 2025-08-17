@@ -5,11 +5,11 @@ import { gsap } from 'gsap';
 import confetti from 'canvas-confetti';
 
 const defaultSpinConfig = {
-  initialSpeed: 420,
-  acceleration: 0.6,
-  deceleration: 1.2,
-  maxSpins: 14,
-  ease: 'power3.out',
+  initialSpeed: 360,
+  acceleration: 0.5,
+  deceleration: 2,
+  maxSpins: 12,
+  ease: 'circ.out',
   glowColor: '#00eaff',
 };
 
