@@ -1,25 +1,18 @@
+
 import React from 'react';
 
-const GameLayout = ({
-  header,
-  table,
-  players,
-  leftSidebar,
-  rightSidebar,
-  footer,
-}) => (
-  <div className="game-layout text-text game-bg">
-    {header && <header className="game-header">{header}</header>}
-    <div className="game-main justify-center">
-      {leftSidebar ? <aside className="game-left">{leftSidebar}</aside> : (rightSidebar ? <aside className="game-left" aria-hidden="true" /> : null)}
-      <div className="game-center">
-        {table && <div className="game-table"><div className="table-oval"><div className="battle-grid">{table}</div></div></div>}
-        {players && <div className="game-players">{players}</div>}
+export default function GameLayout({ header, center, top, bottom, left, right, footer }) {
+  return (
+    <div className="durak-table text-text">
+      {header && <header className="game-header mb-2">{header}</header>}
+      {top && <div className="flex justify-center gap-4 mb-4">{top}</div>}
+      <div className="flex flex-1 w-full">
+        {left && <div className="flex flex-col justify-center mr-4">{left}</div>}
+        <div className="flex-1 flex flex-col items-center justify-center">{center}</div>
+        {right && <div className="flex flex-col justify-center ml-4">{right}</div>}
       </div>
-      {rightSidebar && <aside className="game-right">{rightSidebar}</aside>}
+      {bottom && <div className="flex justify-center gap-4 mt-4">{bottom}</div>}
+      {footer && <footer className="game-footer mt-2">{footer}</footer>}
     </div>
-    {footer && <footer className="game-footer">{footer}</footer>}
-  </div>
-);
-
-export default GameLayout;
+  );
+}
