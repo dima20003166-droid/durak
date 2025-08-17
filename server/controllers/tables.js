@@ -1,4 +1,4 @@
-// Controller: tables
+// Controller: tables (JS)
 const Table = require('../models/Table');
 
 exports.listTables = async (req, res) => {
