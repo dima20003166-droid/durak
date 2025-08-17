@@ -1,9 +1,12 @@
 .table-center {
-  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .pair-container {
-  position: absolute;
+  position: relative;
   pointer-events: none;
 }
 

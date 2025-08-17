@@ -4,8 +4,7 @@ import { motion } from 'framer-motion';
 import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 import TableCenter from './TableCenter';
-import Deck from './Deck';
-import useCardSize from '../../utils/useCardSize';
+
 
 const PlayersList = ({
   room,
@@ -16,7 +15,6 @@ const PlayersList = ({
   setSelectedCard,
   openProfile,
 }) => {
-  const { width: cardW } = useCardSize();
   const myIdx = room.players.findIndex((x) => x.socketId === mySocketId);
   const orderedPlayers =
     myIdx >= 0
@@ -45,58 +43,33 @@ const PlayersList = ({
           key={p.socketId}
           className="flex flex-col items-center p-2 mb-2 basis-1/4 md:basis-1/6"
         >
-          <div className="relative flex justify-center items-start h-28 w-full mt-1 pt-16">
+          <div className="flex flex-col items-center gap-1 text-sm md:text-base font-semibold mb-2">
+            <p className="truncate cursor-pointer" onClick={() => openProfile(p)}>
+              {p.username}
+            </p>
             <div
-              className="absolute top-3 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-sm md:text-base font-semibold"
+              className={`rounded-[10px] px-[10px] py-[6px] whitespace-nowrap ${
+                isCurrentAttacker ? 'bg-danger' : ''
+              } ${isCurrentDefender ? 'bg-accent' : ''}`}
             >
-              <p
-                className="truncate cursor-pointer"
-                onClick={() => openProfile(p)}
-              >
-                {p.username}
-              </p>
-              <div
-                className={`rounded-[10px] px-[10px] py-[6px] whitespace-nowrap ${
-                  isCurrentAttacker ? 'bg-danger' : ''
-                } ${isCurrentDefender ? 'bg-accent' : ''}`}
-              >
-                {statusText}
-              </div>
+              {statusText}
             </div>
-            {(() => {
-              const hand = myPlayer.hand;
-              const mid = (hand.length - 1) / 2;
-              const width = cardW - 4 + hand.length * 24;
-              return (
-                <div className="relative" style={{ width }}>
-                  {hand.map((card, i) => {
-                    const offset = i * 24;
-                    const rotate = (i - mid) * 8;
-                    const translateY = Math.abs(i - mid) * -6;
-                    return (
-                      <motion.div
-                        key={card.id}
-                        className="absolute"
-                        style={{ left: offset, transform: `translateY(${translateY}px) rotate(${rotate}deg)` }}
-                      >
-                        <Card
-                          {...card}
-                          layoutId={card.id}
-                          isSelected={selectedCard?.id === card.id}
-                          onClick={() => setSelectedCard(card)}
-                        />
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
+          </div>
+          <div className="myHand flex justify-center flex-wrap gap-2">
+            {myPlayer.hand.map((card) => (
+              <motion.div key={card.id} layoutId={card.id}>
+                <Card
+                  {...card}
+                  isSelected={selectedCard?.id === card.id}
+                  onClick={() => setSelectedCard(card)}
+                />
+              </motion.div>
+            ))}
           </div>
         </div>
       );
     }
 
-    const width = cardW + (p.hand.length - 1) * 4;
     return (
       <div
         key={p.socketId}
@@ -109,7 +82,7 @@ const PlayersList = ({
         >
           {statusText}
         </div>
-        <div className="opponentZone relative flex flex-col items-center pb-40">
+        <div className="opponentZone flex flex-col items-center">
           <img
             className="opAvatar w-16 h-16 rounded-full object-cover cursor-pointer"
             src={resolveAvatarUrl(
@@ -119,33 +92,16 @@ const PlayersList = ({
             onClick={() => openProfile(p)}
             alt=""
           />
-          <div
-            className="opHand stacked"
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: 'calc(100% + 48px)',
-              transform: 'translateX(-50%)',
-              width,
-            }}
-          >
+          <div className="opHand flex gap-1 mt-2">
             {Array(p.hand.length)
               .fill(0)
               .map((_, i) => (
-                <div
+                <Card
                   key={i}
-                  style={{
-                    position: 'absolute',
-                    transform: `translateX(${i * 4}px) translateY(${-i * 8}px)`,
-                    zIndex: i,
-                  }}
-                >
-                  <Card
-                    isFaceUp={false}
-                    layoutId={`${p.socketId}-card-${i}`}
-                    style={{ boxShadow: '0 8px 24px rgba(0,0,0,.35)' }}
-                  />
-                </div>
+                  isFaceUp={false}
+                  layoutId={`${p.socketId}-card-${i}`}
+                  style={{ boxShadow: '0 8px 24px rgba(0,0,0,.35)' }}
+                />
               ))}
           </div>
         </div>
