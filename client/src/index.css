@@ -334,3 +334,79 @@ button:focus-visible, .btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 4px var(--color-ring);
 }
+
+
+
+/* === New table-only styling (scoped) === */
+
+/* Oval poker-like table with neon edge using site colors */
+.table-oval {
+  position: relative;
+  border-radius: 28px;
+  padding: clamp(10px, 1.6vw, 18px);
+  background:
+    radial-gradient(1000px 400px at 50% 30%, rgba(59,130,246,0.10), transparent 70%),
+    linear-gradient(180deg, rgba(13,13,37,0.98), rgba(13,13,37,0.98));
+  box-shadow:
+    0 0 0 1px rgba(53,47,91,0.8) inset,
+    0 0 0 2px rgba(255,0,229,0.15),
+    0 18px 50px rgba(0,0,0,0.45);
+  overflow: hidden;
+}
+
+/* Subtle felt grain */
+.table-oval::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 25% 15%, rgba(255,255,255,0.035), transparent 40%),
+    linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: auto, 20px 20px, 20px 20px;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+/* Grid inside table to place piles/center action cleanly */
+.battle-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, minmax(64px, 1fr));
+  gap: clamp(6px, 1vw, 12px);
+  min-height: clamp(220px, 38vh, 520px);
+  align-items: center;
+  justify-items: center;
+}
+
+/* Card back — keep in site palette */
+.card-back {
+  background:
+    repeating-linear-gradient(45deg, rgba(255,0,229,0.08) 0 8px, transparent 8px 16px),
+    radial-gradient(circle at 30% 20%, rgba(59,130,246,0.18), transparent 45%),
+    linear-gradient(180deg, #2a0e3a, #3b1a62 60%, #2a0e3a);
+  border: 1px solid rgba(59,130,246,0.35);
+  border-radius: 0.75rem;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.25), 0 6px 18px rgba(0,0,0,0.35);
+}
+
+/* Opponent mini-fan */
+.opponent-fan {
+  position: relative;
+  height: var(--opp-h, 78px);
+  width: var(--opp-w, 160px);
+  pointer-events: none;
+}
+.opponent-fan .card {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform-origin: bottom center;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.35);
+}
+
+/* My hand: a bit higher hover pop */
+.hand-card-hover:hover {
+  transform: translateY(-6px) rotate(var(--r, 0deg));
+}

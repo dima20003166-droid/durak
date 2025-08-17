@@ -13,7 +13,7 @@ const GameLayout = ({
     <div className="game-main justify-center">
       {leftSidebar ? <aside className="game-left">{leftSidebar}</aside> : (rightSidebar ? <aside className="game-left" aria-hidden="true" /> : null)}
       <div className="game-center">
-        {table && <div className="game-table">{table}</div>}
+        {table && <div className="game-table"><div className="table-oval"><div className="battle-grid">{table}</div></div></div>}
         {players && <div className="game-players">{players}</div>}
       </div>
       {rightSidebar && <aside className="game-right">{rightSidebar}</aside>}
