@@ -304,27 +304,145 @@
 .chatMessages{ overflow-y:auto; }
 
 
-/* === DurakTable (scoped) === */
-.dt-oval{border-radius:28px;padding:16px;background:linear-gradient(180deg,var(--color-surface),var(--color-surface));box-shadow:0 0 0 1px var(--color-border) inset,0 18px 50px rgba(0,0,0,.45);min-height:420px;}
-.dt-grid{display:grid;grid-template-areas:"top top top" "left field right" "bottom bottom bottom";grid-template-columns:1fr minmax(340px,1.4fr) 1fr;grid-template-rows:auto 1fr auto;gap:12px;align-items:center;}
-.dt-top{grid-area:top;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
-.dt-left{grid-area:left;display:flex;flex-direction:column;gap:12px;align-items:center;}
-.dt-right{grid-area:right;display:flex;flex-direction:column;gap:12px;align-items:center;}
-.dt-bottom{grid-area:bottom;display:flex;justify-content:center;}
-.dt-badge{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:120px;}
-.dt-avatar{width:56px;height:56px;border-radius:9999px;border:1px solid rgba(255,255,255,.12);}
-.dt-name{font-weight:600;font-size:14px;opacity:.9;text-align:center;max-width:140px;}
-.dt-status{font-size:12px;padding:2px 8px;border-radius:9999px;background:rgba(59,130,246,.14);border:1px solid rgba(59,130,246,.35)}
-.dt-status.atk{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.45)}
-.dt-status.def{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.45)}
-.dt-glow{box-shadow:0 0 0 3px rgba(255,255,255,.08),0 0 0 6px rgba(59,130,246,.18)}
-.dt-fan{position:relative;width:160px;height:80px;pointer-events:none;}
-.dt-fan-card{position:absolute;top:4px;left:50%;transform-origin:bottom center;}
-.dt-back{width:64px;height:92px;border-radius:12px;}
-.dt-field{grid-area:field;display:flex;flex-wrap:wrap;gap:16px;justify-content:center;align-content:center;min-height:220px;}
-.dt-cell{position:relative;width:80px;height:112px;}
-.dt-defense{position:absolute;left:32px;top:24px;transform:rotate(12deg);}
-.dt-hand{position:relative;height:152px;width:100%;}
-.dt-hand .dt-hand-wrap{position:absolute;bottom:0;transform-origin:bottom center;transition:transform .15s ease;}
-.dt-hand .dt-hand-wrap:hover{transform:translateY(-8px) rotate(var(--rot,0deg));}
-@media (max-width:768px){.dt-grid{grid-template-columns:1fr;grid-template-areas:"top" "field" "bottom";}.dt-left,.dt-right{display:none;}.dt-field{min-height:180px;}.dt-hand{height:132px;}}
+/* === Durak: Responsive + Motion v2 ======================================= */
+:root {
+  --bg: var(--bg, #0b1220);
+  --surface: var(--surface, #0f172a);
+  --surface-2: var(--surface-2, #111827);
+  --text: var(--text, #e5e7eb);
+  --muted: var(--muted, #94a3b8);
+  --color-primary: var(--color-primary, #22c55e);
+  --color-accent: var(--color-accent, #10b981);
+  --color-border: var(--color-border, #334155);
+  --color-danger: var(--color-danger, #ef4444);
+  --neon-primary: var(--neon-primary, rgba(32,212,116,.45));
+  --neon-accent: var(--neon-accent, rgba(56,189,248,.25));
+  --motion-fast: 180ms;
+  --motion-med: 260ms;
+}
+.bg-surface { background-color: var(--surface); }
+.text-bg { color: var(--text); }
+.text-text { color: var(--text); }
+.text-muted { color: var(--muted); }
+.text-danger { color: var(--color-danger); }
+.w-card-sm { width: 56px; }  .h-card-sm { height: 82px; }
+.w-card-md { width: 72px; }  .h-card-md { height: 106px; }
+.w-card-lg { width: 88px; }  .h-card-lg { height: 132px; }
+@media (min-width: 900px) {
+  .w-card-lg { width: 104px; } .h-card-lg { height: 156px; }
+}
+.durak-card { outline: none; }
+.durak-card:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 0 6px rgba(34,197,94,.25);
+  border-radius: 1rem;
+}
+.durak-card .card-frame {
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,.22), rgba(255,255,255,0) 45%),
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.12));
+  border-radius: 1rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 -1px 0 rgba(0,0,0,.2);
+}
+.card-face {
+  background: radial-gradient(120% 100% at 50% 0%, rgba(255,255,255,.86), rgba(255,255,255,.76));
+  border-radius: 1rem;
+}
+.card-back {
+  background:
+    radial-gradient(40% 60% at 30% 30%, rgba(255,255,255,.15), rgba(255,255,255,0)),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.16) 0 2px, rgba(255,255,255,.06) 2px 4px),
+    linear-gradient(180deg, var(--color-primary), var(--color-accent));
+  border-radius: 1rem;
+}
+.card-gloss {
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0) 44%);
+  mix-blend-mode: screen;
+  opacity: .75;
+}
+.win-effect { animation: winFlash .8s ease-out forwards; }
+@keyframes winFlash {
+  0% { box-shadow: 0 0 0 0 rgba(34,197,94,.0); transform: translateZ(0) scale(1); }
+  40% { box-shadow: 0 0 0 10px rgba(34,197,94,.35); transform: translateZ(0) scale(1.04); }
+  100% { box-shadow: 0 0 0 0 rgba(34,197,94,.0); transform: translateZ(0) scale(1); }
+}
+.player-badge.attacker { background: #e23c50; color: #fff; animation: neonPulse 2.2s ease-in-out infinite; }
+.player-badge.defender { background: #7c3aed; color: #fff; }
+@keyframes neonPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(226,60,80,.0); }
+  50% { box-shadow: 0 0 18px rgba(226,60,80,.5); }
+}
+.table-surface {
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(15, 59, 44, .8), rgba(7, 38, 28, .8)),
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.12));
+}
+.table-glass {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.10);
+}
+.glow-ring {
+  filter:
+    drop-shadow(0 0 10px var(--neon-primary))
+    drop-shadow(0 0 18px var(--neon-accent));
+}
+.deck-stack, .discard-stack { position: absolute; inset: 0; }
+.deck-stack .deck-card:nth-child(1) { position: absolute; left: 0; top: 0; transform: rotate(-6deg) translate(-6px, -4px); }
+.deck-stack .deck-card:nth-child(2) { position: absolute; left: 6px; top: 6px; transform: rotate(3deg); }
+.deck-stack .deck-card:nth-child(3) { position: absolute; left: 12px; top: 12px; transform: rotate(8deg); }
+.discard-stack .discard-card:nth-child(1) { position: absolute; right: 0; top: 0; transform: rotate(6deg); opacity: .9; }
+.discard-stack .discard-card:nth-child(2) { position: absolute; right: 10px; top: 8px; transform: rotate(-8deg); opacity: .7; }
+.card-on-top { transform-origin: 20% 20%; }
+@keyframes floatSlow { 0% { transform: translateY(0) } 50% { transform: translateY(-4px) } 100% { transform: translateY(0) } }
+.durak-battlefield .durak-card { animation: floatSlow 4s ease-in-out infinite; }
+.mini-back {
+  width: 24px; height: 32px; border-radius: 6px;
+  background:
+    radial-gradient(40% 60% at 30% 30%, rgba(255,255,255,.12), rgba(255,255,255,0)),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.14) 0 2px, rgba(255,255,255,.06) 2px 4px),
+    linear-gradient(180deg, var(--color-primary), var(--color-accent));
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: 0 2px 10px rgba(0,0,0,.35);
+}
+@media (max-width: 639px) { .durak-battlefield { min-height: 11rem; } }
+@media (min-width: 640px) and (max-width: 899px) { .durak-battlefield { min-height: 12rem; } }
+@media (min-width: 900px) { .durak-battlefield { min-height: 13rem; } }
+@media (prefers-reduced-motion: reduce) {
+  .durak-card, .durak-battlefield .durak-card { animation: none !important; }
+  .glow-ring { filter: none; }
+}
+/* === /Durak v2 =========================================================== */
+
+
+
+/* === Durak: Seating (2–6 players) v3 ===================================== */
+.seating-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --seat-radius: clamp(120px, 28vmin, 260px);
+}
+.seating-layer .seat {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: 0 0;
+  transform: rotate(var(--theta)) translate(var(--seat-radius)) rotate(calc(-1 * var(--theta)));
+  pointer-events: auto;
+  transition: filter var(--motion-med, 260ms), transform var(--motion-med, 260ms);
+}
+@media (pointer: fine) {
+  .seating-layer .seat:hover { filter: drop-shadow(0 4px 14px rgba(0,0,0,.3)); }
+}
+@media (min-width: 640px) and (max-width: 899px) {
+  .seating-layer { --seat-radius: clamp(120px, 32vmin, 240px); }
+}
+@media (min-width: 900px) {
+  .seating-layer { --seat-radius: clamp(140px, 26vmin, 280px); }
+}
+.durak-seat { max-width: 180px; }
+/* === /Seating v3 ========================================================= */
+
