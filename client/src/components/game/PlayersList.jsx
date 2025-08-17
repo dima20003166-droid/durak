@@ -4,77 +4,125 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
-export default function PlayersList({ room, mySocketId, myPlayer, gameState, selectedCard, setSelectedCard, openProfile }) {
+const Badge = ({ text }) => (
+  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-text/90 border border-border">
+    {text}
+  </span>
+);
+
+export default function PlayersList({
+  room,
+  mySocketId,
+  myPlayer,
+  gameState,
+  selectedCard,
+  setSelectedCard,
+  openProfile,
+}) {
   const myIdx = room.players.findIndex((x) => x.socketId === mySocketId);
   const ordered = myIdx >= 0 ? [...room.players.slice(myIdx), ...room.players.slice(0, myIdx)] : room.players;
   const me = ordered[0];
   const others = ordered.slice(1);
 
-  const renderFan = (hand, isMine=false) => {
-    if (isMine) {
-      const mid = (hand.length-1)/2;
-      return (
-        <div className="player-fan" style={{ width: 80 + hand.length*36 }}>
-          {hand.map((c,i)=>{
-            const angle=(i-mid)*6;
-            const offset=i*36;
+  const renderOpponent = (p) => {
+    const idx = room.players.findIndex((x) => x.socketId === p.socketId);
+    const isAttacker = idx === gameState.attackerIndex;
+    const isDefender = idx === gameState.defenderIndex;
+    const totalVisible = Math.min(8, p.hand?.length || 0);
+    const spread = Math.min(14, 6 + totalVisible * 1.2);
+    const step = (spread * 2) / Math.max(totalVisible - 1, 1);
+
+    return (
+      <div key={p.socketId} className="player-badge">
+        <img
+          className="avatar"
+          src={resolveAvatarUrl(p.avatarUrl) || `https://placehold.co/64x64/1f2937/ffffff?text=${(p.username||'P')[0]}`}
+          onClick={() => openProfile(p)}
+          alt=""
+        />
+        <div className="name" onClick={() => openProfile(p)}>{p.username}</div>
+        <div className="opponent-fan">
+          {Array.from({ length: totalVisible }).map((_, i) => {
+            const angle = -spread + i * step;
+            const shift = -36 + i * (72 / Math.max(totalVisible - 1, 1));
             return (
-              <motion.div key={c.id} className="fan-card" style={{ left:offset, transform:`rotate(${angle}deg)` }}>
-                <Card {...c} isSelected={selectedCard?.id===c.id} onClick={()=>setSelectedCard(c)} />
-              </motion.div>
+              <div key={i} className="card" style={{ transform:`translateX(${shift}px) rotate(${angle}deg)` }}>
+                <div className="card-back"></div>
+              </div>
             );
           })}
         </div>
-      );
-    } else {
-      const visible = Math.min(8, hand.length);
-      const mid = (visible-1)/2;
-      return (
-        <div className="player-fan" style={{ width: 120 }}>
-          {Array.from({length: visible}).map((_,i)=>(
-            <div key={i} className="fan-card" style={{ transform:`rotate(${(i-mid)*8}deg) translateY(-10px)` }}>
-              <div className="w-12 h-16 card-back rounded-md"></div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-  };
-
-  const renderPlayer = (p,isMine=false) => {
-    const idx = room.players.findIndex(x=>x.socketId===p.socketId);
-    const isAttacker = idx===gameState.attackerIndex;
-    const isDefender = idx===gameState.defenderIndex;
-    const statusText = isAttacker?'Атака':isDefender?'Защита':'';
-    return (
-      <div key={p.socketId} className="player-slot">
-        <div className="flex flex-col items-center cursor-pointer" onClick={()=>openProfile(p)}>
-          <img className="w-12 h-12 rounded-full object-cover mb-1" src={resolveAvatarUrl(p.avatarUrl,`https://placehold.co/48x48?text=${p.username[0]}`)} alt=""/>
-          <span className="text-xs">{p.username}</span>
-          {statusText && <span className="px-2 py-0.5 text-xs rounded-full bg-accent text-white">{statusText}</span>}
-        </div>
-        {renderFan(isMine? myPlayer.hand : p.hand, isMine)}
+        {(isAttacker || isDefender) && <Badge text={isAttacker ? 'Атака' : 'Защита'} />}
       </div>
     );
   };
 
-  const topPlayers = others.slice(0, Math.ceil(others.length/2));
-  const bottomPlayers = [renderPlayer(me,true)];
-  const leftPlayers = others.length>2 ? [renderPlayer(others[1])] : [];
-  const rightPlayers = others.length>3 ? [renderPlayer(others[2])] : [];
+  const renderMe = () => {
+    const hand = myPlayer.hand || [];
+    const total = hand.length;
+    const mid = (total - 1) / 2;
+    const base = 44; // spacing px
+    return (
+      <div className="my-hand">
+        {hand.map((card, i) => {
+          const offset = (i - mid) * base;
+          const rot = (i - mid) * 6;
+          const isSel = selectedCard?.id === card.id;
+          return (
+            <motion.div
+              key={card.id}
+              className="card-wrap"
+              style={{ left: `calc(50% + ${offset}px)`, '--rot': `${rot}deg` }}
+              whileHover={{ y: -8 }}
+            >
+              <Card
+                {...card}
+                layoutId={card.id}
+                isSelected={isSel}
+                onClick={() => setSelectedCard(card)}
+              />
+            </motion.div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const battlefield = (
     <div className="battlefield">
       <AnimatePresence>
-        {gameState.table.map(pair=>(
-          <div key={pair.attack.id} className="battle-slot">
-            <Card {...pair.attack} layoutId={pair.attack.id} className="attack-card"/>
-            {pair.defense && <Card {...pair.defense} layoutId={pair.defense.id} className="defense-card"/>}
-          </div>
+        {gameState.table.map((pair) => (
+          <motion.div
+            key={pair.attack.id}
+            className="relative w-20 h-28"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            layout
+          >
+            <Card {...pair.attack} layoutId={pair.attack.id} />
+            {pair.defense && (
+              <div className="absolute left-8 top-6 rotate-[12deg]">
+                <Card {...pair.defense} layoutId={pair.defense.id} />
+              </div>
+            )}
+          </motion.div>
         ))}
       </AnimatePresence>
     </div>
   );
 
-  return { top: topPlayers.map(p=>renderPlayer(p)), bottom: bottomPlayers, left: leftPlayers, right: rightPlayers, center: battlefield };
+  return (
+    <div className="table-slots">
+      <div className="slot-top">
+        {others.map(renderOpponent)}
+      </div>
+      <div className="slot-left" />
+      <div className="slot-right" />
+      {battlefield}
+      <div className="slot-bottom">
+        {renderMe()}
+      </div>
+    </div>
+  );
 }
