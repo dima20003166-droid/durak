@@ -5,6 +5,7 @@ import Card from '../Card';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 import TableCenter from './TableCenter';
 
+
 const PlayersList = ({
   room,
   mySocketId,
@@ -124,18 +125,7 @@ const PlayersList = ({
       </div>
       <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 flex items-center justify-center">
         <div className="flex items-center justify-center gap-4 flex-wrap">
-          <div className="flex flex-col items-center w-24 relative">
-            <div className="relative">
-              {gameState.deck.length > 1 && (
-                <>
-                  <Card isFaceUp={false} className="absolute top-1 left-1 -rotate-6" />
-                  <Card isFaceUp={false} className="absolute top-2 left-2 rotate-3" />
-                </>
-              )}
-              <Card {...gameState.trumpCard} layoutId="trump" className="relative z-10" />
-            </div>
-            <p className="mt-2">{gameState.deck.length} карт</p>
-          </div>
+          <Deck remaining={gameState.deck.length} trumpCard={gameState.trumpCard} />
           <TableCenter table={gameState.table} />
         </div>
       </div>
