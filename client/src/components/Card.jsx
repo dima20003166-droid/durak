@@ -47,7 +47,7 @@ export default function Card({
   };
   const S = sizes[size] || sizes.md;
   const borderSel = isSelected
-    ? 'ring-2 ring-primary shadow-[0_0_0_2px_var(--color-ring)] scale-105 -translate-y-2'
+    ? 'ring-2 ring-primary shadow-primary scale-105 -translate-y-2'
     : 'ring-1 ring-border';
   const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   useEffect(() => {
