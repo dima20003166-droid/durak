@@ -9,6 +9,7 @@ import PlayersList from '../components/game/PlayersList';
 import RoomChat from '../components/game/RoomChat';
 import ProfileModal from '../components/game/ProfileModal';
 import ActionPanel from '../components/game/ActionPanel';
+import Board from '../components/game/Board';
 import GameLayout from './GameLayout';
 import confetti from 'canvas-confetti';
 
@@ -120,6 +121,10 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
   }
 
   const gameState = room?.gameState;
+  const tablePairs = Array.isArray(gameState?.table) ? gameState.table.map((t) => ({
+    attack: t?.attack ?? (Array.isArray(t) ? t[0] : null),
+    defense: t?.defense ?? (Array.isArray(t) ? t[1] : null),
+  })) : [];
   const isOwner = !!((room?.ownerId && myPlayer?.id && room.ownerId === myPlayer.id) ||
                      (room?.ownerSocketId && room.ownerSocketId === mySocketId));
 
