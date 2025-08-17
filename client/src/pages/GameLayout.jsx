@@ -10,7 +10,7 @@ const GameLayout = ({
 }) => (
   <div className="game-layout text-text game-bg">
     {header && <header className="game-header">{header}</header>}
-    <div className="game-main justify-center">
+    <div className="game-main justify-center justify-center">
       {leftSidebar ? <aside className="game-left">{leftSidebar}</aside> : (rightSidebar ? <aside className="game-left" aria-hidden="true" /> : null)}
       <div className="game-center">
         {table && <div className="game-table">{table}</div>}

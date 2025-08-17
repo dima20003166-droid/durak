@@ -81,7 +81,8 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
         <div ref={chatEndRef} />
         </div>
         <div className="flex mt-2 w-full items-stretch gap-2 sticky bottom-0 bg-bg/70 backdrop-blur-sm p-2">
-          <input
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+  <input
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
             onKeyDown={(e) => (e.key === 'Enter' ? send() : null)}
@@ -89,12 +90,4 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
             placeholder="Сообщение..."
           />
           <Button className="rounded-l-none rounded-r shrink-0" onClick={send} variant="primary">
-            Отправить
-          </Button>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-export default RoomChat;
+            
