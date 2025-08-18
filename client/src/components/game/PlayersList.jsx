@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../Card';
+import { DeckView } from './DeckView';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
 const PlayersList = ({
@@ -155,18 +156,16 @@ const PlayersList = ({
       <div className="row-span-1 col-span-3 md:col-span-1 flex items-center justify-center">
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <div className="flex flex-col items-center w-24 relative">
-             <div className="relative w-20 h-28 flex items-center justify-center">
-                {/* Козырь лежит повернутым */}
-                <div className="absolute rotate-90">
-                    <Card {...gameState.trumpCard} layoutId="trump" />
-                </div>
-                {/* Стопка карт лежит сверху */}
-                {gameState.deck.length > 0 && (
-                <div className="absolute">
-                    <Card isFaceUp={false} />
-                </div>
-                )}
-            </div>
+             
+              {/* Колода + козырь (обновлено) */}
+              <DeckView
+                remaining={gameState?.deck?.length || 0}
+                trump={{ rank: gameState?.trumpCard?.rank, suit: gameState?.trumpCard?.suit }}
+                size={90}
+                reveal={0.44}
+                showBadge
+              />
+
             <p className="mt-2">{gameState.deck.length} карт</p>
           </div>
           <div className="flex items-center justify-center gap-4 min-w-[300px] flex-wrap">
