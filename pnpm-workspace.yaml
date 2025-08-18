@@ -1,4 +1,0 @@
-workspaces:
-  - 'client'
-  - 'server'
-  - 'shared'

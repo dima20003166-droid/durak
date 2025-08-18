@@ -1,9 +1,13 @@
 <!doctype html>
-<html>
+<html lang="">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Durak Online</title>
+    <title>DURAK.IO</title>
+    <script>
+      const saved = localStorage.getItem('language') || 'ru';
+      document.documentElement.lang = saved;
+    </script>
   </head>
   <body>
     <div id="root"></div>

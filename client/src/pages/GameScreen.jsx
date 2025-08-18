@@ -1,4 +1,3 @@
-
 // client/src/pages/GameScreen.jsx (FULL, 2025‑08‑15)
 // — В ОЖИДАНИИ: «Ожидаем игроков • ещё N» перенесено в центральный блок над «Стол создан / Ждём…»
 // — Кнопка «Отменить ставку и выйти» показывается ТОЛЬКО обычному игроку (не создателю) и только для столов 3+
@@ -304,17 +303,3 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
 };
 
 export default GameScreen;
-=======
-import React, { useEffect } from 'react'
-import Board from '../components/game/Board.jsx'
-import RejoinButton from '../components/lobby/RejoinButton.jsx'
-import { saveLastTable } from '../shared/lib/rejoin.js'
-export default function GameScreen(){
-  const tableId = 'demo-table'
-  useEffect(()=>{ saveLastTable(tableId) },[tableId])
-  return (<div style={{display:'grid',gap:12}}>
-    <RejoinButton />
-    <Board />
-  </div>)
-}
-

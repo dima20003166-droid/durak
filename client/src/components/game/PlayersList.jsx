@@ -117,9 +117,12 @@ const PlayersList = ({
                 <div className="relative" style={{ width }}>
                   {/* мини-веер рубашек наполовину под аватаркой */}
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none">
-                    {Array(Math.min(3, p.hand.length)).fill(null).map((_,n)=> (
-                      <div key={`back-${n}`} className="inline-block w-6 h-8 rounded bg-primary/40 border border-white/20 shadow-md -mx-1 rotate-[{-10 + n*10}]"></div>
-                    ))}
+                    {Array(Math.min(3, p.hand.length)).fill(null).map((_, n) => {
+                      const rotation = -10 + n * 10;
+                      return (
+                        <div key={`back-${n}`} style={{ transform: `rotate(${rotation}deg)`}} className="inline-block w-6 h-8 rounded bg-primary/40 border border-white/20 shadow-md -mx-1"></div>
+                      );
+                    })}
                   </div>
                   {Array(p.hand.length)
                     .fill(0)
@@ -146,23 +149,23 @@ const PlayersList = ({
       <div className="col-span-3 flex justify-center gap-4 flex-wrap">
         {topPlayers.map((p) => renderPlayer(p))}
       </div>
-      <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 hidden md:flex flex-col justify-center items-start gap-4 flex-wrap">
+      <div className="row-span-1 col-span-3 md:col-span-1 hidden md:flex flex-col justify-center items-start gap-4 flex-wrap">
         {leftPlayers.map((p) => renderPlayer(p))}
       </div>
-      <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 flex items-center justify-center">
+      <div className="row-span-1 col-span-3 md:col-span-1 flex items-center justify-center">
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <div className="flex flex-col items-center w-24 relative">
-            <div className="relative">
-              {gameState.deck.length > 1 && (
-                <>
-                  <Card isFaceUp={false} className="absolute top-1 left-1 -rotate-6 shadow-md" />
-                  <Card isFaceUp={false} className="absolute top-2 left-2 rotate-3 shadow-md" />
-                  {gameState.deck.length > 2 && (
-                    <Card isFaceUp={false} className="absolute top-3 left-3 rotate-[9deg] shadow-lg" />
-                  )}
-                </>
-              )}
-              <Card {...gameState.trumpCard} layoutId="trump" className="relative z-10" />
+             <div className="relative w-20 h-28 flex items-center justify-center">
+                {/* Козырь лежит повернутым */}
+                <div className="absolute rotate-90">
+                    <Card {...gameState.trumpCard} layoutId="trump" />
+                </div>
+                {/* Стопка карт лежит сверху */}
+                {gameState.deck.length > 0 && (
+                <div className="absolute">
+                    <Card isFaceUp={false} />
+                </div>
+                )}
             </div>
             <p className="mt-2">{gameState.deck.length} карт</p>
           </div>
@@ -191,7 +194,7 @@ const PlayersList = ({
           </div>
         </div>
       </div>
-      <div className="row-span-1 col-span-3 md:col-span-1 md:row-span-2 hidden md:flex flex-col justify-center items-end gap-4 flex-wrap">
+      <div className="row-span-1 col-span-3 md:col-span-1 hidden md:flex flex-col justify-center items-end gap-4 flex-wrap">
         {rightPlayers.map((p) => renderPlayer(p))}
       </div>
       <div className="col-span-3 flex justify-center gap-4 flex-wrap mt-4">

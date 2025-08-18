@@ -1,25 +1,29 @@
 import React from 'react';
 
-const GameLayout = ({
-  header,
-  table,
-  players,
-  leftSidebar,
-  rightSidebar,
-  footer,
-}) => (
-  <div className="game-layout text-text game-bg">
-    {header && <header className="game-header">{header}</header>}
-    <div className="game-main justify-center">
-      {leftSidebar ? <aside className="game-left">{leftSidebar}</aside> : (rightSidebar ? <aside className="game-left" aria-hidden="true" /> : null)}
-      <div className="game-center">
-        {table && <div className="game-table">{table}</div>}
-        {players && <div className="game-players">{players}</div>}
-      </div>
-      {rightSidebar && <aside className="game-right">{rightSidebar}</aside>}
+const GameLayout = ({ header, players, footer, rightSidebar, table }) => {
+  return (
+    <div className="min-h-screen flex flex-col p-4 game-bg text-text">
+      {header && <header className="mb-4">{header}</header>}
+
+      <main className="flex-grow grid grid-cols-12 grid-rows-1 gap-4">
+        {/* Ліва та центральна частина (гравці та стіл) */}
+        <div className="col-span-12 lg:col-span-9 flex flex-col">
+          {players ? (
+            <div className="flex-grow">{players}</div>
+          ) : table ? (
+            <div className="flex-grow flex items-center justify-center">{table}</div>
+          ) : null}
+        </div>
+
+        {/* Правий сайдбар (чат) */}
+        <aside className="col-span-12 lg:col-span-3 lg:block">
+          {rightSidebar}
+        </aside>
+      </main>
+
+      {footer && <footer className="mt-4">{footer}</footer>}
     </div>
-    {footer && <footer className="game-footer">{footer}</footer>}
-  </div>
-);
+  );
+};
 
 export default GameLayout;
