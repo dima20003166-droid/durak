@@ -185,7 +185,7 @@ const PlayersList = ({
                     <Card
                       {...pair.defense}
                       layoutId={pair.defense.id}
-                      className="absolute left-12 top-9 rotate-[22deg] z-10 card-on-top"
+                      className="absolute left-8 top-4 rotate-[15deg] z-10 card-on-top"
                     />
                   )}
                 </motion.div>
