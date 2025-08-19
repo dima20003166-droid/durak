@@ -15,6 +15,7 @@ import AuthModal from './components/AuthModal';
 import './index.css';
 import { setTheme, getInitialTheme } from './theme';
 import { updateParallax } from './utils/parallax';
+import { saveLastTableId, getLastTableId, clearLastTableId } from './shared/lib/rejoin';
 
 export default function App() {
   const [page, setPage] = useState('lobby');
@@ -28,12 +29,20 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
-  useEffect(() => {
-    setTheme(theme);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('theme', theme);
+useEffect(() => {
+    if (authChecked && currentUser && Date.now() > suppressAutoJoinUntil) {
+        const lastTableId = getLastTableId();
+        if (lastTableId) {
+            const roomExists = rooms.some(r => r.id === lastTableId);
+            if (roomExists) {
+                console.log('Найден предыдущий стол, попытка переподключения:', lastTableId);
+                socketService.joinRoom(lastTableId);
+            } else {
+                clearLastTableId();
+            }
+        }
     }
-  }, [theme]);
+  }, [authChecked, currentUser, rooms, suppressAutoJoinUntil]);
   const toggleTheme = () => setThemeState(t => t === 'dark' ? 'light' : 'dark');
 
   useEffect(() => {
@@ -108,13 +117,22 @@ export default function App() {
 
     socketService.on('room_update', handleRoomUpdate);
     socketService.on('game_started', handleGameStarted);
-    socketService.on('joined_room', (room) => { setCurrentRoom(room); setPage('game'); });
+    const handleJoinedRoom = (room) => {
+  setCurrentRoom(room);
+  setPage('game');
+  if (room && room.id) {
+    saveLastTableId(room.id);
+  }
+};
+socketService.on('joined_room', handleJoinedRoom);
     socketService.on('game_state_update', handleRoomUpdate);
     socketService.on('players_update', (players) => {
       setCurrentRoom((prev) => (prev ? { ...prev, players } : prev));
     });
     // Не редиректим здесь — модалка в GameScreen сама покажется
-    socketService.on('game_over', () => {});
+    socketService.on('game_over', () => {
+  clearLastTableId();
+});
 
     if (!token) {
       setAuthChecked(true);

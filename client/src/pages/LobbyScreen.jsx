@@ -211,8 +211,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
   };
 
 
-  const mySocketId = socketService.getSocketId();
-  const iAmInAnyRoom = Array.isArray(rooms) && rooms.some(r => r.players?.some?.(p => p.socketId === mySocketId));
+  const iAmInAnyRoom = user && Array.isArray(rooms) && rooms.some(r => r.players?.some?.(p => p.id === user.id));
 
 
   return (
@@ -275,7 +274,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
               <div className="bg-surface/50 backdrop-blur-sm border border-border rounded-xl p-6 space-y-4 flex-grow">
                 <AnimatePresence>
                   {rooms.map((room, idx) => {
-                    const iAmHere = room.players.some((p) => p.socketId === mySocketId);
+                    const iAmHere = user && room.players.some((p) => p.id === user.id);
                     return (
                       <motion.div
                         key={room.id}
@@ -297,7 +296,7 @@ const LobbyScreen = ({ user, onLogout, setPage, rooms, siteSettings, openAuthMod
                           </div>
                           {iAmHere ? (
                             <>
-                              <button onClick={() => setPage('game')} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">
+                              <button onClick={() => socketService.joinRoom(room.id)} className="font-bold py-2 px-6 rounded-lg bg-primary hover:bg-primary/80">
                                 Вернуться
                               </button>
                               {(room.status === 'waiting' && user && room.creatorId === user.id) && (

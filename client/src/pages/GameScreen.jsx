@@ -188,7 +188,12 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
               </div>
             </div>
           }
-          rightSidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />}
+          rightSidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile}
+            onAction={handleAction}
+            isAttacker={isAttacker}
+            isDefender={isDefender}
+            canThrowIn={canThrowIn}
+            actionBusy={actionBusy} />}
         />
         <ConfirmDialog
           open={cancelOpen}
@@ -248,7 +253,7 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
                 </div>
               )}
               <button onClick={handleLeave} className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors">
-                Покинуть
+                Выйти в лобби
               </button>
             </div>
             <div className="text-center p-2 bg-bg/50 rounded-lg">
@@ -269,9 +274,19 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
             selectedCard={selectedCard}
             setSelectedCard={setSelectedCard}
             openProfile={openProfile}
+            onAction={handleAction}
+            isAttacker={isAttacker}
+            isDefender={isDefender}
+            canThrowIn={canThrowIn}
+            actionBusy={actionBusy}
           />
         }
-        rightSidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile} />}
+        rightSidebar={<RoomChat chat={chat} myPlayer={myPlayer} onSend={sendRoomMessage} openProfile={openProfile}
+            onAction={handleAction}
+            isAttacker={isAttacker}
+            isDefender={isDefender}
+            canThrowIn={canThrowIn}
+            actionBusy={actionBusy} />}
         footer={
           <ActionPanel
             isAttacker={isAttacker}

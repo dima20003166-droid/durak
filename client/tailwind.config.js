@@ -25,14 +25,14 @@ export default {
         neon: ['"Orbitron"', 'sans-serif'],
       },
       width: {
-        'card-sm': '4rem',
-        'card-md': '5.375rem',
-        'card-lg': '6.5rem',
+        'card-sm': 'calc(var(--card-w) * 0.744)',
+        'card-md': 'var(--card-w)',
+        'card-lg': 'calc(var(--card-w) * 1.209)',
       },
       height: {
-        'card-sm': '5.625rem',
-        'card-md': '7.5rem',
-        'card-lg': '9.125rem',
+        'card-sm': 'calc(var(--card-h) * 0.75)',
+        'card-md': 'var(--card-h)',
+        'card-lg': 'calc(var(--card-h) * 1.217)',
       },
       spacing: {
         'card-overlap-sm': '1.5rem',

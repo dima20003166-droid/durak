@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../Card';
-import { DeckView } from './DeckView';
+import TableCardPair from './TableCardPair';
+import Button from '../Button';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
 const PlayersList = ({
@@ -12,6 +13,11 @@ const PlayersList = ({
   selectedCard,
   setSelectedCard,
   openProfile,
+  onAction,
+  isAttacker,
+  isDefender,
+  canThrowIn,
+  actionBusy,
 }) => {
   const myIdx = room.players.findIndex((x) => x.socketId === mySocketId);
   const orderedPlayers =
@@ -28,6 +34,29 @@ const PlayersList = ({
     else if (i % 3 === 1) rightPlayers.push(p);
     else leftPlayers.push(p);
   });
+
+  const tablePairs = gameState.table.map((pair, i) => ({
+    ...pair,
+    slotIndex: pair.slotIndex ?? i,
+  }));
+
+  // === layout/density tuning ===
+  const attackCount = (gameState?.table ?? []).reduce((n, p) => n + (p?.attack ? 1 : 0), 0);
+
+  function getTableLayout(pairs) {
+    const totalCards = (pairs ?? []).reduce(
+      (n, p) => n + (p?.attack ? 1 : 0) + (p?.defense ? 1 : 0),
+      0
+    );
+    if (totalCards <= 4)  return { cardW: 100, cardH: 150, overlap: 0.58, step: 60, maxPerRow: 6 };
+    if (totalCards <= 8)  return { cardW: 92,  cardH: 138, overlap: 0.62, step: 54, maxPerRow: 7 };
+    if (totalCards <= 12) return { cardW: 84,  cardH: 126, overlap: 0.64, step: 48, maxPerRow: 8 };
+    return { cardW: 78, cardH: 117, overlap: 0.66, step: 44, maxPerRow: 9 };
+  }
+
+  const layout = getTableLayout(tablePairs);
+  const { cardW, cardH, overlap: pairOverlap, step, maxPerRow } = layout;
+
 
   const renderPlayer = (p, isMine = false) => {
     const idx = room.players.findIndex((x) => x.socketId === p.socketId);
@@ -48,12 +77,60 @@ const PlayersList = ({
             >
               {statusText}
             </div>
-            <p
-              className="font-semibold -mt-1 truncate w-full text-center cursor-pointer"
-              onClick={() => openProfile(p)}
-            >
-              {p.username}
-            </p>
+            
+            <div className="mt-1 w-full flex items-center justify-center gap-2 flex-wrap">
+              {/* Compact action controls in place of my nickname */}
+              {isAttacker && (
+                <>
+                  <Button
+                    onClick={() => onAction('attack')}
+                    disabled={actionBusy || !selectedCard}
+                    className="px-3 py-1.5 text-sm md:text-base font-semibold"
+                    variant="primary"
+                  >
+                    Атакую
+                  </Button>
+                  <Button
+                    onClick={() => onAction('bito')}
+                    disabled={actionBusy || (gameState?.table?.length ?? 0) === 0}
+                    className="px-3 py-1.5 text-sm md:text-base font-semibold"
+                    variant="success"
+                  >
+                    Бито
+                  </Button>
+                  {canThrowIn && (
+                    <Button
+                      onClick={() => onAction('attack')}
+                      disabled={actionBusy || !selectedCard}
+                      className="px-3 py-1.5 text-sm md:text-base font-semibold"
+                    >
+                      Подкинуть
+                    </Button>
+                  )}
+                </>
+              )}
+              {isDefender && (
+                <>
+                  <Button
+                    onClick={() => onAction('defend')}
+                    disabled={actionBusy || !selectedCard || (gameState?.table?.length ?? 0) === 0}
+                    className="px-3 py-1.5 text-sm md:text-base font-semibold"
+                    variant="primary"
+                  >
+                    Бью
+                  </Button>
+                  <Button
+                    onClick={() => onAction('take')}
+                    disabled={actionBusy || (gameState?.table?.length ?? 0) === 0}
+                    className="px-3 py-1.5 text-sm md:text-base font-semibold"
+                    variant="danger"
+                  >
+                    Беру
+                  </Button>
+                </>
+              )}
+            </div>
+    
           </>
         ) : (
           <>
@@ -65,7 +142,7 @@ const PlayersList = ({
               {statusText}
             </div>
             <img
-              className="w-16 h-16 rounded-full object-cover cursor-pointer relative z-10"
+              className="w-16 h-16 rounded-full object-cover cursor-pointer relative z-10 -mb-3"
               src={resolveAvatarUrl(
                 p.avatarUrl,
                 `https://placehold.co/64x64/1f2937/ffffff?text=${p.username.charAt(0)}`
@@ -112,33 +189,55 @@ const PlayersList = ({
               );
             })()
           ) : (
-            (() => {
-              const width = 40 + p.hand.length * 6;
+            
+(() => {
+              // Compact opponent hand under avatar (v3):
+              // - No badge; the fan shows the exact number of cards
+              // - Multi-row layout when cards > maxPerRow
+              const total = p.hand.length || 0;
+              const cardW = 22;
+              const cardH = 34;
+              const maxPerRow = total <= 10 ? 10 : 12;
+              const stepX = Math.max(4, Math.floor(cardW * 0.45)); // overlap horizontally
+              const stepY = Math.max(6, Math.floor(cardH * 0.55)); // distance between rows
+              const rows = Math.max(1, Math.ceil(total / maxPerRow));
+              const cols = Math.min(total, maxPerRow);
+              const fanWidth = (cols - 1) * stepX + cardW;
+
               return (
-                <div className="relative" style={{ width }}>
-                  {/* мини-веер рубашек наполовину под аватаркой */}
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none">
-                    {Array(Math.min(3, p.hand.length)).fill(null).map((_, n) => {
-                      const rotation = -10 + n * 10;
+                <div className="relative h-16 w-full flex items-start justify-center -mt-1">
+                  {/* Fan of card backs under the avatar. Lower z to avoid covering nickname. */}
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-0"
+                    style={{ width: fanWidth, height: rows * stepY, top: -(cardH * 1.15) }}
+                  >
+                    {Array.from({ length: total }).map((_, i) => {
+                      const row = Math.floor(i / maxPerRow);
+                      const col = i % maxPerRow;
+                      const x = col * stepX;
+                      const rot = -6 + (col / Math.max(1, maxPerRow - 1)) * 12; // slight fan
+                      const y = row * stepY; // stack rows downward (but whole block is lifted up)
                       return (
-                        <div key={`back-${n}`} style={{ transform: `rotate(${rotation}deg)`}} className="inline-block w-6 h-8 rounded bg-primary/40 border border-white/20 shadow-md -mx-1"></div>
+                        <div
+                          key={i}
+                          className="absolute rounded border border-white/20 shadow"
+                          style={{
+                            left: x,
+                            top: y,
+                            width: cardW,
+                            height: cardH,
+                            transform: `rotate(${rot}deg)`,
+                            background: 'var(--color-primary, #334155)',
+                            opacity: 0.95,
+                          }}
+                        />
                       );
                     })}
                   </div>
-                  {Array(p.hand.length)
-                    .fill(0)
-                    .map((_, i) => (
-                      <div
-                        key={i}
-                        className="absolute"
-                        style={{ left: i * 6, transform: `rotate(${i % 2 ? 3 : -3}deg)` }}
-                      >
-                        <Card isFaceUp={false} layoutId={`${p.socketId}-card-${i}`} />
-                      </div>
-                    ))}
                 </div>
               );
             })()
+
           )}
         </div>
       </div>
@@ -156,37 +255,43 @@ const PlayersList = ({
       <div className="row-span-1 col-span-3 md:col-span-1 flex items-center justify-center">
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <div className="flex flex-col items-center w-24 relative">
-             
-              {/* Колода + козырь (обновлено) */}
-              <DeckView
-                remaining={gameState?.deck?.length || 0}
-                trump={{ rank: gameState?.trumpCard?.rank, suit: gameState?.trumpCard?.suit }}
-                size={90}
-                reveal={0.44}
-                showBadge
-              />
-
+             <div className="relative w-card-md h-card-md flex items-center justify-center">
+                {/* Козырь лежит повернутым */}
+                {attackCount < 4 && (
+                <div className="absolute rotate-90 -translate-x-2 z-0">
+                    <Card {...gameState.trumpCard} layoutId="trump" />
+                </div>
+                )}
+                {/* Стопка карт лежит сверху */}
+                {gameState.deck.length > 0 && attackCount < 4 && (
+                <div className="absolute translate-x-2 z-10">
+                    <Card isFaceUp={false} />
+                </div>
+                )}
+            </div>
             <p className="mt-2">{gameState.deck.length} карт</p>
           </div>
-          <div className="flex items-center justify-center gap-4 min-w-[300px] flex-wrap">
+          <div
+            className="relative min-w-[300px]"
+            style={{ height: 'var(--card-h)', width: `calc(${tablePairs.length} * (var(--card-w) + 1rem))` }}
+          >
             <AnimatePresence>
-              {gameState.table.map((pair) => (
+              {tablePairs.map((pair) => (
                 <motion.div
                   key={pair.attack.id}
-                  className="relative w-20 h-28"
+                  className="absolute"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
                   layout
+                  style={{
+                    top: 0,
+                    left: `${(pair.slotIndex ?? 0) * step}px`,
+                    width: `${cardW}px`,
+                    height: `${cardH}px`,
+                  }}
                 >
-                  <Card {...pair.attack} layoutId={pair.attack.id} className="relative z-0" />
-                  {pair.defense && (
-                    <Card
-                      {...pair.defense}
-                      layoutId={pair.defense.id}
-                      className="absolute left-12 top-9 rotate-[22deg] z-10 card-on-top"
-                    />
-                  )}
+                  <TableCardPair attack={pair.attack} defense={pair.defense} dir={pair.dir} overlap={pairOverlap} cardW={cardW} cardH={cardH} seed={pair.id ?? `${pair.attack?.code}-${pair.defense?.code ?? ''}`} slotIndex={pair.slotIndex ?? i} />
                 </motion.div>
               ))}
             </AnimatePresence>

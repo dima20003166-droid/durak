@@ -20,6 +20,8 @@
     --neon-danger: #ff4d4d;
     --parallax-x: 0px;
     --parallax-y: 0px;
+    --card-w: 5.375rem;
+    --card-h: 7.5rem;
 
     /* jackpot wheel theme */
     --surface-900: #0b0f15;
