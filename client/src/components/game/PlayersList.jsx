@@ -157,12 +157,12 @@ const PlayersList = ({
           <div className="flex flex-col items-center w-24 relative">
              <div className="relative w-20 h-28 flex items-center justify-center">
                 {/* Козырь лежит повернутым */}
-                <div className="absolute rotate-90">
+                <div className="absolute rotate-90 -translate-x-2 z-0">
                     <Card {...gameState.trumpCard} layoutId="trump" />
                 </div>
                 {/* Стопка карт лежит сверху */}
                 {gameState.deck.length > 0 && (
-                <div className="absolute">
+                <div className="absolute translate-x-2 z-10">
                     <Card isFaceUp={false} />
                 </div>
                 )}
