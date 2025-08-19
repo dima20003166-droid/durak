@@ -1,7 +1,7 @@
 // client/src/components/Card.jsx
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const suitColor = (suit) => (suit === '♥' || suit === '♦' ? 'text-danger' : 'text-bg');
 const suitFill  = (suit) => (suit === '♥' || suit === '♦' ? 'var(--color-danger)' : 'var(--color-bg)');

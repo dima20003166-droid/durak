@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../Card';
+import TableCardPair from './TableCardPair';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
 
 const PlayersList = ({
@@ -27,6 +28,11 @@ const PlayersList = ({
     else if (i % 3 === 1) rightPlayers.push(p);
     else leftPlayers.push(p);
   });
+
+  const tablePairs = gameState.table.map((pair, i) => ({
+    ...pair,
+    slotIndex: pair.slotIndex ?? i,
+  }));
 
   const renderPlayer = (p, isMine = false) => {
     const idx = room.players.findIndex((x) => x.socketId === p.socketId);
@@ -155,7 +161,7 @@ const PlayersList = ({
       <div className="row-span-1 col-span-3 md:col-span-1 flex items-center justify-center">
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <div className="flex flex-col items-center w-24 relative">
-             <div className="relative w-20 h-28 flex items-center justify-center">
+             <div className="relative w-card-md h-card-md flex items-center justify-center">
                 {/* Козырь лежит повернутым */}
                 <div className="absolute rotate-90 -translate-x-2 z-0">
                     <Card {...gameState.trumpCard} layoutId="trump" />
@@ -169,25 +175,27 @@ const PlayersList = ({
             </div>
             <p className="mt-2">{gameState.deck.length} карт</p>
           </div>
-          <div className="flex items-center justify-center gap-4 min-w-[300px] flex-wrap">
+          <div
+            className="relative min-w-[300px]"
+            style={{ height: 'var(--card-h)', width: `calc(${tablePairs.length} * (var(--card-w) + 1rem))` }}
+          >
             <AnimatePresence>
-              {gameState.table.map((pair) => (
+              {tablePairs.map((pair) => (
                 <motion.div
                   key={pair.attack.id}
-                  className="relative w-20 h-28"
+                  className="absolute"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
                   layout
+                  style={{
+                    top: 0,
+                    left: `calc(${pair.slotIndex} * (var(--card-w) + 1rem))`,
+                    width: 'var(--card-w)',
+                    height: 'var(--card-h)',
+                  }}
                 >
-                  <Card {...pair.attack} layoutId={pair.attack.id} className="relative z-0" />
-                  {pair.defense && (
-                    <Card
-                      {...pair.defense}
-                      layoutId={pair.defense.id}
-                      className="absolute left-8 top-4 rotate-[15deg] z-10 card-on-top"
-                    />
-                  )}
+                  <TableCardPair attack={pair.attack} defense={pair.defense} dir={pair.dir} />
                 </motion.div>
               ))}
             </AnimatePresence>
