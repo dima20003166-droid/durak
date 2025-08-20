@@ -171,15 +171,9 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
                       Отменить ставку и выйти
                     </button>
                   )}
-                  <button onClick={handleLeave} className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors">
-                    Выйти в лобби
-                  </button>
-                  <Button
-                    onClick={() => setSurrenderOpen(true)}
-                    variant="outline"
-                    className="px-4 py-2"
-                  >Сдаться</Button>
-
+                    <button onClick={handleLeave} className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors">
+                      Выйти в лобби
+                    </button>
                 </div>
               </div>
             </>
@@ -257,12 +251,23 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
                   Ожидаем игроков • ещё {Math.max(0, (Number(room?.maxPlayers || 2) - Number(room?.players?.length || 0)))}
                 </div>
               )}
-              <button onClick={handleLeave} className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors">
-                Выйти в лобби
-              </button>
-            </div>
-            <div className="text-center p-2 bg-bg/50 rounded-lg">
-              <p>{gameState.message}</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setSurrenderOpen(true)}
+                    className="bg-surface text-text font-bold py-2 px-4 rounded-lg hover:bg-surface/80 transition-colors"
+                  >
+                    Сдаться
+                  </button>
+                  <button
+                    onClick={handleLeave}
+                    className="bg-danger hover:bg-danger/80 text-text font-bold py-2 px-4 rounded-lg transition-colors"
+                  >
+                    Выйти в лобби
+                  </button>
+                </div>
+              </div>
+              <div className="text-center p-2 bg-bg/50 rounded-lg">
+                <p>{gameState.message}</p>
               <div className="mt-2 h-2 w-full bg-surface rounded">
                 <div className="h-2 bg-primary rounded" style={{ width: `${msToPercent}%` }} />
               </div>
