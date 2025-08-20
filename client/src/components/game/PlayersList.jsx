@@ -80,35 +80,26 @@ const PlayersList = ({
             
             <div className="mt-1 w-full flex items-center justify-center gap-2 flex-wrap">
               {/* Compact action controls in place of my nickname */}
-              {isAttacker && (
-                <>
-                  <Button
-                    onClick={() => onAction('attack')}
-                    disabled={actionBusy || !selectedCard}
-                    className="px-3 py-1.5 text-sm md:text-base font-semibold"
-                    variant="primary"
-                  >
-                    Атакую
-                  </Button>
-                  <Button
-                    onClick={() => onAction('bito')}
-                    disabled={actionBusy || (gameState?.table?.length ?? 0) === 0}
-                    className="px-3 py-1.5 text-sm md:text-base font-semibold"
-                    variant="success"
-                  >
-                    Бито
-                  </Button>
-                  {canThrowIn && (
+                {isAttacker && (
+                  <>
                     <Button
                       onClick={() => onAction('attack')}
                       disabled={actionBusy || !selectedCard}
                       className="px-3 py-1.5 text-sm md:text-base font-semibold"
+                      variant="primary"
                     >
-                      Подкинуть
+                      {canThrowIn ? 'Подкинуть' : 'Атакую'}
                     </Button>
-                  )}
-                </>
-              )}
+                    <Button
+                      onClick={() => onAction('bito')}
+                      disabled={actionBusy || (gameState?.table?.length ?? 0) === 0}
+                      className="px-3 py-1.5 text-sm md:text-base font-semibold"
+                      variant="success"
+                    >
+                      Бито
+                    </Button>
+                  </>
+                )}
               {isDefender && (
                 <>
                   <Button
