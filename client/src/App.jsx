@@ -202,7 +202,7 @@ socketService.on('joined_room', handleJoinedRoom);
   return (
     <ErrorBoundary>
       <motion.div
-        className="bg-bg text-text min-h-screen relative transition-colors duration-300 overflow-hidden"
+        className="bg-bg text-text min-h-screen relative transition-colors duration-300 overflow-x-hidden"
         animate={{
           backgroundColor: theme === 'dark' ? '#050510' : '#f8fafc',
           color: theme === 'dark' ? '#f3f4ff' : '#0f172a',
