@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import Button from '../Button';
 import resolveAvatarUrl from '../../utils/resolveAvatarUrl';
@@ -80,7 +81,7 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
         })}
         <div ref={chatEndRef} />
         </div>
-        <div className="flex mt-2 w-full items-stretch gap-2 sticky bottom-0 bg-bg/70 backdrop-blur-sm p-2">
+        <div className="flex mt-2 w-full items-stretch gap-2 bg-surface p-2">
           <input
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
@@ -95,6 +96,26 @@ const RoomChat = ({ chat, myPlayer, onSend, openProfile }) => {
       </div>
     </motion.div>
   );
+};
+
+RoomChat.propTypes = {
+  chat: PropTypes.arrayOf(
+    PropTypes.shape({
+      user: PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        username: PropTypes.string,
+        avatarUrl: PropTypes.string,
+      }),
+      text: PropTypes.string,
+    })
+  ),
+  myPlayer: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    username: PropTypes.string,
+    avatarUrl: PropTypes.string,
+  }),
+  onSend: PropTypes.func.isRequired,
+  openProfile: PropTypes.func.isRequired,
 };
 
 export default RoomChat;
