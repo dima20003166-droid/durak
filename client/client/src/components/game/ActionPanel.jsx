@@ -11,8 +11,6 @@ const ActionPanel = ({
   actionBusy,
   gameState,
   onAction,
-  onSurrender,
-  canSurrender,
 }) => {
   return (
     <motion.div
@@ -67,11 +65,10 @@ const ActionPanel = ({
           </Button>
         )}
       </div>
-      <div className="md:ml-auto ml-0">
-</div>
-    </motion.div>
-  );
-};
+        
+      </motion.div>
+    );
+  };
 
 export default ActionPanel;
 
@@ -83,6 +80,4 @@ ActionPanel.propTypes = {
   actionBusy: PropTypes.bool,
   gameState: PropTypes.object,
   onAction: PropTypes.func.isRequired,
-  onSurrender: PropTypes.func.isRequired,
-  canSurrender: PropTypes.bool,
 };

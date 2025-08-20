@@ -11,8 +11,6 @@ const ActionPanel = ({
   actionBusy,
   gameState,
   onAction,
-  onSurrender,
-  canSurrender,
 }) => {
   return (
     <motion.div
@@ -67,17 +65,6 @@ const ActionPanel = ({
           </Button>
         )}
       </div>
-      <div className="md:ml-auto ml-0">
-        <Button
-          onClick={onSurrender}
-          disabled={!canSurrender}
-          className="px-6 py-3 font-semibold"
-          variant="default"
-          title="Признать поражение и завершить игру"
-        >
-          Сдаться
-        </Button>
-      </div>
     </motion.div>
   );
 };
@@ -92,6 +79,4 @@ ActionPanel.propTypes = {
   actionBusy: PropTypes.bool,
   gameState: PropTypes.object,
   onAction: PropTypes.func.isRequired,
-  onSurrender: PropTypes.func.isRequired,
-  canSurrender: PropTypes.bool,
 };
