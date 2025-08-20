@@ -8,7 +8,6 @@ import socketService from '../services/socketService';
 import PlayersList from '../components/game/PlayersList';
 import RoomChat from '../components/game/RoomChat';
 import ProfileModal from '../components/game/ProfileModal';
-import ActionPanel from '../components/game/ActionPanel';
 import GameLayout from './GameLayout';
 import confetti from 'canvas-confetti';
 
@@ -287,19 +286,6 @@ const GameScreen = ({ room, setSuppressAutoJoinUntil, setPage }) => {
             isDefender={isDefender}
             canThrowIn={canThrowIn}
             actionBusy={actionBusy} />}
-        footer={
-          <ActionPanel
-            isAttacker={isAttacker}
-            isDefender={isDefender}
-            canThrowIn={canThrowIn}
-            selectedCard={selectedCard}
-            actionBusy={actionBusy}
-            gameState={gameState}
-            onAction={handleAction}
-            onSurrender={() => setSurrenderOpen(true)}
-            canSurrender={room?.status === 'playing' && !actionBusy}
-          />
-        }
       />
 
       <ConfirmDialog
